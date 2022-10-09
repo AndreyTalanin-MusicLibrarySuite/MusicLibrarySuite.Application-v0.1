@@ -1,0 +1,32 @@
+.application {
+  min-height: 100vh;
+}
+
+.application-title {
+  float: left;
+  margin: 0px 24px 0px 0px;
+  color: #ffffff;
+}
+
+.application-sider {
+  width: 240px;
+  background: #ffffff;
+}
+
+.application-breadcrumb {
+  margin: 16px 0;
+}
+
+.application-page-wrapper {
+  padding: 0 24px 24px;
+}
+
+.application-page-wrapper-content {
+  margin: 0;
+  padding: 24px;
+  background: #ffffff;
+}
+
+.application-footer {
+  text-align: center;
+}
