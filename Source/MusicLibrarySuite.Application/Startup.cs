@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -11,6 +12,8 @@ namespace MusicLibrarySuite.Application;
 /// </summary>
 public class Startup
 {
+    private const string c_clientApplicationPath = "ClientApplication";
+
     /// <summary>
     /// Adds services to the container.
     /// </summary>
@@ -23,6 +26,11 @@ public class Startup
         services.AddEndpointsApiExplorer();
 
         services.AddSwaggerGen();
+
+        services.AddSpaStaticFiles(staticFilesOptions =>
+        {
+            staticFilesOptions.RootPath = $"{c_clientApplicationPath}/build";
+        });
     }
 
     /// <summary>
@@ -47,6 +55,9 @@ public class Startup
 
         applicationBuilder.UseHttpsRedirection();
 
+        applicationBuilder.UseStaticFiles();
+        applicationBuilder.UseSpaStaticFiles();
+
         applicationBuilder.UseRouting();
 
         applicationBuilder.UseAuthorization();
@@ -54,6 +65,16 @@ public class Startup
         applicationBuilder.UseEndpoints(endpointRouteBuilder =>
         {
             endpointRouteBuilder.MapControllers();
+        });
+
+        applicationBuilder.UseSpa(spaBuilder =>
+        {
+            spaBuilder.Options.SourcePath = c_clientApplicationPath;
+
+            if (webHostEnvironment.IsDevelopment())
+            {
+                spaBuilder.UseReactDevelopmentServer(npmScript: "start");
+            }
         });
     }
 }

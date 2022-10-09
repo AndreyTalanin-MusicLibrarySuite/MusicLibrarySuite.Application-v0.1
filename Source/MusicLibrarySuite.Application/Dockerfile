@@ -3,7 +3,19 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 EXPOSE 80
 EXPOSE 443
 
+RUN apt-get update
+RUN apt-get install -y curl
+RUN apt-get install -y build-essential libjpeg-dev libpng-dev libxi6 libgl1-mesa-glx
+RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
+RUN apt-get install -y nodejs
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+
+RUN apt-get update
+RUN apt-get install -y curl
+RUN apt-get install -y build-essential libjpeg-dev libpng-dev libxi6 libgl1-mesa-glx
+RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
+RUN apt-get install -y nodejs
 
 WORKDIR "/src"
 COPY ["MusicLibrarySuite.Application/MusicLibrarySuite.Application.csproj", "MusicLibrarySuite.Application/"]
