@@ -21,6 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <OpenApiReference Include="Dependencies\MusicLibrarySuite.CatalogService.json" CodeGenerator="NSwagCSharp" Namespace="MusicLibrarySuite.CatalogService.Client" ClassName="CatalogServiceClient">
+      <Options>/UseBaseUrl:false /GenerateClientInterfaces:true</Options>
+    </OpenApiReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.10" />
     <PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="6.0.10">
       <PrivateAssets>all</PrivateAssets>

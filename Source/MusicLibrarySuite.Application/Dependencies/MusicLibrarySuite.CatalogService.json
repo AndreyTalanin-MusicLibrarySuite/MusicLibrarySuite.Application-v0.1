@@ -1,0 +1,32 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Music Library Suite - Catalog Service API v0.1",
+    "description": "Initial pre-release (unstable) API version.",
+    "contact": {
+      "name": "Andrey Talanin",
+      "url": "https://github.com/AndreyTalanin",
+      "email": "andrey.talanin@outlook.com"
+    },
+    "license": {
+      "name": "The MIT License",
+      "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
+    },
+    "version": "v0.1"
+  },
+  "paths": {
+    "/api/Health/Check": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {}
+}
