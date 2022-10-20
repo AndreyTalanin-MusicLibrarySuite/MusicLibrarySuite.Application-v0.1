@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.gitignore = ..\.gitignore
 		..\LICENSE.md = ..\LICENSE.md
 		..\README.md = ..\README.md
+		Template.NuGet.config = Template.NuGet.config
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicLibrarySuite.Application", "MusicLibrarySuite.Application\MusicLibrarySuite.Application.csproj", "{8EA892C2-0582-4AC2-9CA5-31F5170D46B2}"
