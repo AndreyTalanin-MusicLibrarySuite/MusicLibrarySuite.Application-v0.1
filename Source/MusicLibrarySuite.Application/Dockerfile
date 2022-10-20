@@ -17,7 +17,14 @@ RUN apt-get install -y build-essential libjpeg-dev libpng-dev libxi6 libgl1-mesa
 RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
 RUN apt-get install -y nodejs
 
+ARG NuGetUsername
+ARG NuGetClearTextPassword
+
+ENV NUGET_USERNAME=$NuGetUsername
+ENV NUGET_CLEARTEXTPASSWORD=$NuGetClearTextPassword
+
 WORKDIR "/src"
+COPY ["Template.NuGet.config", "NuGet.config"]
 COPY ["MusicLibrarySuite.Application/MusicLibrarySuite.Application.csproj", "MusicLibrarySuite.Application/"]
 RUN dotnet restore "MusicLibrarySuite.Application/MusicLibrarySuite.Application.csproj"
 COPY "." "."
