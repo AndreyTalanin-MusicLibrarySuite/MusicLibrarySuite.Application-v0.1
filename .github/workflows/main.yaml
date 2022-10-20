@@ -2,6 +2,8 @@ name: Main workflow
 
 on: [push]
 
+permissions: read-all
+
 jobs:
   build-solution:
     name: Build solution
@@ -10,4 +12,9 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
       - name: Build application project
-        run: docker build -f ./Source/MusicLibrarySuite.Application/Dockerfile ./Source
+        run: |
+          docker build \
+            --file ./Source/MusicLibrarySuite.Application/Dockerfile \
+            --build-arg NuGetUsername=AndreyTalanin \
+            --build-arg NuGetClearTextPassword=${{ secrets.GITHUB_TOKEN }} \
+            ./Source
