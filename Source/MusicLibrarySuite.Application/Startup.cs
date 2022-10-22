@@ -1,8 +1,11 @@
+using System;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
 using MusicLibrarySuite.Application.Extensions;
 using MusicLibrarySuite.CatalogService.Client;
@@ -35,7 +38,29 @@ public class Startup
             staticFilesOptions.RootPath = $"{c_clientApplicationPath}/build";
         });
 
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(options =>
+        {
+            var contact = new OpenApiContact()
+            {
+                Name = "Andrey Talanin",
+                Email = "andrey.talanin@outlook.com",
+                Url = new Uri("https://github.com/AndreyTalanin"),
+            };
+            var license = new OpenApiLicense()
+            {
+                Name = "The MIT License",
+                Url = new Uri("https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"),
+            };
+
+            options.SwaggerDoc("MusicLibrarySuite.Application", new OpenApiInfo()
+            {
+                Title = "Music Library Suite - Application API v0.1",
+                Description = "Initial pre-release (unstable) API version.",
+                Version = "v0.1",
+                Contact = contact,
+                License = license,
+            });
+        });
 
         services.AddHttpClient();
 
@@ -53,7 +78,10 @@ public class Startup
         if (webHostEnvironment.IsDevelopment())
         {
             applicationBuilder.UseSwagger();
-            applicationBuilder.UseSwaggerUI();
+            applicationBuilder.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint($"/swagger/MusicLibrarySuite.Application/swagger.json", $"MusicLibrarySuite.Application");
+            });
 
             applicationBuilder.UseDeveloperExceptionPage();
         }
