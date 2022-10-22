@@ -21,7 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <OpenApiReference Include="Dependencies\MusicLibrarySuite.CatalogService.json" CodeGenerator="NSwagCSharp" Namespace="MusicLibrarySuite.CatalogService.Client" ClassName="CatalogServiceClient">
+    <OpenApiReference Include="Dependencies\MusicLibrarySuite.Application.json" CodeGenerator="NSwagTypeScript" ClassName="ApplicationClient" Namespace="MusicLibrarySuite.Application.Client" OutputPath="TypeScript\ApplicationClient.ts">
+    </OpenApiReference>
+    <OpenApiReference Include="Dependencies\MusicLibrarySuite.CatalogService.json" CodeGenerator="NSwagCSharp" ClassName="CatalogServiceClient" Namespace="MusicLibrarySuite.CatalogService.Client">
       <Options>/UseBaseUrl:false /GenerateClientInterfaces:true</Options>
     </OpenApiReference>
   </ItemGroup>
@@ -52,6 +54,11 @@
     <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
     <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+  </Target>
+
+  <Target Name="DebugGenerateTypeScriptClient" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)\src\api\ApplicationClient.ts') ">
+    <!-- Generate a TypeScript client and copy it to the output folder if it does not exist. -->
+    <Copy SourceFiles="$(BaseIntermediateOutputPath)TypeScript\ApplicationClient.ts" DestinationFiles="$(SpaRoot)\src\api\ApplicationClient.ts" />
   </Target>
 
   <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
