@@ -1,6 +1,6 @@
 import { Menu } from "antd";
 import { useLocation, useNavigate } from "react-router";
-import ApplicationMenuItemDescriptor from "./ApplicationMenuItemDescriptor";
+import ApplicationMenuItemDescriptor from "./entities/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "./entities/ApplicationPageDescriptor";
 import "antd/dist/antd.min.css";
 
@@ -23,18 +23,18 @@ const ApplicationMenu = ({ applicationPageDescriptors, applicationMenuItemDescri
   const pathsByMenuItemKeys = new Map<string, string>();
 
   const createMenuItem = (applicationMenuItemDescriptor: ApplicationMenuItemDescriptor) => {
-    const { key, type, text } = applicationMenuItemDescriptor;
+    const { key, type, label } = applicationMenuItemDescriptor;
     const applicationPageDescriptor = applicationPageDescriptors.find((applicationPageDescriptor) => applicationPageDescriptor.key === key);
 
     let menuItem: MenuItem;
     switch (type) {
       case "item":
-        menuItem = { key: key, label: text };
+        menuItem = { key: key, label: label };
         break;
       case "menu":
         menuItem = {
           key: key,
-          label: text,
+          label: label,
           children: applicationMenuItemDescriptor.items?.map((childApplicationMenuItemDescriptor) => createMenuItem(childApplicationMenuItemDescriptor)),
         };
         break;

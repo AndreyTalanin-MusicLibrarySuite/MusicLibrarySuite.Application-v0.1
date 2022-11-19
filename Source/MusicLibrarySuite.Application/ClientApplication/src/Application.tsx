@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { BrowserRouter } from "react-router-dom";
 import ApplicationLayout from "./ApplicationLayout";
-import ApplicationMenuItemDescriptor from "./ApplicationMenuItemDescriptor";
+import ApplicationMenuItemDescriptor from "./entities/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "./entities/ApplicationPageDescriptor";
 import HomePage from "./pages/HomePage";
 import InvalidRoutePage from "./pages/InvalidRoutePage";
@@ -13,7 +13,7 @@ const applicationPageDescriptors: ApplicationPageDescriptor[] = [
 ];
 
 const applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[] = [
-  { key: "home-page", text: "Home", type: "item" },
+  { key: "home-page", label: "Home", type: "item" },
 ];
 
 const Application = () => {
