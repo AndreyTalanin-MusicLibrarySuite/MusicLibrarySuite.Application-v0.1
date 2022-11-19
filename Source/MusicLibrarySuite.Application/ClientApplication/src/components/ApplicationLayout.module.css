@@ -2,31 +2,35 @@
   min-height: 100vh;
 }
 
-.application-title {
+.applicationHeader {
+  padding: 0px 24px;
+}
+
+.applicationTitle {
   float: left;
   margin: 0px 24px 0px 0px;
   color: #ffffff;
 }
 
-.application-sider {
+.applicationSider {
   width: 240px;
   background: #ffffff;
 }
 
-.application-breadcrumb {
+.applicationBreadcrumb {
   margin: 16px 0;
 }
 
-.application-page-wrapper {
+.applicationPageWrapper {
   padding: 0 24px 24px;
 }
 
-.application-page-wrapper-content {
+.applicationPageWrapperContent {
   margin: 0;
   padding: 24px;
   background: #ffffff;
 }
 
-.application-footer {
+.applicationFooter {
   text-align: center;
 }

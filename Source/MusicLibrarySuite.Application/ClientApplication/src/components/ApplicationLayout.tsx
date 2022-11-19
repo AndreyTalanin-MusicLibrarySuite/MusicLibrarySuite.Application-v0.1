@@ -3,8 +3,8 @@ import { matchPath, useLocation } from "react-router";
 import ApplicationMenu from "./ApplicationMenu";
 import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "../entities/ApplicationPageDescriptor";
+import styles from "./ApplicationLayout.module.css";
 import "antd/dist/antd.min.css";
-import "./ApplicationLayout.css";
 
 export interface ApplicationLayoutProps {
   currentApplicationPage: React.ReactNode;
@@ -41,7 +41,7 @@ const ApplicationLayout = ({ currentApplicationPage, applicationPageDescriptors,
     }
 
     return (
-      <Breadcrumb className="application-breadcrumb">
+      <Breadcrumb className={styles.applicationBreadcrumb}>
         {matchedApplicationPageDescriptors.map((route, index) => (
           <Breadcrumb.Item key={index}>{route.name}</Breadcrumb.Item>
         ))}
@@ -50,16 +50,16 @@ const ApplicationLayout = ({ currentApplicationPage, applicationPageDescriptors,
   };
 
   return (
-    <Layout className="application">
-      <Layout.Header>
-        <p className="application-title">Music Library Suite</p>
+    <Layout className={styles.application}>
+      <Layout.Header className={styles.applicationHeader}>
+        <p className={styles.applicationTitle}>Music Library Suite</p>
         <ApplicationMenu applicationMenuItemDescriptors={applicationMenuItemDescriptors} applicationPageDescriptors={applicationPageDescriptors} />
       </Layout.Header>
       <Layout>
-        <Layout className="application-page-wrapper">
+        <Layout className={styles.applicationPageWrapper}>
           {createBreadcrumb()}
-          <Layout.Content className="application-page-wrapper-content">{currentApplicationPage}</Layout.Content>
-          <Layout.Footer className="application-footer">Copyright © 2022 Andrey Talanin. See the Home page for project details.</Layout.Footer>
+          <Layout.Content className={styles.applicationPageWrapperContent}>{currentApplicationPage}</Layout.Content>
+          <Layout.Footer className={styles.applicationFooter}>Copyright © 2022 Andrey Talanin. See the Home page for project details.</Layout.Footer>
         </Layout>
       </Layout>
     </Layout>
