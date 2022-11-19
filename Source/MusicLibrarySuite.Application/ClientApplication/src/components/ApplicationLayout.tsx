@@ -1,4 +1,5 @@
-import { Breadcrumb, Layout } from "antd";
+import { Breadcrumb, Layout, Typography } from "antd";
+import React, { useEffect, useState } from "react";
 import { matchPath, useLocation } from "react-router";
 import ApplicationMenu from "./ApplicationMenu";
 import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
@@ -15,7 +16,9 @@ export interface ApplicationLayoutProps {
 const ApplicationLayout = ({ currentApplicationPage, applicationPageDescriptors, applicationMenuItemDescriptors }: ApplicationLayoutProps) => {
   const location = useLocation();
 
-  const createBreadcrumb = () => {
+  const [breadcrumb, setBreadcrumb] = useState<React.ReactNode>();
+
+  useEffect(() => {
     let matchedLeafRoute = false;
     let matchedApplicationPageDescriptors = applicationPageDescriptors.filter((route) => {
       const trimTrailingPathSeparator = (path: string): string => {
@@ -40,24 +43,24 @@ const ApplicationLayout = ({ currentApplicationPage, applicationPageDescriptors,
       matchedApplicationPageDescriptors = [...matchedApplicationPageDescriptors, ...applicationPageDescriptors.filter((route) => route.path === "*")];
     }
 
-    return (
+    setBreadcrumb(
       <Breadcrumb className={styles.applicationBreadcrumb}>
         {matchedApplicationPageDescriptors.map((route, index) => (
           <Breadcrumb.Item key={index}>{route.name}</Breadcrumb.Item>
         ))}
       </Breadcrumb>
     );
-  };
+  }, [applicationPageDescriptors, location]);
 
   return (
     <Layout className={styles.application}>
       <Layout.Header className={styles.applicationHeader}>
-        <p className={styles.applicationTitle}>Music Library Suite</p>
+        <Typography.Paragraph className={styles.applicationTitle}>Music Library Suite</Typography.Paragraph>
         <ApplicationMenu applicationMenuItemDescriptors={applicationMenuItemDescriptors} applicationPageDescriptors={applicationPageDescriptors} />
       </Layout.Header>
       <Layout>
         <Layout className={styles.applicationPageWrapper}>
-          {createBreadcrumb()}
+          {breadcrumb}
           <Layout.Content className={styles.applicationPageWrapperContent}>{currentApplicationPage}</Layout.Content>
           <Layout.Footer className={styles.applicationFooter}>Copyright © 2022 Andrey Talanin. See the Home page for project details.</Layout.Footer>
         </Layout>
