@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { BrowserRouter } from "react-router-dom";
-import ApplicationLayout from "./ApplicationLayout";
+import ApplicationLayout from "./components/ApplicationLayout";
 import ApplicationMenuItemDescriptor from "./entities/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "./entities/ApplicationPageDescriptor";
 import HomePage from "./pages/HomePage";
