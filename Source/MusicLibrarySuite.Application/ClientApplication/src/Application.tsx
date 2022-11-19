@@ -13,7 +13,7 @@ const applicationPageDescriptors: ApplicationPageDescriptor[] = [
 ];
 
 const applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[] = [
-  { key: "home-page", text: "Home", type: "item" }
+  { key: "home-page", text: "Home", type: "item" },
 ];
 
 const Application = () => {

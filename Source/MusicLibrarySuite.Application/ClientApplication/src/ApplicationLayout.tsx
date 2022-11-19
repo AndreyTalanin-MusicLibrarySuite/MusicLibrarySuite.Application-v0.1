@@ -6,7 +6,7 @@ import ApplicationPageDescriptor from "./ApplicationPageDescriptor";
 import "antd/dist/antd.min.css";
 import "./ApplicationLayout.css";
 
-interface ApplicationLayoutProps {
+export interface ApplicationLayoutProps {
   currentApplicationPage: React.ReactNode;
   applicationPageDescriptors: ApplicationPageDescriptor[];
   applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[];

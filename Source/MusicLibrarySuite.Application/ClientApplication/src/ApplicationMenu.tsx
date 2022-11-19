@@ -10,7 +10,7 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
-interface ApplicationMenuProps {
+export interface ApplicationMenuProps {
   applicationPageDescriptors: ApplicationPageDescriptor[];
   applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[];
 }
