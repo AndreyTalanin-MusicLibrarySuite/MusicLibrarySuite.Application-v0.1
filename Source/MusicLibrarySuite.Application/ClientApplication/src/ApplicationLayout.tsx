@@ -1,6 +1,6 @@
 import { Breadcrumb, Layout } from "antd";
 import { matchPath, useLocation } from "react-router";
-import ApplicationMenu from "./ApplicationMenu";
+import ApplicationMenu from "./components/ApplicationMenu";
 import ApplicationMenuItemDescriptor from "./entities/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "./entities/ApplicationPageDescriptor";
 import "antd/dist/antd.min.css";

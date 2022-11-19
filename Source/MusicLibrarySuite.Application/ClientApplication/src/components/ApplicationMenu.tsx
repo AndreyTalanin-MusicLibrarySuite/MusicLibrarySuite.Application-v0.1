@@ -1,7 +1,7 @@
 import { Menu } from "antd";
 import { useLocation, useNavigate } from "react-router";
-import ApplicationMenuItemDescriptor from "./entities/ApplicationMenuItemDescriptor";
-import ApplicationPageDescriptor from "./entities/ApplicationPageDescriptor";
+import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
+import ApplicationPageDescriptor from "../entities/ApplicationPageDescriptor";
 import "antd/dist/antd.min.css";
 
 interface MenuItem {
