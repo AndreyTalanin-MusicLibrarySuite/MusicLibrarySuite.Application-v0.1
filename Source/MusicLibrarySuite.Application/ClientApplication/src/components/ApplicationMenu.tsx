@@ -1,13 +1,14 @@
 import { Menu } from "antd";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "../entities/ApplicationPageDescriptor";
 import "antd/dist/antd.min.css";
 
-interface MenuItem {
+interface ApplicationMenuItem {
   key: string;
   label: string;
-  children?: MenuItem[];
+  children?: ApplicationMenuItem[];
 }
 
 export interface ApplicationMenuProps {
@@ -17,54 +18,76 @@ export interface ApplicationMenuProps {
 
 const ApplicationMenu = ({ applicationPageDescriptors, applicationMenuItemDescriptors }: ApplicationMenuProps) => {
   const location = useLocation();
+
   const navigate = useNavigate();
 
-  const menuItemKeysByPaths = new Map<string, string>();
-  const pathsByMenuItemKeys = new Map<string, string>();
+  const [applicationMenuItems, setApplicationMenuItems] = useState<ApplicationMenuItem[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-  const createMenuItem = (applicationMenuItemDescriptor: ApplicationMenuItemDescriptor) => {
-    const { key, type, label } = applicationMenuItemDescriptor;
-    const applicationPageDescriptor = applicationPageDescriptors.find((applicationPageDescriptor) => applicationPageDescriptor.key === key);
+  useEffect(() => {
+    const createApplicationMenuItem = ({ key, type, label, items }: ApplicationMenuItemDescriptor) => {
+      let applicationMenuItem: ApplicationMenuItem;
+      switch (type) {
+        case "item":
+          applicationMenuItem = { key: key, label: label };
+          break;
+        case "menu":
+          applicationMenuItem = {
+            key: key,
+            label: label,
+            children: items?.map((childApplicationMenuItemDescriptor) => createApplicationMenuItem(childApplicationMenuItemDescriptor)) ?? [],
+          };
+          break;
+      }
 
-    let menuItem: MenuItem;
-    switch (type) {
-      case "item":
-        menuItem = { key: key, label: label };
+      return applicationMenuItem;
+    };
+
+    setApplicationMenuItems(applicationMenuItemDescriptors.map((applicationMenuItemDescriptor) => createApplicationMenuItem(applicationMenuItemDescriptor)));
+  }, [applicationMenuItemDescriptors, location]);
+
+  useEffect(() => {
+    let selectedKey: string | undefined = undefined;
+
+    const checkApplicationMenuItem = ({ key, children }: ApplicationMenuItem) => {
+      const applicationPageDescriptor = applicationPageDescriptors.find((applicationPageDescriptor) => applicationPageDescriptor.key === key);
+      if (applicationPageDescriptor) {
+        if (location.pathname.startsWith(applicationPageDescriptor.path)) {
+          selectedKey = applicationPageDescriptor.key;
+        }
+        if (location.pathname === applicationPageDescriptor.path) {
+          return true;
+        }
+      }
+
+      if (children) {
+        for (const child of children) {
+          if (checkApplicationMenuItem(child)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    };
+
+    for (const applicationMenuItem of applicationMenuItems) {
+      if (checkApplicationMenuItem(applicationMenuItem)) {
         break;
-      case "menu":
-        menuItem = {
-          key: key,
-          label: label,
-          children: applicationMenuItemDescriptor.items?.map((childApplicationMenuItemDescriptor) => createMenuItem(childApplicationMenuItemDescriptor)),
-        };
-        break;
+      }
     }
 
-    if (applicationPageDescriptor) {
-      menuItemKeysByPaths.set(applicationPageDescriptor.path, applicationPageDescriptor.key);
-      pathsByMenuItemKeys.set(applicationPageDescriptor.key, applicationPageDescriptor.path);
-    }
-
-    return menuItem;
-  };
-
-  const menuItems = applicationMenuItemDescriptors.map((applicationMenuItemDescriptor) => createMenuItem(applicationMenuItemDescriptor));
-
-  let selectedMenuItemKeys: string[] = [];
-  for (const [path, key] of Array.from(menuItemKeysByPaths.entries())) {
-    if (path === location.pathname) {
-      selectedMenuItemKeys = [key];
-    }
-  }
+    setSelectedKeys(selectedKey ? [selectedKey] : []);
+  }, [applicationPageDescriptors, location, applicationMenuItems]);
 
   const onSelect = (key: string) => {
-    const path = pathsByMenuItemKeys.get(key);
-    if (path) {
-      navigate(path);
+    const applicationPageDescriptor = applicationPageDescriptors.find((applicationPageDescriptor) => applicationPageDescriptor.key === key);
+    if (applicationPageDescriptor?.path) {
+      navigate(applicationPageDescriptor.path);
     }
   };
 
-  return <Menu mode="horizontal" theme="dark" items={menuItems} selectedKeys={selectedMenuItemKeys} onSelect={({ key }) => onSelect(key)} />;
+  return <Menu mode="horizontal" theme="dark" items={applicationMenuItems} selectedKeys={selectedKeys} onSelect={({ key }) => onSelect(key)} />;
 };
 
 export default ApplicationMenu;
