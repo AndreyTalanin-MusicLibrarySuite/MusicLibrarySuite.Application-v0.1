@@ -24,7 +24,7 @@
     <OpenApiReference Include="Dependencies\MusicLibrarySuite.Application.json" CodeGenerator="NSwagTypeScript" ClassName="ApplicationClient" Namespace="MusicLibrarySuite.Application.Client" OutputPath="TypeScript\ApplicationClient.ts">
     </OpenApiReference>
     <OpenApiReference Include="Dependencies\MusicLibrarySuite.CatalogService.json" CodeGenerator="NSwagCSharp" ClassName="CatalogServiceClient" Namespace="MusicLibrarySuite.CatalogService.Client">
-      <Options>/GenerateClientInterfaces:true /GenerateDtoTypes:false /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /AdditionalNamespaceUsages:Microsoft.AspNetCore.Mvc /UseBaseUrl:false</Options>
+      <Options>/GenerateClientInterfaces:true /GenerateDtoTypes:false /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /AdditionalNamespaceUsages:Microsoft.AspNetCore.Mvc,MusicLibrarySuite.CatalogService.Interfaces.Entities,MusicLibrarySuite.CatalogService.Interfaces.Entities.Base /UseBaseUrl:false</Options>
     </OpenApiReference>
   </ItemGroup>
 
@@ -35,7 +35,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
-    <PackageReference Include="MusicLibrarySuite.CatalogService.Interfaces" Version="0.1.0" />
+    <PackageReference Include="MusicLibrarySuite.CatalogService.Interfaces" Version="0.2.0-rc1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NSwag.ApiDescription.Client" Version="13.17.0">
       <PrivateAssets>all</PrivateAssets>
