@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using MusicLibrarySuite.Application.Extensions;
+using MusicLibrarySuite.CatalogService.Client;
+
 namespace MusicLibrarySuite.Application;
 
 /// <summary>
@@ -25,12 +28,16 @@ public class Startup
 
         services.AddEndpointsApiExplorer();
 
-        services.AddSwaggerGen();
-
         services.AddSpaStaticFiles(staticFilesOptions =>
         {
             staticFilesOptions.RootPath = $"{c_clientApplicationPath}/build";
         });
+
+        services.AddSwaggerGen();
+
+        services.AddHttpClient();
+
+        services.AddServiceClient<ICatalogServiceClient, CatalogServiceClient>();
     }
 
     /// <summary>
