@@ -21,6 +21,336 @@ export class ApplicationClient {
   /**
    * @return Success
    */
+  getGenre(genreId: string): Promise<Genre> {
+    let url_ = this.baseUrl + "/api/Genre/GetGenre?";
+    if (genreId === undefined || genreId === null) throw new Error("The parameter 'genreId' must be defined and cannot be null.");
+    else url_ += "genreId=" + encodeURIComponent("" + genreId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetGenre(_response);
+    });
+  }
+
+  protected processGetGenre(response: Response): Promise<Genre> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = Genre.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Genre>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getGenres(genreIds: string[]): Promise<Genre[]> {
+    let url_ = this.baseUrl + "/api/Genre/GetGenres?";
+    if (genreIds === undefined || genreIds === null) throw new Error("The parameter 'genreIds' must be defined and cannot be null.");
+    else
+      genreIds &&
+        genreIds.forEach((item) => {
+          url_ += "genreIds=" + encodeURIComponent("" + item) + "&";
+        });
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetGenres(_response);
+    });
+  }
+
+  protected processGetGenres(response: Response): Promise<Genre[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(Genre.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Genre[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getAllGenres(): Promise<Genre[]> {
+    let url_ = this.baseUrl + "/api/Genre/GetAllGenres";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetAllGenres(_response);
+    });
+  }
+
+  protected processGetAllGenres(response: Response): Promise<Genre[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(Genre.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Genre[]>(null as any);
+  }
+
+  /**
+   * @param name (optional)
+   * @param enabled (optional)
+   * @return Success
+   */
+  getPagedGenres(pageSize: number, pageIndex: number, name: string | undefined, enabled: boolean | undefined): Promise<GenrePageResponse> {
+    let url_ = this.baseUrl + "/api/Genre/GetPagedGenres?";
+    if (pageSize === undefined || pageSize === null) throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+    else url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+    if (pageIndex === undefined || pageIndex === null) throw new Error("The parameter 'pageIndex' must be defined and cannot be null.");
+    else url_ += "pageIndex=" + encodeURIComponent("" + pageIndex) + "&";
+    if (name === null) throw new Error("The parameter 'name' cannot be null.");
+    else if (name !== undefined) url_ += "name=" + encodeURIComponent("" + name) + "&";
+    if (enabled === null) throw new Error("The parameter 'enabled' cannot be null.");
+    else if (enabled !== undefined) url_ += "enabled=" + encodeURIComponent("" + enabled) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetPagedGenres(_response);
+    });
+  }
+
+  protected processGetPagedGenres(response: Response): Promise<GenrePageResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = GenrePageResponse.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<GenrePageResponse>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  createGenre(body: Genre): Promise<Genre> {
+    let url_ = this.baseUrl + "/api/Genre/CreateGenre";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processCreateGenre(_response);
+    });
+  }
+
+  protected processCreateGenre(response: Response): Promise<Genre> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = Genre.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Genre>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  updateGenre(body: Genre): Promise<void> {
+    let url_ = this.baseUrl + "/api/Genre/UpdateGenre";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processUpdateGenre(_response);
+    });
+  }
+
+  protected processUpdateGenre(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  deleteGenre(genreId: string): Promise<void> {
+    let url_ = this.baseUrl + "/api/Genre/DeleteGenre?";
+    if (genreId === undefined || genreId === null) throw new Error("The parameter 'genreId' must be defined and cannot be null.");
+    else url_ += "genreId=" + encodeURIComponent("" + genreId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "DELETE",
+      headers: {},
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processDeleteGenre(_response);
+    });
+  }
+
+  protected processDeleteGenre(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
   check(): Promise<void> {
     let url_ = this.baseUrl + "/api/Health/Check";
     url_ = url_.replace(/[?&]$/, "");
@@ -52,6 +382,186 @@ export class ApplicationClient {
     }
     return Promise.resolve<void>(null as any);
   }
+}
+
+export class Genre implements IGenre {
+  id!: string;
+  name!: string;
+  description?: string | undefined;
+  systemEntity!: boolean;
+  enabled!: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+
+  constructor(data?: IGenre) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.id = _data["id"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.systemEntity = _data["systemEntity"];
+      this.enabled = _data["enabled"];
+      this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
+      this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): Genre {
+    data = typeof data === "object" ? data : {};
+    let result = new Genre();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["id"] = this.id;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["systemEntity"] = this.systemEntity;
+    data["enabled"] = this.enabled;
+    data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
+    data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IGenre {
+  id: string;
+  name: string;
+  description?: string | undefined;
+  systemEntity: boolean;
+  enabled: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+}
+
+export class GenrePageResponse implements IGenrePageResponse {
+  pageSize!: number;
+  pageIndex!: number;
+  totalCount!: number;
+  items!: Genre[];
+  completedOn!: Date;
+
+  constructor(data?: IGenrePageResponse) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+    if (!data) {
+      this.items = [];
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.pageSize = _data["pageSize"];
+      this.pageIndex = _data["pageIndex"];
+      this.totalCount = _data["totalCount"];
+      if (Array.isArray(_data["items"])) {
+        this.items = [] as any;
+        for (let item of _data["items"]) this.items!.push(Genre.fromJS(item));
+      }
+      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): GenrePageResponse {
+    data = typeof data === "object" ? data : {};
+    let result = new GenrePageResponse();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["pageSize"] = this.pageSize;
+    data["pageIndex"] = this.pageIndex;
+    data["totalCount"] = this.totalCount;
+    if (Array.isArray(this.items)) {
+      data["items"] = [];
+      for (let item of this.items) data["items"].push(item.toJSON());
+    }
+    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IGenrePageResponse {
+  pageSize: number;
+  pageIndex: number;
+  totalCount: number;
+  items: Genre[];
+  completedOn: Date;
+}
+
+export class ProblemDetails implements IProblemDetails {
+  type?: string | undefined;
+  title?: string | undefined;
+  status?: number | undefined;
+  detail?: string | undefined;
+  instance?: string | undefined;
+
+  [key: string]: any;
+
+  constructor(data?: IProblemDetails) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      for (var property in _data) {
+        if (_data.hasOwnProperty(property)) this[property] = _data[property];
+      }
+      this.type = _data["type"];
+      this.title = _data["title"];
+      this.status = _data["status"];
+      this.detail = _data["detail"];
+      this.instance = _data["instance"];
+    }
+  }
+
+  static fromJS(data: any): ProblemDetails {
+    data = typeof data === "object" ? data : {};
+    let result = new ProblemDetails();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    for (var property in this) {
+      if (this.hasOwnProperty(property)) data[property] = this[property];
+    }
+    data["type"] = this.type;
+    data["title"] = this.title;
+    data["status"] = this.status;
+    data["detail"] = this.detail;
+    data["instance"] = this.instance;
+    return data;
+  }
+}
+
+export interface IProblemDetails {
+  type?: string | undefined;
+  title?: string | undefined;
+  status?: number | undefined;
+  detail?: string | undefined;
+  instance?: string | undefined;
+
+  [key: string]: any;
 }
 
 export class ApiException extends Error {
