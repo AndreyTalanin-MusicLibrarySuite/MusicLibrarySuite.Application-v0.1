@@ -1,6 +1,6 @@
 export default interface ApplicationMenuItemDescriptor {
   key: string;
-  text: string;
+  label: string;
   items?: ApplicationMenuItemDescriptor[];
   type: "item" | "menu";
 }

@@ -3,15 +3,15 @@ import "antd/dist/antd.min.css";
 
 const { Link, Paragraph, Title } = Typography;
 
-const HomePage = () => {
-  const createLink = (text: string, href: string) => {
-    return (
-      <Link href={href} target="_blank" rel="noopener noreferrer">
-        {text}
-      </Link>
-    );
-  };
+const createLink = (text: string, href: string) => {
+  return (
+    <Link href={href} target="_blank" rel="noopener noreferrer">
+      {text}
+    </Link>
+  );
+};
 
+const HomePage = () => {
   return (
     <>
       <Title level={4}>Andrey Talanin's Music Library Suite</Title>

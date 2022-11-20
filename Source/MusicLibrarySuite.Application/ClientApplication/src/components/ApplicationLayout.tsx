@@ -1,12 +1,13 @@
-import { Breadcrumb, Layout } from "antd";
+import { Breadcrumb, Layout, Typography } from "antd";
+import React, { useEffect, useState } from "react";
 import { matchPath, useLocation } from "react-router";
 import ApplicationMenu from "./ApplicationMenu";
-import ApplicationMenuItemDescriptor from "./ApplicationMenuItemDescriptor";
-import ApplicationPageDescriptor from "./ApplicationPageDescriptor";
+import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
+import ApplicationPageDescriptor from "../entities/ApplicationPageDescriptor";
+import styles from "./ApplicationLayout.module.css";
 import "antd/dist/antd.min.css";
-import "./ApplicationLayout.css";
 
-interface ApplicationLayoutProps {
+export interface ApplicationLayoutProps {
   currentApplicationPage: React.ReactNode;
   applicationPageDescriptors: ApplicationPageDescriptor[];
   applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[];
@@ -15,7 +16,9 @@ interface ApplicationLayoutProps {
 const ApplicationLayout = ({ currentApplicationPage, applicationPageDescriptors, applicationMenuItemDescriptors }: ApplicationLayoutProps) => {
   const location = useLocation();
 
-  const createBreadcrumb = () => {
+  const [breadcrumb, setBreadcrumb] = useState<React.ReactNode>();
+
+  useEffect(() => {
     let matchedLeafRoute = false;
     let matchedApplicationPageDescriptors = applicationPageDescriptors.filter((route) => {
       const trimTrailingPathSeparator = (path: string): string => {
@@ -40,26 +43,26 @@ const ApplicationLayout = ({ currentApplicationPage, applicationPageDescriptors,
       matchedApplicationPageDescriptors = [...matchedApplicationPageDescriptors, ...applicationPageDescriptors.filter((route) => route.path === "*")];
     }
 
-    return (
-      <Breadcrumb className="application-breadcrumb">
+    setBreadcrumb(
+      <Breadcrumb className={styles.applicationBreadcrumb}>
         {matchedApplicationPageDescriptors.map((route, index) => (
           <Breadcrumb.Item key={index}>{route.name}</Breadcrumb.Item>
         ))}
       </Breadcrumb>
     );
-  };
+  }, [applicationPageDescriptors, location]);
 
   return (
-    <Layout className="application">
-      <Layout.Header>
-        <p className="application-title">Music Library Suite</p>
+    <Layout className={styles.application}>
+      <Layout.Header className={styles.applicationHeader}>
+        <Typography.Paragraph className={styles.applicationTitle}>Music Library Suite</Typography.Paragraph>
         <ApplicationMenu applicationMenuItemDescriptors={applicationMenuItemDescriptors} applicationPageDescriptors={applicationPageDescriptors} />
       </Layout.Header>
       <Layout>
-        <Layout className="application-page-wrapper">
-          {createBreadcrumb()}
-          <Layout.Content className="application-page-wrapper-content">{currentApplicationPage}</Layout.Content>
-          <Layout.Footer className="application-footer">Copyright © 2022 Andrey Talanin. See the Home page for project details.</Layout.Footer>
+        <Layout className={styles.applicationPageWrapper}>
+          {breadcrumb}
+          <Layout.Content className={styles.applicationPageWrapperContent}>{currentApplicationPage}</Layout.Content>
+          <Layout.Footer className={styles.applicationFooter}>Copyright © 2022 Andrey Talanin. See the Home page for project details.</Layout.Footer>
         </Layout>
       </Layout>
     </Layout>
