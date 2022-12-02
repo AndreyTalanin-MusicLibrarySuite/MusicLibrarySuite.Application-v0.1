@@ -111,7 +111,7 @@ const GenreListPage = () => {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      filterDropdown: <StringValueFilterDropdown value={nameFilter} placeholder="Enter Name" onApplyFilter={onApplyNameFilter} />,
+      filterDropdown: <StringValueFilterDropdown value={nameFilter} placeholder="Enter Name" onValueChange={onApplyNameFilter} />,
       filterMultiple: false,
       filteredValue: nameFilter !== undefined ? [nameFilter] : [],
       render: (_: string, { name, systemEntity }: Genre) => (
