@@ -1,12 +1,13 @@
-import { Button, Checkbox, Col, Form, Input, Row, Space, Typography } from "antd";
+import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Genre } from "../../../api/ApplicationClient";
+import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import EditGenrePageGenreRelationshipsTab from "./EditGenrePageGenreRelationshipsTab";
 import styles from "./EditGenrePage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -22,8 +23,8 @@ export interface EditGenrePageProps {
 const EditGenrePage = ({ mode }: EditGenrePageProps) => {
   const navigate = useNavigate();
 
-  const [genre, setGenre] = useState<Genre | undefined>(new Genre());
-  const [requestInProgress, setRequestInProgress] = useState<boolean>(false);
+  const [genre, setGenre] = useState<Genre>();
+  const [loading, setLoading] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const [id] = useQueryStringId(mode === EditGenrePageMode.Edit);
@@ -36,13 +37,27 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
       applicationClient
         .getGenre(id)
         .then((genre) => {
-          setGenre(genre);
+          setGenre(
+            new Genre({
+              ...genre,
+              genreRelationships: genre.genreRelationships.map((genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: genre })),
+            })
+          );
         })
         .catch((error) => {
           alert(error);
         });
     }
   }, [id, applicationClient]);
+
+  const onGenreRelationshipsChange = useCallback(
+    (genreRelationships: GenreRelationship[]) => {
+      if (genre) {
+        setGenre(new Genre({ ...genre, genreRelationships: genreRelationships }));
+      }
+    },
+    [genre]
+  );
 
   useEffect(() => {
     fetchGenre();
@@ -57,23 +72,23 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
   };
 
   const onDeleteButtonClick = () => {
-    if (genre !== undefined) {
+    if (genre) {
       setModalOpen(true);
     }
   };
 
-  const onDeleteModalOk = (setRequestInProgressCallback: (value: boolean) => void) => {
-    if (genre !== undefined) {
-      setRequestInProgressCallback(true);
+  const onDeleteModalOk = (setModalLoading: (value: boolean) => void) => {
+    if (genre) {
+      setModalLoading(true);
       applicationClient
         .deleteGenre(genre.id)
         .then(() => {
-          setRequestInProgressCallback(false);
+          setModalLoading(false);
           setModalOpen(false);
           navigate("/catalog/genres/list");
         })
         .catch((error) => {
-          setRequestInProgressCallback(false);
+          setModalLoading(false);
           setModalOpen(false);
           alert(error);
         });
@@ -99,27 +114,27 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
       genre.description = undefined;
     }
     if (mode === EditGenrePageMode.Create) {
-      setRequestInProgress(true);
+      setLoading(true);
       applicationClient
         .createGenre(genre)
         .then((genre) => {
-          setRequestInProgress(false);
+          setLoading(false);
           navigate(`/catalog/genres/edit?id=${genre.id}`);
         })
         .catch((error) => {
-          setRequestInProgress(false);
+          setLoading(false);
           alert(error);
         });
     } else {
-      setRequestInProgress(true);
+      setLoading(true);
       applicationClient
         .updateGenre(genre)
         .then(() => {
-          setRequestInProgress(false);
+          setLoading(false);
           fetchGenre();
         })
         .catch((error) => {
-          setRequestInProgress(false);
+          setLoading(false);
           alert(error);
         });
     }
@@ -129,11 +144,26 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
+  const tabs = [
+    {
+      key: "genreRelationshipsTab",
+      label: "Genre Relationships",
+      children: genre && (
+        <EditGenrePageGenreRelationshipsTab
+          genre={genre}
+          genreRelationships={genre.genreRelationships}
+          genreRelationshipsLoading={loading}
+          setGenreRelationships={onGenreRelationshipsChange}
+        />
+      ),
+    },
+  ];
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
         <Typography.Title level={4}>{mode === EditGenrePageMode.Create ? "Create" : "Edit"} Genre</Typography.Title>
-        <Button type="primary" loading={requestInProgress} onClick={onSaveButtonClick}>
+        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
           <SaveOutlined />
           Save
         </Button>
@@ -150,7 +180,14 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
       </Space>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-          <Form form={form} initialValues={genre} onFinish={onFinish} onFinishFailed={onFinishFailed} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+          <Form
+            form={form}
+            initialValues={genre}
+            onFinish={(values) => onFinish(new Genre({ ...genre, ...values }))}
+            onFinishFailed={onFinishFailed}
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+          >
             <Form.Item label="Id" name="id">
               <Input readOnly={mode === EditGenrePageMode.Edit} />
             </Form.Item>
@@ -191,7 +228,7 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
           </Form>
         </Col>
       </Row>
-      {genre !== undefined && (
+      {genre && (
         <ConfirmDeleteModal
           open={modalOpen}
           title="Delete Genre"
@@ -200,6 +237,7 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
           onCancel={onDeleteModalCancel}
         />
       )}
+      {genre && <Tabs items={tabs} />}
     </>
   );
 };
