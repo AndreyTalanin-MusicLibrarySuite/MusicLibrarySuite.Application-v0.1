@@ -3,24 +3,24 @@ import { useState } from "react";
 import "antd/dist/antd.min.css";
 
 export interface ConfirmDeleteModalProps {
-  open: boolean;
   title: string;
   message: string;
-  onOk: (setRequestInProgressCallback: (value: boolean) => void) => void;
+  open?: boolean;
+  onOk: (setLoading: (value: boolean) => void) => void;
   onCancel: () => void;
 }
 
-const ConfirmDeleteModal = ({ open, title, message, onOk, onCancel }: ConfirmDeleteModalProps) => {
-  const [requestInProgress, setRequestInProgress] = useState<boolean>(false);
+const ConfirmDeleteModal = ({ title, message, open, onOk, onCancel }: ConfirmDeleteModalProps) => {
+  const [loading, setLoading] = useState<boolean>(false);
 
   return (
     <Modal
+      open={open}
       title={title}
       okText="Delete"
       okButtonProps={{ danger: true }}
-      open={open}
-      confirmLoading={requestInProgress}
-      onOk={() => onOk(setRequestInProgress)}
+      confirmLoading={loading}
+      onOk={() => onOk(setLoading)}
       onCancel={onCancel}
     >
       <Typography.Paragraph>{message}</Typography.Paragraph>
