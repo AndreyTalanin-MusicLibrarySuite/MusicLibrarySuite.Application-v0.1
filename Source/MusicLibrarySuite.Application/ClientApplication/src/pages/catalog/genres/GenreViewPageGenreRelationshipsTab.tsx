@@ -5,11 +5,11 @@ import EntityRelationshipTable from "../../../components/tables/EntityRelationsh
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
 
-export interface ViewGenrePageGenreRelationshipsTabProps {
+export interface GenreViewPageGenreRelationshipsTabProps {
   id: string;
 }
 
-const ViewGenrePageGenreRelationshipsTab = ({ id }: ViewGenrePageGenreRelationshipsTabProps) => {
+const GenreViewPageGenreRelationshipsTab = ({ id }: GenreViewPageGenreRelationshipsTabProps) => {
   const [genreRelationships, setGenreRelationships] = useState<GenreRelationship[]>([]);
   const [genreRelationshipsLoading, setGenreRelationshipsLoading] = useState<boolean>(true);
   const [includeReverseRelationships, setIncludeReverseRelationships] = useState<boolean>(false);
@@ -57,4 +57,4 @@ const ViewGenrePageGenreRelationshipsTab = ({ id }: ViewGenrePageGenreRelationsh
   );
 };
 
-export default ViewGenrePageGenreRelationshipsTab;
+export default GenreViewPageGenreRelationshipsTab;

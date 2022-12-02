@@ -5,13 +5,13 @@ import { useNavigate } from "react-router";
 import { Genre } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
-import ViewGenrePageGenreRelationshipsTab from "./ViewGenrePageGenreRelationshipsTab";
-import styles from "./ViewGenrePage.module.css";
+import GenreViewPageGenreRelationshipsTab from "./GenreViewPageGenreRelationshipsTab";
+import styles from "./GenreViewPage.module.css";
 import "antd/dist/antd.min.css";
 
 const { Paragraph, Text, Title } = Typography;
 
-const ViewGenrePage = () => {
+const GenreViewPage = () => {
   const navigate = useNavigate();
 
   const [genre, setGenre] = useState<Genre>();
@@ -48,7 +48,7 @@ const ViewGenrePage = () => {
     {
       key: "genreRelationshipsTab",
       label: "Genre Relationships",
-      children: id && <ViewGenrePageGenreRelationshipsTab id={id} />,
+      children: id && <GenreViewPageGenreRelationshipsTab id={id} />,
     },
   ];
 
@@ -98,4 +98,4 @@ const ViewGenrePage = () => {
   );
 };
 
-export default ViewGenrePage;
+export default GenreViewPage;

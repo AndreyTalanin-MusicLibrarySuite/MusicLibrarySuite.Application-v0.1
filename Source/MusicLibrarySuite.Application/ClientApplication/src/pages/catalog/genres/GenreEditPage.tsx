@@ -7,27 +7,27 @@ import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
-import EditGenrePageGenreRelationshipsTab from "./EditGenrePageGenreRelationshipsTab";
-import styles from "./EditGenrePage.module.css";
+import GenreEditPageGenreRelationshipsTab from "./GenreEditPageGenreRelationshipsTab";
+import styles from "./GenreEditPage.module.css";
 import "antd/dist/antd.min.css";
 
-export enum EditGenrePageMode {
+export enum GenreEditPageMode {
   Create,
   Edit,
 }
 
-export interface EditGenrePageProps {
-  mode: EditGenrePageMode;
+export interface GenreEditPageProps {
+  mode: GenreEditPageMode;
 }
 
-const EditGenrePage = ({ mode }: EditGenrePageProps) => {
+const GenreEditPage = ({ mode }: GenreEditPageProps) => {
   const navigate = useNavigate();
 
   const [genre, setGenre] = useState<Genre>();
   const [loading, setLoading] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
-  const [id] = useQueryStringId(mode === EditGenrePageMode.Edit);
+  const [id] = useQueryStringId(mode === GenreEditPageMode.Edit);
   const applicationClient = useApplicationClient();
 
   const [form] = Form.useForm();
@@ -113,7 +113,7 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
     if (genre.description !== undefined && genre.description.length === 0) {
       genre.description = undefined;
     }
-    if (mode === EditGenrePageMode.Create) {
+    if (mode === GenreEditPageMode.Create) {
       setLoading(true);
       applicationClient
         .createGenre(genre)
@@ -149,7 +149,7 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
       key: "genreRelationshipsTab",
       label: "Genre Relationships",
       children: genre && (
-        <EditGenrePageGenreRelationshipsTab
+        <GenreEditPageGenreRelationshipsTab
           genre={genre}
           genreRelationships={genre.genreRelationships}
           genreRelationshipsLoading={loading}
@@ -162,12 +162,12 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>{mode === EditGenrePageMode.Create ? "Create" : "Edit"} Genre</Typography.Title>
+        <Typography.Title level={4}>{mode === GenreEditPageMode.Create ? "Create" : "Edit"} Genre</Typography.Title>
         <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
           <SaveOutlined />
           Save
         </Button>
-        {mode === EditGenrePageMode.Edit && (
+        {mode === GenreEditPageMode.Edit && (
           <Button danger type="primary" onClick={onDeleteButtonClick}>
             <DeleteOutlined />
             Delete
@@ -189,7 +189,7 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
             wrapperCol={{ span: 18 }}
           >
             <Form.Item label="Id" name="id">
-              <Input readOnly={mode === EditGenrePageMode.Edit} />
+              <Input readOnly={mode === GenreEditPageMode.Edit} />
             </Form.Item>
             <Form.Item label="Name" name="name" rules={[{ required: true, message: "The 'Name' property must not be empty." }]}>
               <Input />
@@ -202,7 +202,7 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
               name="systemEntity"
               rules={[{ required: true, message: "The 'System Entity' property must not be empty." }]}
               valuePropName="checked"
-              initialValue={mode === EditGenrePageMode.Create ? false : undefined}
+              initialValue={mode === GenreEditPageMode.Create ? false : undefined}
             >
               <Checkbox />
             </Form.Item>
@@ -211,16 +211,16 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
               name="enabled"
               rules={[{ required: true, message: "The 'Enabled' property must not be empty." }]}
               valuePropName="checked"
-              initialValue={mode === EditGenrePageMode.Create ? false : undefined}
+              initialValue={mode === GenreEditPageMode.Create ? false : undefined}
             >
               <Checkbox />
             </Form.Item>
-            {mode === EditGenrePageMode.Edit && (
+            {mode === GenreEditPageMode.Edit && (
               <Form.Item label="Created On" name="createdOn">
                 <Input readOnly />
               </Form.Item>
             )}
-            {mode === EditGenrePageMode.Edit && (
+            {mode === GenreEditPageMode.Edit && (
               <Form.Item label="Updated On" name="updatedOn">
                 <Input readOnly />
               </Form.Item>
@@ -242,4 +242,4 @@ const EditGenrePage = ({ mode }: EditGenrePageProps) => {
   );
 };
 
-export default EditGenrePage;
+export default GenreEditPage;

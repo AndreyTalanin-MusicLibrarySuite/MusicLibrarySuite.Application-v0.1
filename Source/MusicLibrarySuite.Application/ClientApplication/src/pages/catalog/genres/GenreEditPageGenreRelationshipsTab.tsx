@@ -5,22 +5,22 @@ import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
 import CreateEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/CreateEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./EditGenrePageGenreRelationshipsTab.module.css";
+import styles from "./GenreEditPageGenreRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
 
-interface EditGenrePageGenreRelationshipsTabProps {
+interface GenreEditPageGenreRelationshipsTabProps {
   genre: Genre;
   genreRelationships: GenreRelationship[];
   genreRelationshipsLoading: boolean;
   setGenreRelationships: (genreRelationships: GenreRelationship[]) => void;
 }
 
-const EditGenrePageGenreRelationshipsTab = ({
+const GenreEditPageGenreRelationshipsTab = ({
   genre,
   genreRelationships,
   genreRelationshipsLoading,
   setGenreRelationships,
-}: EditGenrePageGenreRelationshipsTabProps) => {
+}: GenreEditPageGenreRelationshipsTabProps) => {
   const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -166,4 +166,4 @@ const EditGenrePageGenreRelationshipsTab = ({
   );
 };
 
-export default EditGenrePageGenreRelationshipsTab;
+export default GenreEditPageGenreRelationshipsTab;
