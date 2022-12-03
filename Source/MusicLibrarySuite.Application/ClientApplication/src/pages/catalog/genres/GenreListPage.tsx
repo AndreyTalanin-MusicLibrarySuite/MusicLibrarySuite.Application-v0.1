@@ -11,18 +11,21 @@ import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./GenreListPage.module.css";
 import "antd/dist/antd.min.css";
 
+const defaultPageSize = 10;
+const defaultPageIndex = 0;
+
 const GenreListPage = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [pageSize, setPageSize] = useState<number>(10);
-  const [pageIndex, setPageIndex] = useState<number>(0);
-  const [nameFilter, setNameFilter] = useState<string | undefined>(undefined);
-  const [enabledFilter, setEnabledFilter] = useState<boolean | undefined>(undefined);
-  const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
-  const [completedOn, setCompletedOn] = useState<Date | undefined>(undefined);
-  const [genres, setGenres] = useState<Genre[] | undefined>(undefined);
-  const [genreToDelete, setGenreToDelete] = useState<Genre | undefined>(undefined);
+  const [pageSize, setPageSize] = useState<number>(defaultPageSize);
+  const [pageIndex, setPageIndex] = useState<number>(defaultPageIndex);
+  const [nameFilter, setNameFilter] = useState<string>();
+  const [enabledFilter, setEnabledFilter] = useState<boolean>();
+  const [totalCount, setTotalCount] = useState<number>();
+  const [completedOn, setCompletedOn] = useState<Date>();
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [genreToDelete, setGenreToDelete] = useState<Genre>();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const applicationClient = useApplicationClient();
@@ -63,23 +66,21 @@ const GenreListPage = () => {
 
   const onDeleteButtonClick = (genre: Genre) => {
     setGenreToDelete(genre);
-    if (genre !== undefined) {
-      setModalOpen(true);
-    }
+    setModalOpen(true);
   };
 
-  const onDeleteModalOk = (setRequestInProgressCallback: (value: boolean) => void) => {
-    if (genreToDelete !== undefined) {
-      setRequestInProgressCallback(true);
+  const onDeleteModalOk = (setModalLoading: (value: boolean) => void) => {
+    if (genreToDelete) {
+      setModalLoading(true);
       applicationClient
         .deleteGenre(genreToDelete.id)
         .then(() => {
-          setRequestInProgressCallback(false);
+          setModalLoading(false);
           setModalOpen(false);
           fetchGenres();
         })
         .catch((error) => {
-          setRequestInProgressCallback(false);
+          setModalLoading(false);
           setModalOpen(false);
           alert(error);
         });
@@ -90,9 +91,9 @@ const GenreListPage = () => {
     setModalOpen(false);
   };
 
-  const onTableChange = ({ current, pageSize }: TablePaginationConfig, filter: Record<string, FilterValue | null>) => {
-    setPageSize(pageSize ?? 10);
-    setPageIndex((current ?? 1) - 1);
+  const onTableChange = ({ pageSize, current: pageNumber }: TablePaginationConfig, filter: Record<string, FilterValue | null>) => {
+    setPageSize(pageSize ?? defaultPageSize);
+    setPageIndex((pageNumber ?? defaultPageIndex + 1) - 1);
     if (filter["enabled"] !== null && filter["enabled"].length > 0) {
       setEnabledFilter(filter["enabled"][0] as boolean);
     } else {
@@ -108,23 +109,23 @@ const GenreListPage = () => {
 
   const columns = [
     {
+      key: "name",
       title: "Name",
       dataIndex: "name",
-      key: "name",
-      filterDropdown: <StringValueFilterDropdown value={nameFilter} placeholder="Enter Name" onApplyFilter={onApplyNameFilter} />,
+      filterDropdown: <StringValueFilterDropdown value={nameFilter} placeholder="Enter Name" onValueChange={onApplyNameFilter} />,
       filterMultiple: false,
-      filteredValue: nameFilter !== undefined ? [nameFilter] : [],
-      render: (_: string, { name, systemEntity }: Genre) => (
+      filteredValue: nameFilter ? [nameFilter] : [],
+      render: (_: string, { id, name, systemEntity }: Genre) => (
         <Space wrap>
-          {name}
+          <Typography.Link href={`/catalog/genres/view?id=${id}`}>{name}</Typography.Link>
           {systemEntity && <Tag>System Entity</Tag>}
         </Space>
       ),
     },
     {
+      key: "enabled",
       title: "Enabled",
       dataIndex: "enabled",
-      key: "enabled",
       filters: [
         { text: "Enabled", value: true },
         { text: "Disabled", value: false },
@@ -134,8 +135,8 @@ const GenreListPage = () => {
       render: (enabled: boolean) => <Tag color={enabled ? "green" : "red"}>{enabled ? "Enabled" : "Disabled"}</Tag>,
     },
     {
-      title: "Action",
       key: "action",
+      title: "Action",
       filteredValue: [] /* Disables a warning. */,
       render: (_: string, genre: Genre) => (
         <Space wrap>
@@ -167,15 +168,23 @@ const GenreListPage = () => {
         rowKey="id"
         dataSource={genres ?? []}
         loading={loading}
-        pagination={{ current: pageIndex + 1, pageSize: pageSize, pageSizeOptions: [10, 20, 50, 100], total: totalCount ?? 0 }}
-        onChange={(pagination, filters, _sorter, _extra) => onTableChange(pagination, filters)}
+        pagination={{
+          current: pageIndex + 1,
+          defaultCurrent: defaultPageIndex + 1,
+          pageSize: pageSize,
+          defaultPageSize: defaultPageSize,
+          total: totalCount ?? 0,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        onChange={(pagination, filters) => onTableChange(pagination, filters)}
       />
-      {totalCount !== undefined && completedOn !== undefined && (
+      {totalCount !== undefined && completedOn && (
         <Space className={styles.statusLine}>
           <Typography.Paragraph>{`Found ${totalCount} genres total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
         </Space>
       )}
-      {genreToDelete !== undefined && (
+      {genreToDelete && (
         <ConfirmDeleteModal
           open={modalOpen}
           title="Delete Genre"

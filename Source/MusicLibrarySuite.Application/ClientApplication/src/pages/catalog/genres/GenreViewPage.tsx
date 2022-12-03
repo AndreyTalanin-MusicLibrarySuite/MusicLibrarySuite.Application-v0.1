@@ -1,25 +1,26 @@
-import { Button, Card, Divider, Space, Tag, Typography } from "antd";
+import { Button, Card, Divider, Space, Tabs, Tag, Typography } from "antd";
 import { EditOutlined, RollbackOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Genre } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
-import styles from "./ViewGenrePage.module.css";
+import GenreViewPageGenreRelationshipsTab from "./GenreViewPageGenreRelationshipsTab";
+import styles from "./GenreViewPage.module.css";
 import "antd/dist/antd.min.css";
 
 const { Paragraph, Text, Title } = Typography;
 
-const ViewGenrePage = () => {
+const GenreViewPage = () => {
   const navigate = useNavigate();
 
-  const [genre, setGenre] = useState<Genre | undefined>(new Genre());
+  const [genre, setGenre] = useState<Genre>();
 
   const [id] = useQueryStringId(true);
   const applicationClient = useApplicationClient();
 
   const fetchGenre = useCallback(() => {
-    if (id !== undefined) {
+    if (id) {
       applicationClient
         .getGenre(id)
         .then((genre) => {
@@ -42,6 +43,14 @@ const ViewGenrePage = () => {
   const onCancelButtonClick = () => {
     navigate("/catalog/genres/list");
   };
+
+  const tabs = [
+    {
+      key: "genreRelationshipsTab",
+      label: "Genre Relationships",
+      children: id && <GenreViewPageGenreRelationshipsTab id={id} />,
+    },
+  ];
 
   return (
     <>
@@ -84,8 +93,9 @@ const ViewGenrePage = () => {
           )}
         </Card>
       )}
+      {genre && <Tabs items={tabs} />}
     </>
   );
 };
 
-export default ViewGenrePage;
+export default GenreViewPage;
