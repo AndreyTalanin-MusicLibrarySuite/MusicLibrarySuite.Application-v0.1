@@ -1,0 +1,96 @@
+import { Button, Card, Divider, Space, Tag, Tooltip, Typography } from "antd";
+import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-design/icons";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { Artist } from "../../../api/ApplicationClient";
+import useApplicationClient from "../../../hooks/useApplicationClient";
+import useQueryStringId from "../../../hooks/useQueryStringId";
+import styles from "./ArtistViewPage.module.css";
+import "antd/dist/antd.min.css";
+
+const { Paragraph, Text, Title } = Typography;
+
+const ArtistViewPage = () => {
+  const navigate = useNavigate();
+
+  const [artist, setArtist] = useState<Artist>();
+
+  const [id] = useQueryStringId(true);
+  const applicationClient = useApplicationClient();
+
+  const fetchArtist = useCallback(() => {
+    if (id) {
+      applicationClient
+        .getArtist(id)
+        .then((artist) => {
+          setArtist(artist);
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    }
+  }, [id, applicationClient]);
+
+  useEffect(() => {
+    fetchArtist();
+  }, [fetchArtist]);
+
+  const onEditButtonClick = () => {
+    navigate(`/catalog/artists/edit?id=${id}`);
+  };
+
+  const onCancelButtonClick = () => {
+    navigate("/catalog/artists/list");
+  };
+
+  return (
+    <>
+      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
+        <Title level={4}>View Artist</Title>
+        <Button type="primary" onClick={onEditButtonClick}>
+          <EditOutlined />
+          Edit
+        </Button>
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Back to Artist List
+        </Button>
+      </Space>
+      {artist && (
+        <Card
+          title={
+            <Space>
+              {artist.name}
+              {artist.disambiguationText && (
+                <Tooltip title={artist.disambiguationText}>
+                  <QuestionCircleOutlined />
+                </Tooltip>
+              )}
+              {artist.systemEntity && <Tag>System Entity</Tag>}
+              <Tag color={artist.enabled ? "green" : "red"}>{artist.enabled ? "Enabled" : "Disabled"}</Tag>
+            </Space>
+          }
+        >
+          {artist.description?.length && (
+            <>
+              <Paragraph>{artist.description}</Paragraph>
+              <Divider />
+            </>
+          )}
+          {artist.createdOn && (
+            <Paragraph>
+              Created On: <Text keyboard>{artist.createdOn.toLocaleString()}</Text>
+            </Paragraph>
+          )}
+          {artist.updatedOn && (
+            <Paragraph>
+              Updated On: <Text keyboard>{artist.updatedOn.toLocaleString()}</Text>
+            </Paragraph>
+          )}
+        </Card>
+      )}
+    </>
+  );
+};
+
+export default ArtistViewPage;
