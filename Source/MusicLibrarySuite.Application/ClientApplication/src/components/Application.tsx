@@ -4,6 +4,9 @@ import { BrowserRouter } from "react-router-dom";
 import ApplicationLayout from "./ApplicationLayout";
 import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "../entities/ApplicationPageDescriptor";
+import ArtistEditPage, { ArtistEditPageMode } from "../pages/catalog/artists/ArtistEditPage";
+import ArtistListPage from "../pages/catalog/artists/ArtistListPage";
+import ArtistViewPage from "../pages/catalog/artists/ArtistViewPage";
 import GenreEditPage, { GenreEditPageMode } from "../pages/catalog/genres/GenreEditPage";
 import GenreListPage from "../pages/catalog/genres/GenreListPage";
 import GenreViewPage from "../pages/catalog/genres/GenreViewPage";
@@ -14,6 +17,11 @@ import InvalidRoutePage from "../pages/InvalidRoutePage";
 const applicationPageDescriptors: ApplicationPageDescriptor[] = [
   { key: "home-page", path: "/home", name: "Home", componentFactory: () => <HomePage /> },
   { key: "catalog-node", path: "/catalog", name: "Catalog" },
+  { key: "catalog-artist-node", path: "/catalog/artists", name: "Artists" },
+  { key: "catalog-artist-list-page", path: "/catalog/artists/list", name: "Browse All", componentFactory: () => <ArtistListPage /> },
+  { key: "catalog-artist-view-page", path: "/catalog/artists/view", name: "View", componentFactory: () => <ArtistViewPage /> },
+  { key: "catalog-artist-create-page", path: "/catalog/artists/create", name: "Create", componentFactory: () => <ArtistEditPage mode={ArtistEditPageMode.Create} />, },
+  { key: "catalog-artist-edit-page", path: "/catalog/artists/edit", name: "Edit", componentFactory: () => <ArtistEditPage mode={ArtistEditPageMode.Edit} /> },
   { key: "catalog-genre-node", path: "/catalog/genres", name: "Genres" },
   { key: "catalog-genre-list-page", path: "/catalog/genres/list", name: "Browse All", componentFactory: () => <GenreListPage /> },
   { key: "catalog-genre-view-page", path: "/catalog/genres/view", name: "View", componentFactory: () => <GenreViewPage /> },
@@ -30,6 +38,7 @@ const applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[] = [
     label: "Catalog",
     type: "menu",
     items: [
+      { key: "catalog-artist-list-page", label: "Artists", type: "item" },
       { key: "catalog-genre-list-page", label: "Genres", type: "item" },
     ],
   },
