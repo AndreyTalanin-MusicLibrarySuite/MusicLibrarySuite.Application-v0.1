@@ -1,48 +1,42 @@
-import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Button, Checkbox, Col, Form, Input, Row, Space, Typography } from "antd";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
+import { Artist } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
-import GenreEditPageGenreRelationshipsTab from "./GenreEditPageGenreRelationshipsTab";
-import styles from "./GenreEditPage.module.css";
+import styles from "./ArtistEditPage.module.css";
 import "antd/dist/antd.min.css";
 
-export enum GenreEditPageMode {
+export enum ArtistEditPageMode {
   Create,
   Edit,
 }
 
-export interface GenreEditPageProps {
-  mode: GenreEditPageMode;
+export interface ArtistEditPageProps {
+  mode: ArtistEditPageMode;
 }
 
-const GenreEditPage = ({ mode }: GenreEditPageProps) => {
+const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
   const navigate = useNavigate();
 
-  const [genre, setGenre] = useState<Genre>();
+  const [artist, setArtist] = useState<Artist>();
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
-  const [id] = useQueryStringId(mode === GenreEditPageMode.Edit);
+  const [id] = useQueryStringId(mode === ArtistEditPageMode.Edit);
   const applicationClient = useApplicationClient();
 
   const [form] = Form.useForm();
 
-  const fetchGenre = useCallback(() => {
+  const fetchArtist = useCallback(() => {
     if (id !== undefined) {
       applicationClient
-        .getGenre(id)
-        .then((genre) => {
-          setGenre(
-            new Genre({
-              ...genre,
-              genreRelationships: genre.genreRelationships.map((genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: genre })),
-            })
-          );
+        .getArtist(id)
+        .then((artist) => {
+          setArtist(artist);
         })
         .catch((error) => {
           alert(error);
@@ -50,43 +44,34 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
     }
   }, [id, applicationClient]);
 
-  const onGenreRelationshipsChange = useCallback(
-    (genreRelationships: GenreRelationship[]) => {
-      if (genre) {
-        setGenre(new Genre({ ...genre, genreRelationships: genreRelationships }));
-      }
-    },
-    [genre]
-  );
-
   useEffect(() => {
-    fetchGenre();
-  }, [fetchGenre]);
+    fetchArtist();
+  }, [fetchArtist]);
 
   useEffect(() => {
     form.resetFields();
-  }, [genre, form]);
+  }, [artist, form]);
 
   const onSaveButtonClick = () => {
     form.submit();
   };
 
   const onDeleteButtonClick = useCallback(() => {
-    if (genre) {
+    if (artist) {
       setConfirmDeleteModalOpen(true);
     }
-  }, [genre]);
+  }, [artist]);
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
-      if (genre) {
+      if (artist) {
         setModalLoading(true);
         applicationClient
-          .deleteGenre(genre.id)
+          .deleteArtist(artist.id)
           .then(() => {
             setModalLoading(false);
             setConfirmDeleteModalOpen(false);
-            navigate("/catalog/genres/list");
+            navigate("/catalog/artists/list");
           })
           .catch((error) => {
             setModalLoading(false);
@@ -95,7 +80,7 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
           });
       }
     },
-    [navigate, genre, applicationClient]
+    [navigate, artist, applicationClient]
   );
 
   const onConfirmDeleteModalCancel = () => {
@@ -103,28 +88,32 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
   };
 
   const onCancelButtonClick = () => {
-    navigate("/catalog/genres/list");
+    navigate("/catalog/artists/list");
   };
 
   const onFinish = useCallback(
-    (genreValues: Genre) => {
-      const genreModel = new Genre({ ...genre, ...genreValues });
-      genreModel.id = genreModel.id?.trim();
-      genreModel.name = genreModel.name?.trim();
-      genreModel.description = genreModel.description?.trim();
-      if (genreModel.id !== undefined && genreModel.id.length === 0) {
-        genreModel.id = EmptyGuidString;
+    (artistValues: Artist) => {
+      const artistModel = new Artist({ ...artist, ...artistValues });
+      artistModel.id = artistModel.id?.trim();
+      artistModel.name = artistModel.name?.trim();
+      artistModel.description = artistModel.description?.trim();
+      artistModel.disambiguationText = artistModel.disambiguationText?.trim();
+      if (artistModel.id !== undefined && artistModel.id.length === 0) {
+        artistModel.id = EmptyGuidString;
       }
-      if (genreModel.description !== undefined && genreModel.description.length === 0) {
-        genreModel.description = undefined;
+      if (artistModel.description !== undefined && artistModel.description.length === 0) {
+        artistModel.description = undefined;
       }
-      if (mode === GenreEditPageMode.Create) {
+      if (artistModel.disambiguationText !== undefined && artistModel.disambiguationText.length === 0) {
+        artistModel.disambiguationText = undefined;
+      }
+      if (mode === ArtistEditPageMode.Create) {
         setLoading(true);
         applicationClient
-          .createGenre(genreModel)
-          .then((genre) => {
+          .createArtist(artistModel)
+          .then((artist) => {
             setLoading(false);
-            navigate(`/catalog/genres/edit?id=${genre.id}`);
+            navigate(`/catalog/artists/edit?id=${artist.id}`);
           })
           .catch((error) => {
             setLoading(false);
@@ -133,10 +122,10 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
       } else {
         setLoading(true);
         applicationClient
-          .updateGenre(genreModel)
+          .updateArtist(artistModel)
           .then(() => {
             setLoading(false);
-            fetchGenre();
+            fetchArtist();
           })
           .catch((error) => {
             setLoading(false);
@@ -144,37 +133,22 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
           });
       }
     },
-    [mode, navigate, genre, applicationClient, fetchGenre]
+    [mode, navigate, artist, applicationClient, fetchArtist]
   );
 
   const onFinishFailed = () => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
-  const tabs = [
-    {
-      key: "genreRelationshipsTab",
-      label: "Genre Relationships",
-      children: genre && (
-        <GenreEditPageGenreRelationshipsTab
-          genre={genre}
-          genreRelationships={genre.genreRelationships}
-          genreRelationshipsLoading={loading}
-          setGenreRelationships={onGenreRelationshipsChange}
-        />
-      ),
-    },
-  ];
-
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>{mode === GenreEditPageMode.Create ? "Create" : "Edit"} Genre</Typography.Title>
+        <Typography.Title level={4}>{mode === ArtistEditPageMode.Create ? "Create" : "Edit"} Artist</Typography.Title>
         <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
           <SaveOutlined />
           Save
         </Button>
-        {mode === GenreEditPageMode.Edit && (
+        {mode === ArtistEditPageMode.Edit && (
           <Button danger type="primary" onClick={onDeleteButtonClick}>
             <DeleteOutlined />
             Delete
@@ -187,9 +161,9 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
       </Space>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-          <Form form={form} initialValues={genre} onFinish={onFinish} onFinishFailed={onFinishFailed} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+          <Form form={form} initialValues={artist} onFinish={onFinish} onFinishFailed={onFinishFailed} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
             <Form.Item label="Id" name="id">
-              <Input readOnly={mode === GenreEditPageMode.Edit} />
+              <Input readOnly={mode === ArtistEditPageMode.Edit} />
             </Form.Item>
             <Form.Item label="Name" name="name" rules={[{ required: true, message: "The 'Name' property must not be empty." }]}>
               <Input />
@@ -197,12 +171,15 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
             <Form.Item label="Description" name="description">
               <Input.TextArea />
             </Form.Item>
+            <Form.Item label="Disambiguation Text" name="disambiguationText">
+              <Input.TextArea />
+            </Form.Item>
             <Form.Item
               label="System Entity"
               name="systemEntity"
               rules={[{ required: true, message: "The 'System Entity' property must not be empty." }]}
               valuePropName="checked"
-              initialValue={mode === GenreEditPageMode.Create ? false : undefined}
+              initialValue={mode === ArtistEditPageMode.Create ? false : undefined}
             >
               <Checkbox />
             </Form.Item>
@@ -211,16 +188,16 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
               name="enabled"
               rules={[{ required: true, message: "The 'Enabled' property must not be empty." }]}
               valuePropName="checked"
-              initialValue={mode === GenreEditPageMode.Create ? false : undefined}
+              initialValue={mode === ArtistEditPageMode.Create ? false : undefined}
             >
               <Checkbox />
             </Form.Item>
-            {mode === GenreEditPageMode.Edit && (
+            {mode === ArtistEditPageMode.Edit && (
               <Form.Item label="Created On" name="createdOn">
                 <Input readOnly />
               </Form.Item>
             )}
-            {mode === GenreEditPageMode.Edit && (
+            {mode === ArtistEditPageMode.Edit && (
               <Form.Item label="Updated On" name="updatedOn">
                 <Input readOnly />
               </Form.Item>
@@ -228,18 +205,17 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      {genre && (
+      {artist && (
         <ConfirmDeleteModal
           open={confirmDeleteModalOpen}
-          title="Delete Genre"
-          message={`Confirm that you want to delete the "${genre.name}" genre. This operation can not be undone.`}
+          title="Delete Artist"
+          message={`Confirm that you want to delete the "${artist.name}" artist. This operation can not be undone.`}
           onOk={onConfirmDeleteModalOk}
           onCancel={onConfirmDeleteModalCancel}
         />
       )}
-      {genre && <Tabs items={tabs} />}
     </>
   );
 };
 
-export default GenreEditPage;
+export default ArtistEditPage;
