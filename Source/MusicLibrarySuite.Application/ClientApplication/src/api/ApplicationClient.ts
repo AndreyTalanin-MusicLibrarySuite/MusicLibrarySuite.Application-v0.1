@@ -214,6 +214,56 @@ export class ApplicationClient {
   }
 
   /**
+   * @param includeReverseRelationships (optional)
+   * @return Success
+   */
+  getArtistRelationships(artistId: string, includeReverseRelationships: boolean | undefined): Promise<ArtistRelationship[]> {
+    let url_ = this.baseUrl + "/api/Artist/GetArtistRelationships?";
+    if (artistId === undefined || artistId === null) throw new Error("The parameter 'artistId' must be defined and cannot be null.");
+    else url_ += "artistId=" + encodeURIComponent("" + artistId) + "&";
+    if (includeReverseRelationships === null) throw new Error("The parameter 'includeReverseRelationships' cannot be null.");
+    else if (includeReverseRelationships !== undefined) url_ += "includeReverseRelationships=" + encodeURIComponent("" + includeReverseRelationships) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetArtistRelationships(_response);
+    });
+  }
+
+  protected processGetArtistRelationships(response: Response): Promise<ArtistRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ArtistRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ArtistRelationship[]>(null as any);
+  }
+
+  /**
    * @return Success
    */
   createArtist(body: Artist): Promise<Artist> {
@@ -773,12 +823,16 @@ export class Artist implements IArtist {
   enabled!: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  artistRelationships!: ArtistRelationship[];
 
   constructor(data?: IArtist) {
     if (data) {
       for (var property in data) {
         if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
       }
+    }
+    if (!data) {
+      this.artistRelationships = [];
     }
   }
 
@@ -792,6 +846,10 @@ export class Artist implements IArtist {
       this.enabled = _data["enabled"];
       this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
       this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+      if (Array.isArray(_data["artistRelationships"])) {
+        this.artistRelationships = [] as any;
+        for (let item of _data["artistRelationships"]) this.artistRelationships!.push(ArtistRelationship.fromJS(item));
+      }
     }
   }
 
@@ -812,6 +870,10 @@ export class Artist implements IArtist {
     data["enabled"] = this.enabled;
     data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
     data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    if (Array.isArray(this.artistRelationships)) {
+      data["artistRelationships"] = [];
+      for (let item of this.artistRelationships) data["artistRelationships"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -825,6 +887,7 @@ export interface IArtist {
   enabled: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  artistRelationships: ArtistRelationship[];
 }
 
 export class ArtistPageResponse implements IArtistPageResponse {
@@ -885,6 +948,61 @@ export interface IArtistPageResponse {
   totalCount: number;
   items: Artist[];
   completedOn: Date;
+}
+
+export class ArtistRelationship implements IArtistRelationship {
+  artistId!: string;
+  dependentArtistId!: string;
+  name!: string;
+  description?: string | undefined;
+  artist?: Artist;
+  dependentArtist?: Artist;
+
+  constructor(data?: IArtistRelationship) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.artistId = _data["artistId"];
+      this.dependentArtistId = _data["dependentArtistId"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+      this.dependentArtist = _data["dependentArtist"] ? Artist.fromJS(_data["dependentArtist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ArtistRelationship {
+    data = typeof data === "object" ? data : {};
+    let result = new ArtistRelationship();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["artistId"] = this.artistId;
+    data["dependentArtistId"] = this.dependentArtistId;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    data["dependentArtist"] = this.dependentArtist ? this.dependentArtist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IArtistRelationship {
+  artistId: string;
+  dependentArtistId: string;
+  name: string;
+  description?: string | undefined;
+  artist?: Artist;
+  dependentArtist?: Artist;
 }
 
 export class Genre implements IGenre {
