@@ -1,6 +1,6 @@
 import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
@@ -151,20 +151,23 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
-  const tabs = [
-    {
-      key: "genreRelationshipsTab",
-      label: "Genre Relationships",
-      children: genre && (
-        <GenreEditPageGenreRelationshipsTab
-          genre={genre}
-          genreRelationships={genre.genreRelationships}
-          genreRelationshipsLoading={loading}
-          setGenreRelationships={onGenreRelationshipsChange}
-        />
-      ),
-    },
-  ];
+  const tabs = useMemo(
+    () => [
+      {
+        key: "genreRelationshipsTab",
+        label: "Genre Relationships",
+        children: genre && (
+          <GenreEditPageGenreRelationshipsTab
+            genre={genre}
+            genreRelationships={genre.genreRelationships}
+            genreRelationshipsLoading={loading}
+            setGenreRelationships={onGenreRelationshipsChange}
+          />
+        ),
+      },
+    ],
+    [genre, loading, onGenreRelationshipsChange]
+  );
 
   return (
     <>
