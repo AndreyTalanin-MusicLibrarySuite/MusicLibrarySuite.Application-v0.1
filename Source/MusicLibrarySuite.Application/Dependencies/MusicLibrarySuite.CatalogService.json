@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Catalog Service API v0.4.0-rc1",
+    "title": "Music Library Suite - Catalog Service API v0.4.0-rc2",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
     },
-    "version": "v0.4.0-rc1"
+    "version": "v0.4.0-rc2"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -159,6 +159,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ArtistPageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Artist/GetArtistRelationships": {
+      "get": {
+        "tags": [
+          "Artist"
+        ],
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeReverseRelationships",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ArtistRelationship"
+                  }
                 }
               }
             }
@@ -642,6 +682,7 @@
     "schemas": {
       "Artist": {
         "required": [
+          "artistRelationships",
           "enabled",
           "id",
           "name",
@@ -678,6 +719,12 @@
           "updatedOn": {
             "type": "string",
             "format": "date-time"
+          },
+          "artistRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistRelationship"
+            }
           }
         },
         "additionalProperties": false
@@ -713,6 +760,39 @@
           "completedOn": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtistRelationship": {
+        "required": [
+          "artistId",
+          "dependentArtistId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dependentArtistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
+          },
+          "dependentArtist": {
+            "$ref": "#/components/schemas/Artist"
           }
         },
         "additionalProperties": false
