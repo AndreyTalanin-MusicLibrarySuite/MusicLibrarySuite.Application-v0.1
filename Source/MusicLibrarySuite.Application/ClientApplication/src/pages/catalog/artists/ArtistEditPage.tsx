@@ -1,8 +1,10 @@
 import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Artist, ArtistRelationship } from "../../../api/ApplicationClient";
+import { Artist, ArtistGenre, ArtistRelationship, Genre, IArtist } from "../../../api/ApplicationClient";
+import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -24,6 +26,8 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
   const navigate = useNavigate();
 
   const [artist, setArtist] = useState<Artist>();
+  const [artistFormValues, setArtistFormValues] = useState<Store>({});
+  const [artistGenreOptions, setArtistGenreOptions] = useState<Genre[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
@@ -37,12 +41,19 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
       applicationClient
         .getArtist(id)
         .then((artist) => {
-          setArtist(
-            new Artist({
-              ...artist,
-              artistRelationships: artist.artistRelationships.map((artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: artist })),
-            })
+          artist.artistRelationships = artist.artistRelationships.map(
+            (artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: artist })
           );
+          applicationClient
+            .getGenres(artist.artistGenres?.map((artistGenre) => artistGenre.genreId) ?? [])
+            .then((genres) => {
+              setArtist(artist);
+              setArtistGenreOptions(genres);
+              setArtistFormValues({ ...artist, artistGenres: artist?.artistGenres.map((artistGenre) => artistGenre.genreId) ?? [] });
+            })
+            .catch((error) => {
+              alert(error);
+            });
         })
         .catch((error) => {
           alert(error);
@@ -65,7 +76,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
 
   useEffect(() => {
     form.resetFields();
-  }, [artist, form]);
+  }, [artistFormValues, form]);
 
   const onSaveButtonClick = () => {
     form.submit();
@@ -107,8 +118,15 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
   };
 
   const onFinish = useCallback(
-    (artistValues: Artist) => {
-      const artistModel = new Artist({ ...artist, ...artistValues });
+    (artistFormValues: Store) => {
+      const artistGenreIds: string[] = artistFormValues.artistGenres as string[];
+      if (artist?.id) {
+        artistFormValues.artistGenres = artistGenreIds.map((genreId: string) => new ArtistGenre({ artistId: artist.id, genreId, order: 0 }));
+      } else {
+        artistFormValues.artistGenres = [];
+      }
+
+      const artistModel = new Artist({ ...artist, ...(artistFormValues as IArtist) });
       artistModel.id = artistModel.id?.trim();
       artistModel.name = artistModel.name?.trim();
       artistModel.description = artistModel.description?.trim();
@@ -122,6 +140,24 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
       if (artistModel.disambiguationText !== undefined && artistModel.disambiguationText.length === 0) {
         artistModel.disambiguationText = undefined;
       }
+
+      artistModel.artistRelationships = artistModel.artistRelationships.map(
+        (artistRelationship) =>
+          new ArtistRelationship({
+            ...artistRelationship,
+            artist: undefined,
+            dependentArtist: undefined,
+          })
+      );
+      artistModel.artistGenres = artistModel.artistGenres.map(
+        (artistGenre) =>
+          new ArtistGenre({
+            ...artistGenre,
+            artist: undefined,
+            genre: undefined,
+          })
+      );
+
       if (mode === ArtistEditPageMode.Create) {
         setLoading(true);
         applicationClient
@@ -154,6 +190,24 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
   const onFinishFailed = () => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
+
+  const fetchArtistGenreOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedGenres(20, 0, nameFilter, undefined)
+        .then((genres) => {
+          setLoading(false);
+          setArtistGenreOptions(genres.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchArtistGenreOptions(undefined, () => void 0), [fetchArtistGenreOptions]);
 
   const tabs = useMemo(
     () => [
@@ -194,7 +248,14 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
       </Space>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-          <Form form={form} initialValues={artist} onFinish={onFinish} onFinishFailed={onFinishFailed} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+          <Form
+            form={form}
+            initialValues={artistFormValues}
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+            onFinish={onFinish}
+            onFinishFailed={onFinishFailed}
+          >
             <Form.Item label="Id" name="id">
               <Input readOnly={mode === ArtistEditPageMode.Edit} />
             </Form.Item>
@@ -225,6 +286,15 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
             >
               <Checkbox />
             </Form.Item>
+            {mode === ArtistEditPageMode.Edit && (
+              <Form.Item label="Artist Genres" name="artistGenres">
+                <EntitySelect
+                  mode="multiple"
+                  options={artistGenreOptions.map((artistGenreOption) => ({ value: artistGenreOption.id, label: artistGenreOption.name }))}
+                  onSearch={fetchArtistGenreOptions}
+                />
+              </Form.Item>
+            )}
             {mode === ArtistEditPageMode.Edit && (
               <Form.Item label="Created On" name="createdOn">
                 <Input readOnly />

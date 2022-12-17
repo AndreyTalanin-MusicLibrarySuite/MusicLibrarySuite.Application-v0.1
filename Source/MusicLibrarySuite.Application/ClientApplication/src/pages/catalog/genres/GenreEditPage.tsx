@@ -1,8 +1,9 @@
 import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
+import { Genre, GenreRelationship, IGenre } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -24,6 +25,7 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
   const navigate = useNavigate();
 
   const [genre, setGenre] = useState<Genre>();
+  const [genreFormValues, setGenreFormValues] = useState<Store>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
@@ -37,12 +39,9 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
       applicationClient
         .getGenre(id)
         .then((genre) => {
-          setGenre(
-            new Genre({
-              ...genre,
-              genreRelationships: genre.genreRelationships.map((genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: genre })),
-            })
-          );
+          genre.genreRelationships = genre.genreRelationships.map((genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: genre }));
+          setGenre(genre);
+          setGenreFormValues(genre);
         })
         .catch((error) => {
           alert(error);
@@ -65,7 +64,7 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
 
   useEffect(() => {
     form.resetFields();
-  }, [genre, form]);
+  }, [genreFormValues, form]);
 
   const onSaveButtonClick = () => {
     form.submit();
@@ -107,8 +106,8 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
   };
 
   const onFinish = useCallback(
-    (genreValues: Genre) => {
-      const genreModel = new Genre({ ...genre, ...genreValues });
+    (genreValues: Store) => {
+      const genreModel = new Genre({ ...genre, ...(genreValues as IGenre) });
       genreModel.id = genreModel.id?.trim();
       genreModel.name = genreModel.name?.trim();
       genreModel.description = genreModel.description?.trim();
@@ -118,6 +117,16 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
       if (genreModel.description !== undefined && genreModel.description.length === 0) {
         genreModel.description = undefined;
       }
+
+      genreModel.genreRelationships = genreModel.genreRelationships.map(
+        (genreRelationship) =>
+          new GenreRelationship({
+            ...genreRelationship,
+            genre: undefined,
+            dependentGenre: undefined,
+          })
+      );
+
       if (mode === GenreEditPageMode.Create) {
         setLoading(true);
         applicationClient
@@ -190,7 +199,14 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
       </Space>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-          <Form form={form} initialValues={genre} onFinish={onFinish} onFinishFailed={onFinishFailed} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+          <Form
+            form={form}
+            initialValues={genreFormValues}
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+            onFinish={onFinish}
+            onFinishFailed={onFinishFailed}
+          >
             <Form.Item label="Id" name="id">
               <Input readOnly={mode === GenreEditPageMode.Edit} />
             </Form.Item>
