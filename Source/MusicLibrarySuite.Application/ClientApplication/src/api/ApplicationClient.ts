@@ -824,6 +824,7 @@ export class Artist implements IArtist {
   createdOn?: Date;
   updatedOn?: Date;
   artistRelationships!: ArtistRelationship[];
+  artistGenres!: ArtistGenre[];
 
   constructor(data?: IArtist) {
     if (data) {
@@ -833,6 +834,7 @@ export class Artist implements IArtist {
     }
     if (!data) {
       this.artistRelationships = [];
+      this.artistGenres = [];
     }
   }
 
@@ -849,6 +851,10 @@ export class Artist implements IArtist {
       if (Array.isArray(_data["artistRelationships"])) {
         this.artistRelationships = [] as any;
         for (let item of _data["artistRelationships"]) this.artistRelationships!.push(ArtistRelationship.fromJS(item));
+      }
+      if (Array.isArray(_data["artistGenres"])) {
+        this.artistGenres = [] as any;
+        for (let item of _data["artistGenres"]) this.artistGenres!.push(ArtistGenre.fromJS(item));
       }
     }
   }
@@ -874,6 +880,10 @@ export class Artist implements IArtist {
       data["artistRelationships"] = [];
       for (let item of this.artistRelationships) data["artistRelationships"].push(item.toJSON());
     }
+    if (Array.isArray(this.artistGenres)) {
+      data["artistGenres"] = [];
+      for (let item of this.artistGenres) data["artistGenres"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -888,6 +898,58 @@ export interface IArtist {
   createdOn?: Date;
   updatedOn?: Date;
   artistRelationships: ArtistRelationship[];
+  artistGenres: ArtistGenre[];
+}
+
+export class ArtistGenre implements IArtistGenre {
+  artistId!: string;
+  genreId!: string;
+  order!: number;
+  artist?: Artist;
+  genre?: Genre;
+
+  constructor(data?: IArtistGenre) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.artistId = _data["artistId"];
+      this.genreId = _data["genreId"];
+      this.order = _data["order"];
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+      this.genre = _data["genre"] ? Genre.fromJS(_data["genre"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ArtistGenre {
+    data = typeof data === "object" ? data : {};
+    let result = new ArtistGenre();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["artistId"] = this.artistId;
+    data["genreId"] = this.genreId;
+    data["order"] = this.order;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    data["genre"] = this.genre ? this.genre.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IArtistGenre {
+  artistId: string;
+  genreId: string;
+  order: number;
+  artist?: Artist;
+  genre?: Genre;
 }
 
 export class ArtistPageResponse implements IArtistPageResponse {
