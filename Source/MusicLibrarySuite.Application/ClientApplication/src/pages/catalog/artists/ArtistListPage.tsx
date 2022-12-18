@@ -1,18 +1,18 @@
-import { Button, Space, Table, Tag, Typography } from "antd";
+import { Button, Space, Table, Tag, Tooltip, Typography } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import type { FilterValue } from "antd/es/table/interface";
-import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MonitorOutlined } from "@ant-design/icons";
+import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MonitorOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Genre } from "../../../api/ApplicationClient";
+import { Artist } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./GenreListPage.module.css";
+import styles from "./ArtistListPage.module.css";
 import "antd/dist/antd.min.css";
 
-const GenreListPage = () => {
+const ArtistListPage = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -22,23 +22,23 @@ const GenreListPage = () => {
   const [enabledFilter, setEnabledFilter] = useState<boolean>();
   const [totalCount, setTotalCount] = useState<number>();
   const [completedOn, setCompletedOn] = useState<Date>();
-  const [genres, setGenres] = useState<Genre[]>([]);
-  const [genreToDelete, setGenreToDelete] = useState<Genre>();
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [artistToDelete, setArtistToDelete] = useState<Artist>();
+  const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
   const applicationClient = useApplicationClient();
 
-  const fetchGenres = useCallback(() => {
+  const fetchArtists = useCallback(() => {
     setLoading(true);
     applicationClient
-      .getPagedGenres(pageSize, pageIndex, nameFilter, enabledFilter)
+      .getPagedArtists(pageSize, pageIndex, nameFilter, enabledFilter)
       .then((pageResult) => {
         setLoading(false);
         setPageSize(pageResult.pageSize);
         setPageIndex(pageResult.pageIndex);
         setTotalCount(pageResult.totalCount);
         setCompletedOn(pageResult.completedOn);
-        setGenres(pageResult.items);
+        setArtists(pageResult.items);
       })
       .catch((error) => {
         setLoading(false);
@@ -47,49 +47,49 @@ const GenreListPage = () => {
   }, [pageSize, pageIndex, nameFilter, enabledFilter, applicationClient]);
 
   useEffect(() => {
-    fetchGenres();
-  }, [fetchGenres]);
+    fetchArtists();
+  }, [fetchArtists]);
 
   const onCreateButtonClick = () => {
-    navigate("/catalog/genres/create");
+    navigate("/catalog/artists/create");
   };
 
   const onViewButtonClick = (id: string) => {
-    navigate(`/catalog/genres/view?id=${id}`);
+    navigate(`/catalog/artists/view?id=${id}`);
   };
 
   const onEditButtonClick = (id: string) => {
-    navigate(`/catalog/genres/edit?id=${id}`);
+    navigate(`/catalog/artists/edit?id=${id}`);
   };
 
-  const onDeleteButtonClick = (genre: Genre) => {
-    setGenreToDelete(genre);
-    setModalOpen(true);
+  const onDeleteButtonClick = (artist: Artist) => {
+    setArtistToDelete(artist);
+    setConfirmDeleteModalOpen(true);
   };
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
-      if (genreToDelete) {
+      if (artistToDelete) {
         setModalLoading(true);
         applicationClient
-          .deleteGenre(genreToDelete.id)
+          .deleteArtist(artistToDelete.id)
           .then(() => {
             setModalLoading(false);
-            setModalOpen(false);
-            fetchGenres();
+            setConfirmDeleteModalOpen(false);
+            fetchArtists();
           })
           .catch((error) => {
             setModalLoading(false);
-            setModalOpen(false);
+            setConfirmDeleteModalOpen(false);
             alert(error);
           });
       }
     },
-    [genreToDelete, applicationClient, fetchGenres]
+    [artistToDelete, applicationClient, fetchArtists]
   );
 
   const onConfirmDeleteModalCancel = () => {
-    setModalOpen(false);
+    setConfirmDeleteModalOpen(false);
   };
 
   const onTableChange = ({ pageSize, current: pageNumber }: TablePaginationConfig, filter: Record<string, FilterValue | null>) => {
@@ -116,9 +116,14 @@ const GenreListPage = () => {
       filterDropdown: <StringValueFilterDropdown value={nameFilter} placeholder="Enter Name" onValueChange={onApplyNameFilter} />,
       filterMultiple: false,
       filteredValue: nameFilter ? [nameFilter] : [],
-      render: (_: string, { id, name, systemEntity }: Genre) => (
+      render: (_: string, { id, name, disambiguationText, systemEntity }: Artist) => (
         <Space wrap>
-          <Typography.Link href={`/catalog/genres/view?id=${id}`}>{name}</Typography.Link>
+          <Typography.Link href={`/catalog/artists/view?id=${id}`}>{name}</Typography.Link>
+          {disambiguationText && (
+            <Tooltip title={disambiguationText}>
+              <QuestionCircleOutlined />
+            </Tooltip>
+          )}
           {systemEntity && <Tag>System Entity</Tag>}
         </Space>
       ),
@@ -139,15 +144,15 @@ const GenreListPage = () => {
       key: "action",
       title: "Action",
       filteredValue: [] /* Disables a warning. */,
-      render: (_: string, genre: Genre) => (
+      render: (_: string, artist: Artist) => (
         <Space wrap>
-          <Button onClick={() => onViewButtonClick(genre.id)}>
+          <Button onClick={() => onViewButtonClick(artist.id)}>
             <MonitorOutlined /> View
           </Button>
-          <Button onClick={() => onEditButtonClick(genre.id)}>
+          <Button onClick={() => onEditButtonClick(artist.id)}>
             <EditOutlined /> Edit
           </Button>
-          <Button danger disabled={genre.systemEntity} onClick={() => onDeleteButtonClick(genre)}>
+          <Button danger disabled={artist.systemEntity} onClick={() => onDeleteButtonClick(artist)}>
             <DeleteOutlined /> Delete
           </Button>
         </Space>
@@ -158,7 +163,7 @@ const GenreListPage = () => {
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>Browse Genres</Typography.Title>
+        <Typography.Title level={4}>Browse Artists</Typography.Title>
         <Button type="primary" onClick={onCreateButtonClick}>
           <AppstoreAddOutlined />
           Create
@@ -167,7 +172,7 @@ const GenreListPage = () => {
       <Table
         columns={columns}
         rowKey="id"
-        dataSource={genres ?? []}
+        dataSource={artists ?? []}
         loading={loading}
         pagination={{
           current: pageIndex + 1,
@@ -182,14 +187,14 @@ const GenreListPage = () => {
       />
       {totalCount !== undefined && completedOn && (
         <Space className={styles.statusLine}>
-          <Typography.Paragraph>{`Found ${totalCount} genres total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
+          <Typography.Paragraph>{`Found ${totalCount} artists total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
         </Space>
       )}
-      {genreToDelete && (
+      {artistToDelete && (
         <ConfirmDeleteModal
-          open={modalOpen}
-          title="Delete Genre"
-          message={`Confirm that you want to delete the "${genreToDelete.name}" genre. This operation can not be undone.`}
+          open={confirmDeleteModalOpen}
+          title="Delete Artist"
+          message={`Confirm that you want to delete the "${artistToDelete.name}" artist. This operation can not be undone.`}
           onOk={onConfirmDeleteModalOk}
           onCancel={onConfirmDeleteModalCancel}
         />
@@ -198,4 +203,4 @@ const GenreListPage = () => {
   );
 };
 
-export default GenreListPage;
+export default ArtistListPage;
