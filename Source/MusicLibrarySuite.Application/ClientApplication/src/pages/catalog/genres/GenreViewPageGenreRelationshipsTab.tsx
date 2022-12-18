@@ -36,7 +36,7 @@ const GenreViewPageGenreRelationshipsTab = ({ id }: GenreViewPageGenreRelationsh
   return (
     <>
       <Typography.Paragraph>
-        <Checkbox onChange={(e) => setIncludeReverseRelationships(e.target.checked)}>Include reverse genre relationships</Checkbox>{" "}
+        <Checkbox onChange={(e) => setIncludeReverseRelationships(e.target.checked)}>Include reverse genre relationships</Checkbox>
       </Typography.Paragraph>
       <EntityRelationshipTable
         entityColumnName="Genre"

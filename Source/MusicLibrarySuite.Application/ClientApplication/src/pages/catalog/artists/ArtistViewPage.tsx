@@ -1,10 +1,11 @@
-import { Button, Card, Divider, Space, Tag, Tooltip, Typography } from "antd";
+import { Button, Card, Divider, Space, Tabs, Tag, Tooltip, Typography } from "antd";
 import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Artist } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ArtistViewPageArtistRelationshipsTab from "./ArtistViewPageArtistRelationshipsTab";
 import styles from "./ArtistViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -42,6 +43,17 @@ const ArtistViewPage = () => {
   const onCancelButtonClick = () => {
     navigate("/catalog/artists/list");
   };
+
+  const tabs = useMemo(
+    () => [
+      {
+        key: "artistRelationshipsTab",
+        label: "Artist Relationships",
+        children: id && <ArtistViewPageArtistRelationshipsTab id={id} />,
+      },
+    ],
+    [id]
+  );
 
   return (
     <>
@@ -89,6 +101,7 @@ const ArtistViewPage = () => {
           )}
         </Card>
       )}
+      {artist && <Tabs items={tabs} />}
     </>
   );
 };

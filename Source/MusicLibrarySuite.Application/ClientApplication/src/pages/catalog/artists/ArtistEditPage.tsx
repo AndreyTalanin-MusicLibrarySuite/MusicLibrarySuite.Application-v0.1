@@ -1,12 +1,13 @@
-import { Button, Checkbox, Col, Form, Input, Row, Space, Typography } from "antd";
+import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Artist } from "../../../api/ApplicationClient";
+import { Artist, ArtistRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ArtistEditPageArtistRelationshipsTab from "./ArtistEditPageArtistRelationshipsTab";
 import styles from "./ArtistEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -36,13 +37,27 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
       applicationClient
         .getArtist(id)
         .then((artist) => {
-          setArtist(artist);
+          setArtist(
+            new Artist({
+              ...artist,
+              artistRelationships: artist.artistRelationships.map((artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: artist })),
+            })
+          );
         })
         .catch((error) => {
           alert(error);
         });
     }
   }, [id, applicationClient]);
+
+  const onArtistRelationshipsChange = useCallback(
+    (artistRelationships: ArtistRelationship[]) => {
+      if (artist) {
+        setArtist(new Artist({ ...artist, artistRelationships: artistRelationships }));
+      }
+    },
+    [artist]
+  );
 
   useEffect(() => {
     fetchArtist();
@@ -140,6 +155,24 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
+  const tabs = useMemo(
+    () => [
+      {
+        key: "artistRelationshipsTab",
+        label: "Artist Relationships",
+        children: artist && (
+          <ArtistEditPageArtistRelationshipsTab
+            artist={artist}
+            artistRelationships={artist.artistRelationships}
+            artistRelationshipsLoading={loading}
+            setArtistRelationships={onArtistRelationshipsChange}
+          />
+        ),
+      },
+    ],
+    [artist, loading, onArtistRelationshipsChange]
+  );
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
@@ -214,6 +247,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
           onCancel={onConfirmDeleteModalCancel}
         />
       )}
+      {artist && <Tabs items={tabs} />}
     </>
   );
 };

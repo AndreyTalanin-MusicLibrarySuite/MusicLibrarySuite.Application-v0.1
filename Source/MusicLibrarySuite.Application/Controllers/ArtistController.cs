@@ -108,6 +108,24 @@ public class ArtistController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all artist relationships by an artist's unique identifier.
+    /// </summary>
+    /// <param name="artistId">The artist's unique identifier.</param>
+    /// <param name="includeReverseRelationships">A boolean value specifying whether reverse relationships should be included.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all artist relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ArtistRelationship[]>> GetArtistRelationshipsAsync([Required][FromQuery] Guid artistId, [FromQuery] bool includeReverseRelationships)
+    {
+        ArtistRelationship[] artistRelationshipArray = (await m_catalogServiceClient.GetArtistRelationshipsAsync(artistId, includeReverseRelationships)).ToArray();
+        return Ok(artistRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously creates a new artist.
     /// </summary>
     /// <param name="artist">The artist to create.</param>

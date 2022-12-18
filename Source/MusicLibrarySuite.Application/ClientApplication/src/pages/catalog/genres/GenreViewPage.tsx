@@ -1,6 +1,6 @@
 import { Button, Card, Divider, Space, Tabs, Tag, Typography } from "antd";
 import { EditOutlined, RollbackOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Genre } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -44,13 +44,16 @@ const GenreViewPage = () => {
     navigate("/catalog/genres/list");
   };
 
-  const tabs = [
-    {
-      key: "genreRelationshipsTab",
-      label: "Genre Relationships",
-      children: id && <GenreViewPageGenreRelationshipsTab id={id} />,
-    },
-  ];
+  const tabs = useMemo(
+    () => [
+      {
+        key: "genreRelationshipsTab",
+        label: "Genre Relationships",
+        children: id && <GenreViewPageGenreRelationshipsTab id={id} />,
+      },
+    ],
+    [id]
+  );
 
   return (
     <>

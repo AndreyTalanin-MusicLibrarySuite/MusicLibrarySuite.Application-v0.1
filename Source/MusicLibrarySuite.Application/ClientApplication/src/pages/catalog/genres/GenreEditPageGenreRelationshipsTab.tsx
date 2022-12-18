@@ -8,7 +8,7 @@ import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./GenreEditPageGenreRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
 
-interface GenreEditPageGenreRelationshipsTabProps {
+export interface GenreEditPageGenreRelationshipsTabProps {
   genre: Genre;
   genreRelationships: GenreRelationship[];
   genreRelationshipsLoading: boolean;
