@@ -83,12 +83,21 @@ const ArtistViewPage = () => {
             </Space>
           }
         >
-          {artist.description?.length && (
-            <>
-              <Paragraph>{artist.description}</Paragraph>
-              <Divider />
-            </>
+          {artist.description && <Paragraph>{artist.description}</Paragraph>}
+          {artist.artistGenres && artist.artistGenres.length > 0 && (
+            <Paragraph>
+              Artist Genres:{" "}
+              {artist.artistGenres?.map((artistGenre, index, array) => (
+                <>
+                  <Typography.Link key={artistGenre.genreId} href={`/catalog/genres/view?id=${artistGenre.genreId}`}>
+                    {artistGenre?.genre?.name}
+                  </Typography.Link>
+                  {index < array.length - 1 && ", "}
+                </>
+              ))}
+            </Paragraph>
           )}
+          {(artist.description || (artist.artistGenres && artist.artistGenres.length > 0)) && <Divider />}
           {artist.createdOn && (
             <Paragraph>
               Created On: <Text keyboard>{artist.createdOn.toLocaleString()}</Text>
