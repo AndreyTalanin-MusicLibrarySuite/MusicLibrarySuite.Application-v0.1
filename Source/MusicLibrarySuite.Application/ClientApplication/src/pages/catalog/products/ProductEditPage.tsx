@@ -1,16 +1,17 @@
-import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Space, Typography } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Space, Tabs, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IProduct, Product } from "../../../api/ApplicationClient";
+import { IProduct, Product, ProductRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ProductEditPageProductRelationshipsTab from "./ProductEditPageProductRelationshipsTab";
 import styles from "./ProductEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -44,7 +45,14 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
       applicationClient
         .getProduct(id)
         .then((product) => {
-          setProduct(product);
+          setProduct(
+            new Product({
+              ...product,
+              productRelationships: product.productRelationships.map(
+                (productRelationship) => new ProductRelationship({ ...productRelationship, product: product })
+              ),
+            })
+          );
           setProductFormValues({ ...product, releasedOn: dayjs(product.releasedOn) });
         })
         .catch((error) => {
@@ -52,6 +60,15 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         });
     }
   }, [id, applicationClient]);
+
+  const onProductRelationshipsChange = useCallback(
+    (productRelationships: ProductRelationship[]) => {
+      if (product) {
+        setProduct(new Product({ ...product, productRelationships: productRelationships }));
+      }
+    },
+    [product]
+  );
 
   useEffect(() => {
     fetchProduct();
@@ -153,6 +170,24 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
+  const tabs = useMemo(
+    () => [
+      {
+        key: "productRelationshipsTab",
+        label: "Product Relationships",
+        children: product && (
+          <ProductEditPageProductRelationshipsTab
+            product={product}
+            productRelationships={product.productRelationships}
+            productRelationshipsLoading={loading}
+            setProductRelationships={onProductRelationshipsChange}
+          />
+        ),
+      },
+    ],
+    [product, loading, onProductRelationshipsChange]
+  );
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
@@ -246,6 +281,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           onCancel={onConfirmDeleteModalCancel}
         />
       )}
+      {product && <Tabs items={tabs} />}
     </>
   );
 };
