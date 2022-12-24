@@ -1,82 +1,82 @@
-import { Button, Space, Table, Tag, Typography } from "antd";
+import { Button, Space, Table, Tag, Tooltip, Typography } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import type { FilterValue } from "antd/es/table/interface";
-import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MonitorOutlined } from "@ant-design/icons";
+import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MonitorOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Genre } from "../../../api/ApplicationClient";
+import { Product } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./GenreListPage.module.css";
+import styles from "./ProductListPage.module.css";
 import "antd/dist/antd.min.css";
 
-const GenreListPage = () => {
+const ProductListPage = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [pageSize, setPageSize] = useState<number>(DefaultPageSize);
   const [pageIndex, setPageIndex] = useState<number>(DefaultPageIndex);
-  const [nameFilter, setNameFilter] = useState<string>();
+  const [titleFilter, setTitleFilter] = useState<string>();
   const [enabledFilter, setEnabledFilter] = useState<boolean>();
   const [totalCount, setTotalCount] = useState<number>();
   const [completedOn, setCompletedOn] = useState<Date>();
-  const [genres, setGenres] = useState<Genre[]>([]);
-  const [genreToDelete, setGenreToDelete] = useState<Genre>();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productToDelete, setProductToDelete] = useState<Product>();
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
   const applicationClient = useApplicationClient();
 
-  const fetchGenres = useCallback(() => {
+  const fetchProducts = useCallback(() => {
     setLoading(true);
     applicationClient
-      .getPagedGenres(pageSize, pageIndex, nameFilter, enabledFilter)
+      .getPagedProducts(pageSize, pageIndex, titleFilter, enabledFilter)
       .then((pageResult) => {
         setLoading(false);
         setPageSize(pageResult.pageSize);
         setPageIndex(pageResult.pageIndex);
         setTotalCount(pageResult.totalCount);
         setCompletedOn(pageResult.completedOn);
-        setGenres(pageResult.items);
+        setProducts(pageResult.items);
       })
       .catch((error) => {
         setLoading(false);
         alert(error);
       });
-  }, [pageSize, pageIndex, nameFilter, enabledFilter, applicationClient]);
+  }, [pageSize, pageIndex, titleFilter, enabledFilter, applicationClient]);
 
   useEffect(() => {
-    fetchGenres();
-  }, [fetchGenres]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const onCreateButtonClick = () => {
-    navigate("/catalog/genres/create");
+    navigate("/catalog/products/create");
   };
 
   const onViewButtonClick = (id: string) => {
-    navigate(`/catalog/genres/view?id=${id}`);
+    navigate(`/catalog/products/view?id=${id}`);
   };
 
   const onEditButtonClick = (id: string) => {
-    navigate(`/catalog/genres/edit?id=${id}`);
+    navigate(`/catalog/products/edit?id=${id}`);
   };
 
-  const onDeleteButtonClick = (genre: Genre) => {
-    setGenreToDelete(genre);
+  const onDeleteButtonClick = (product: Product) => {
+    setProductToDelete(product);
     setConfirmDeleteModalOpen(true);
   };
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
-      if (genreToDelete) {
+      if (productToDelete) {
         setModalLoading(true);
         applicationClient
-          .deleteGenre(genreToDelete.id)
+          .deleteProduct(productToDelete.id)
           .then(() => {
             setModalLoading(false);
             setConfirmDeleteModalOpen(false);
-            fetchGenres();
+            fetchProducts();
           })
           .catch((error) => {
             setModalLoading(false);
@@ -85,7 +85,7 @@ const GenreListPage = () => {
           });
       }
     },
-    [genreToDelete, applicationClient, fetchGenres]
+    [productToDelete, applicationClient, fetchProducts]
   );
 
   const onConfirmDeleteModalCancel = () => {
@@ -102,23 +102,28 @@ const GenreListPage = () => {
     }
   };
 
-  const onApplyNameFilter = (value?: string) => {
+  const onApplyTitleFilter = (value?: string) => {
     value = value?.trim();
     value = value && value.length > 0 ? value : undefined;
-    setNameFilter(value);
+    setTitleFilter(value);
   };
 
   const columns = [
     {
-      key: "name",
-      title: "Name",
-      dataIndex: "name",
-      filterDropdown: <StringValueFilterDropdown value={nameFilter} placeholder="Enter Name" onValueChange={onApplyNameFilter} />,
+      key: "title",
+      title: "Title",
+      dataIndex: "title",
+      filterDropdown: <StringValueFilterDropdown value={titleFilter} placeholder="Enter Title" onValueChange={onApplyTitleFilter} />,
       filterMultiple: false,
-      filteredValue: nameFilter ? [nameFilter] : [],
-      render: (_: string, { id, name, systemEntity }: Genre) => (
+      filteredValue: titleFilter ? [titleFilter] : [],
+      render: (_: string, { id, title, disambiguationText, systemEntity }: Product) => (
         <Space wrap>
-          <Typography.Link href={`/catalog/genres/view?id=${id}`}>{name}</Typography.Link>
+          <Typography.Link href={`/catalog/products/view?id=${id}`}>{title}</Typography.Link>
+          {disambiguationText && (
+            <Tooltip title={disambiguationText}>
+              <QuestionCircleOutlined />
+            </Tooltip>
+          )}
           {systemEntity && <Tag>System Entity</Tag>}
         </Space>
       ),
@@ -139,15 +144,15 @@ const GenreListPage = () => {
       key: "action",
       title: "Action",
       filteredValue: [] /* Disables a warning. */,
-      render: (_: string, genre: Genre) => (
+      render: (_: string, product: Product) => (
         <Space wrap>
-          <Button onClick={() => onViewButtonClick(genre.id)}>
+          <Button onClick={() => onViewButtonClick(product.id)}>
             <MonitorOutlined /> View
           </Button>
-          <Button onClick={() => onEditButtonClick(genre.id)}>
+          <Button onClick={() => onEditButtonClick(product.id)}>
             <EditOutlined /> Edit
           </Button>
-          <Button danger disabled={genre.systemEntity} onClick={() => onDeleteButtonClick(genre)}>
+          <Button danger disabled={product.systemEntity} onClick={() => onDeleteButtonClick(product)}>
             <DeleteOutlined /> Delete
           </Button>
         </Space>
@@ -158,7 +163,7 @@ const GenreListPage = () => {
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>Browse Genres</Typography.Title>
+        <Typography.Title level={4}>Browse Products</Typography.Title>
         <Button type="primary" onClick={onCreateButtonClick}>
           <AppstoreAddOutlined />
           Create
@@ -167,7 +172,7 @@ const GenreListPage = () => {
       <Table
         columns={columns}
         rowKey="id"
-        dataSource={genres ?? []}
+        dataSource={products ?? []}
         loading={loading}
         pagination={{
           current: pageIndex + 1,
@@ -182,14 +187,14 @@ const GenreListPage = () => {
       />
       {totalCount !== undefined && completedOn && (
         <Space className={styles.statusLine}>
-          <Typography.Paragraph>{`Found ${totalCount} genres total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
+          <Typography.Paragraph>{`Found ${totalCount} products total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
         </Space>
       )}
-      {genreToDelete && (
+      {productToDelete && (
         <ConfirmDeleteModal
           open={confirmDeleteModalOpen}
-          title="Delete Genre"
-          message={`Confirm that you want to delete the "${genreToDelete.name}" genre. This operation can not be undone.`}
+          title="Delete Product"
+          message={`Confirm that you want to delete the "${productToDelete.title}" product. This operation can not be undone.`}
           onOk={onConfirmDeleteModalOk}
           onCancel={onConfirmDeleteModalCancel}
         />
@@ -198,4 +203,4 @@ const GenreListPage = () => {
   );
 };
 
-export default GenreListPage;
+export default ProductListPage;
