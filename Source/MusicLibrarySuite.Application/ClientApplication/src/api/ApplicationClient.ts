@@ -812,6 +812,336 @@ export class ApplicationClient {
     }
     return Promise.resolve<void>(null as any);
   }
+
+  /**
+   * @return Success
+   */
+  getProduct(productId: string): Promise<Product> {
+    let url_ = this.baseUrl + "/api/Product/GetProduct?";
+    if (productId === undefined || productId === null) throw new Error("The parameter 'productId' must be defined and cannot be null.");
+    else url_ += "productId=" + encodeURIComponent("" + productId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetProduct(_response);
+    });
+  }
+
+  protected processGetProduct(response: Response): Promise<Product> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = Product.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Product>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getProducts(productIds: string[]): Promise<Product[]> {
+    let url_ = this.baseUrl + "/api/Product/GetProducts?";
+    if (productIds === undefined || productIds === null) throw new Error("The parameter 'productIds' must be defined and cannot be null.");
+    else
+      productIds &&
+        productIds.forEach((item) => {
+          url_ += "productIds=" + encodeURIComponent("" + item) + "&";
+        });
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetProducts(_response);
+    });
+  }
+
+  protected processGetProducts(response: Response): Promise<Product[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(Product.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Product[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getAllProducts(): Promise<Product[]> {
+    let url_ = this.baseUrl + "/api/Product/GetAllProducts";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetAllProducts(_response);
+    });
+  }
+
+  protected processGetAllProducts(response: Response): Promise<Product[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(Product.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Product[]>(null as any);
+  }
+
+  /**
+   * @param title (optional)
+   * @param enabled (optional)
+   * @return Success
+   */
+  getPagedProducts(pageSize: number, pageIndex: number, title: string | undefined, enabled: boolean | undefined): Promise<ProductPageResponse> {
+    let url_ = this.baseUrl + "/api/Product/GetPagedProducts?";
+    if (pageSize === undefined || pageSize === null) throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+    else url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+    if (pageIndex === undefined || pageIndex === null) throw new Error("The parameter 'pageIndex' must be defined and cannot be null.");
+    else url_ += "pageIndex=" + encodeURIComponent("" + pageIndex) + "&";
+    if (title === null) throw new Error("The parameter 'title' cannot be null.");
+    else if (title !== undefined) url_ += "title=" + encodeURIComponent("" + title) + "&";
+    if (enabled === null) throw new Error("The parameter 'enabled' cannot be null.");
+    else if (enabled !== undefined) url_ += "enabled=" + encodeURIComponent("" + enabled) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetPagedProducts(_response);
+    });
+  }
+
+  protected processGetPagedProducts(response: Response): Promise<ProductPageResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = ProductPageResponse.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ProductPageResponse>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  createProduct(body: Product): Promise<Product> {
+    let url_ = this.baseUrl + "/api/Product/CreateProduct";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processCreateProduct(_response);
+    });
+  }
+
+  protected processCreateProduct(response: Response): Promise<Product> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = Product.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Product>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  updateProduct(body: Product): Promise<void> {
+    let url_ = this.baseUrl + "/api/Product/UpdateProduct";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processUpdateProduct(_response);
+    });
+  }
+
+  protected processUpdateProduct(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  deleteProduct(productId: string): Promise<void> {
+    let url_ = this.baseUrl + "/api/Product/DeleteProduct?";
+    if (productId === undefined || productId === null) throw new Error("The parameter 'productId' must be defined and cannot be null.");
+    else url_ += "productId=" + encodeURIComponent("" + productId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "DELETE",
+      headers: {},
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processDeleteProduct(_response);
+    });
+  }
+
+  protected processDeleteProduct(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
 }
 
 export class Artist implements IArtist {
@@ -1313,6 +1643,137 @@ export interface IProblemDetails {
   instance?: string | undefined;
 
   [key: string]: any;
+}
+
+export class Product implements IProduct {
+  id!: string;
+  title!: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  releasedOn!: Date;
+  releasedOnYearOnly!: boolean;
+  systemEntity!: boolean;
+  enabled!: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+
+  constructor(data?: IProduct) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.id = _data["id"];
+      this.title = _data["title"];
+      this.description = _data["description"];
+      this.disambiguationText = _data["disambiguationText"];
+      this.releasedOn = _data["releasedOn"] ? new Date(_data["releasedOn"].toString()) : <any>undefined;
+      this.releasedOnYearOnly = _data["releasedOnYearOnly"];
+      this.systemEntity = _data["systemEntity"];
+      this.enabled = _data["enabled"];
+      this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
+      this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): Product {
+    data = typeof data === "object" ? data : {};
+    let result = new Product();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["id"] = this.id;
+    data["title"] = this.title;
+    data["description"] = this.description;
+    data["disambiguationText"] = this.disambiguationText;
+    data["releasedOn"] = this.releasedOn ? this.releasedOn.toISOString() : <any>undefined;
+    data["releasedOnYearOnly"] = this.releasedOnYearOnly;
+    data["systemEntity"] = this.systemEntity;
+    data["enabled"] = this.enabled;
+    data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
+    data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IProduct {
+  id: string;
+  title: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  releasedOn: Date;
+  releasedOnYearOnly: boolean;
+  systemEntity: boolean;
+  enabled: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+}
+
+export class ProductPageResponse implements IProductPageResponse {
+  pageSize!: number;
+  pageIndex!: number;
+  totalCount!: number;
+  items!: Product[];
+  completedOn!: Date;
+
+  constructor(data?: IProductPageResponse) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+    if (!data) {
+      this.items = [];
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.pageSize = _data["pageSize"];
+      this.pageIndex = _data["pageIndex"];
+      this.totalCount = _data["totalCount"];
+      if (Array.isArray(_data["items"])) {
+        this.items = [] as any;
+        for (let item of _data["items"]) this.items!.push(Product.fromJS(item));
+      }
+      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ProductPageResponse {
+    data = typeof data === "object" ? data : {};
+    let result = new ProductPageResponse();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["pageSize"] = this.pageSize;
+    data["pageIndex"] = this.pageIndex;
+    data["totalCount"] = this.totalCount;
+    if (Array.isArray(this.items)) {
+      data["items"] = [];
+      for (let item of this.items) data["items"].push(item.toJSON());
+    }
+    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IProductPageResponse {
+  pageSize: number;
+  pageIndex: number;
+  totalCount: number;
+  items: Product[];
+  completedOn: Date;
 }
 
 export class ApiException extends Error {
