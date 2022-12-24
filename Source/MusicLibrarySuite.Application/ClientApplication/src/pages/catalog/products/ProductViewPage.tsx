@@ -1,10 +1,11 @@
-import { Button, Card, Divider, Space, Tag, Tooltip, Typography } from "antd";
+import { Button, Card, Divider, Space, Tabs, Tag, Tooltip, Typography } from "antd";
 import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Product } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ProductViewPageProductRelationshipsTab from "./ProductViewPageProductRelationshipsTab";
 import styles from "./ProductViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -42,6 +43,17 @@ const ProductViewPage = () => {
   const onCancelButtonClick = () => {
     navigate("/catalog/products/list");
   };
+
+  const tabs = useMemo(
+    () => [
+      {
+        key: "productRelationshipsTab",
+        label: "Product Relationships",
+        children: id && <ProductViewPageProductRelationshipsTab id={id} />,
+      },
+    ],
+    [id]
+  );
 
   return (
     <>
@@ -88,6 +100,7 @@ const ProductViewPage = () => {
           )}
         </Card>
       )}
+      {product && <Tabs items={tabs} />}
     </>
   );
 };
