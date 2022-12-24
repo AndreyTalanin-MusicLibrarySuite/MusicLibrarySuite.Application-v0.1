@@ -1009,6 +1009,56 @@ export class ApplicationClient {
   }
 
   /**
+   * @param includeReverseRelationships (optional)
+   * @return Success
+   */
+  getProductRelationships(productId: string, includeReverseRelationships: boolean | undefined): Promise<ProductRelationship[]> {
+    let url_ = this.baseUrl + "/api/Product/GetProductRelationships?";
+    if (productId === undefined || productId === null) throw new Error("The parameter 'productId' must be defined and cannot be null.");
+    else url_ += "productId=" + encodeURIComponent("" + productId) + "&";
+    if (includeReverseRelationships === null) throw new Error("The parameter 'includeReverseRelationships' cannot be null.");
+    else if (includeReverseRelationships !== undefined) url_ += "includeReverseRelationships=" + encodeURIComponent("" + includeReverseRelationships) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetProductRelationships(_response);
+    });
+  }
+
+  protected processGetProductRelationships(response: Response): Promise<ProductRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ProductRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ProductRelationship[]>(null as any);
+  }
+
+  /**
    * @return Success
    */
   createProduct(body: Product): Promise<Product> {
@@ -1656,12 +1706,16 @@ export class Product implements IProduct {
   enabled!: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  productRelationships!: ProductRelationship[];
 
   constructor(data?: IProduct) {
     if (data) {
       for (var property in data) {
         if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
       }
+    }
+    if (!data) {
+      this.productRelationships = [];
     }
   }
 
@@ -1677,6 +1731,10 @@ export class Product implements IProduct {
       this.enabled = _data["enabled"];
       this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
       this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+      if (Array.isArray(_data["productRelationships"])) {
+        this.productRelationships = [] as any;
+        for (let item of _data["productRelationships"]) this.productRelationships!.push(ProductRelationship.fromJS(item));
+      }
     }
   }
 
@@ -1699,6 +1757,10 @@ export class Product implements IProduct {
     data["enabled"] = this.enabled;
     data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
     data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    if (Array.isArray(this.productRelationships)) {
+      data["productRelationships"] = [];
+      for (let item of this.productRelationships) data["productRelationships"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -1714,6 +1776,7 @@ export interface IProduct {
   enabled: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  productRelationships: ProductRelationship[];
 }
 
 export class ProductPageResponse implements IProductPageResponse {
@@ -1774,6 +1837,61 @@ export interface IProductPageResponse {
   totalCount: number;
   items: Product[];
   completedOn: Date;
+}
+
+export class ProductRelationship implements IProductRelationship {
+  productId!: string;
+  dependentProductId!: string;
+  name!: string;
+  description?: string | undefined;
+  product?: Product;
+  dependentProduct?: Product;
+
+  constructor(data?: IProductRelationship) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.productId = _data["productId"];
+      this.dependentProductId = _data["dependentProductId"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.product = _data["product"] ? Product.fromJS(_data["product"]) : <any>undefined;
+      this.dependentProduct = _data["dependentProduct"] ? Product.fromJS(_data["dependentProduct"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ProductRelationship {
+    data = typeof data === "object" ? data : {};
+    let result = new ProductRelationship();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["productId"] = this.productId;
+    data["dependentProductId"] = this.dependentProductId;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["product"] = this.product ? this.product.toJSON() : <any>undefined;
+    data["dependentProduct"] = this.dependentProduct ? this.dependentProduct.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IProductRelationship {
+  productId: string;
+  dependentProductId: string;
+  name: string;
+  description?: string | undefined;
+  product?: Product;
+  dependentProduct?: Product;
 }
 
 export class ApiException extends Error {

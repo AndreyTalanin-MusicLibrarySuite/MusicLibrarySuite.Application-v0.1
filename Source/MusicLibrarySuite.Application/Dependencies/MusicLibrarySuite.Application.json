@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.4.0-rc1",
+    "title": "Music Library Suite - Application API v0.4.0-rc2",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.4.0-rc1"
+    "version": "v0.4.0-rc2"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -828,6 +828,46 @@
         }
       }
     },
+    "/api/Product/GetProductRelationships": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeReverseRelationships",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Product/CreateProduct": {
       "post": {
         "tags": [
@@ -1262,6 +1302,7 @@
         "required": [
           "enabled",
           "id",
+          "productRelationships",
           "releasedOn",
           "releasedOnYearOnly",
           "systemEntity",
@@ -1305,6 +1346,12 @@
           "updatedOn": {
             "type": "string",
             "format": "date-time"
+          },
+          "productRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductRelationship"
+            }
           }
         },
         "additionalProperties": false
@@ -1340,6 +1387,39 @@
           "completedOn": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductRelationship": {
+        "required": [
+          "dependentProductId",
+          "name",
+          "productId"
+        ],
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dependentProductId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "dependentProduct": {
+            "$ref": "#/components/schemas/Product"
           }
         },
         "additionalProperties": false
