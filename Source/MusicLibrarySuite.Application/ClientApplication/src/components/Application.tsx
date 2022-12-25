@@ -15,6 +15,9 @@ import InvalidRoutePage from "../pages/InvalidRoutePage";
 import ProductEditPage, { ProductEditPageMode } from "../pages/catalog/products/ProductEditPage";
 import ProductListPage from "../pages/catalog/products/ProductListPage";
 import ProductViewPage from "../pages/catalog/products/ProductViewPage";
+import WorkEditPage, { WorkEditPageMode } from "../pages/catalog/works/WorkEditPage";
+import WorkListPage from "../pages/catalog/works/WorkListPage";
+import WorkViewPage from "../pages/catalog/works/WorkViewPage";
 
 // prettier-ignore
 const applicationPageDescriptors: ApplicationPageDescriptor[] = [
@@ -35,6 +38,11 @@ const applicationPageDescriptors: ApplicationPageDescriptor[] = [
   { key: "catalog-product-view-page", path: "/catalog/products/view", name: "View", componentFactory: () => <ProductViewPage /> },
   { key: "catalog-product-create-page", path: "/catalog/products/create", name: "Create", componentFactory: () => <ProductEditPage mode={ProductEditPageMode.Create} />, },
   { key: "catalog-product-edit-page", path: "/catalog/products/edit", name: "Edit", componentFactory: () => <ProductEditPage mode={ProductEditPageMode.Edit} /> },
+  { key: "catalog-work-node", path: "/catalog/works", name: "Works" },
+  { key: "catalog-work-list-page", path: "/catalog/works/list", name: "Browse All", componentFactory: () => <WorkListPage /> },
+  { key: "catalog-work-view-page", path: "/catalog/works/view", name: "View", componentFactory: () => <WorkViewPage /> },
+  { key: "catalog-work-create-page", path: "/catalog/works/create", name: "Create", componentFactory: () => <WorkEditPage mode={WorkEditPageMode.Create} />, },
+  { key: "catalog-work-edit-page", path: "/catalog/works/edit", name: "Edit", componentFactory: () => <WorkEditPage mode={WorkEditPageMode.Edit} /> },
   { key: "invalid-route-page", path: "*", name: "Invalid Route", componentFactory: () => <InvalidRoutePage /> },
 ];
 
@@ -49,6 +57,7 @@ const applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[] = [
       { key: "catalog-artist-list-page", label: "Artists", type: "item" },
       { key: "catalog-genre-list-page", label: "Genres", type: "item" },
       { key: "catalog-product-list-page", label: "Products", type: "item" },
+      { key: "catalog-work-list-page", label: "Works", type: "item" },
     ],
   },
 ];
