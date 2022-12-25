@@ -72,7 +72,11 @@ const WorkViewPage = () => {
           }
         >
           {work.description?.length && <Paragraph>{work.description}</Paragraph>}
-          {work.internationalStandardMusicalWorkCode?.length && <Paragraph>ISWC: {work.internationalStandardMusicalWorkCode}</Paragraph>}
+          {work.internationalStandardMusicalWorkCode?.length && (
+            <Paragraph>
+              ISWC: <Text keyboard>{work.internationalStandardMusicalWorkCode}</Text>
+            </Paragraph>
+          )}
           <Paragraph>
             Released On: <Text keyboard>{work.releasedOnYearOnly ? work.releasedOn.getUTCFullYear() : work.releasedOn.toLocaleDateString()}</Text>
           </Paragraph>
