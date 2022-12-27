@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.5.0-rc1",
+    "title": "Music Library Suite - Application API v0.5.0-rc2",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.5.0-rc1"
+    "version": "v0.5.0-rc2"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1153,6 +1153,46 @@
         }
       }
     },
+    "/api/Work/GetWorkRelationships": {
+      "get": {
+        "tags": [
+          "Work"
+        ],
+        "parameters": [
+          {
+            "name": "workId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeReverseRelationships",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Work/CreateWork": {
       "post": {
         "tags": [
@@ -1716,7 +1756,8 @@
           "releasedOn",
           "releasedOnYearOnly",
           "systemEntity",
-          "title"
+          "title",
+          "workRelationships"
         ],
         "type": "object",
         "properties": {
@@ -1760,6 +1801,12 @@
           "updatedOn": {
             "type": "string",
             "format": "date-time"
+          },
+          "workRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkRelationship"
+            }
           }
         },
         "additionalProperties": false
@@ -1795,6 +1842,39 @@
           "completedOn": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkRelationship": {
+        "required": [
+          "dependentWorkId",
+          "name",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dependentWorkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
+          },
+          "dependentWork": {
+            "$ref": "#/components/schemas/Work"
           }
         },
         "additionalProperties": false
