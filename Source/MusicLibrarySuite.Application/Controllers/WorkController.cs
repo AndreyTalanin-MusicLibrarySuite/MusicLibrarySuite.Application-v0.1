@@ -108,6 +108,24 @@ public class WorkController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all work relationships by a work's unique identifier.
+    /// </summary>
+    /// <param name="workId">The work's unique identifier.</param>
+    /// <param name="includeReverseRelationships">A boolean value specifying whether reverse relationships should be included.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all work relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<WorkRelationship[]>> GetWorkRelationshipsAsync([Required][FromQuery] Guid workId, [FromQuery] bool includeReverseRelationships)
+    {
+        WorkRelationship[] workRelationshipArray = (await m_catalogServiceClient.GetWorkRelationshipsAsync(workId, includeReverseRelationships)).ToArray();
+        return Ok(workRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously creates a new work.
     /// </summary>
     /// <param name="work">The work to create.</param>

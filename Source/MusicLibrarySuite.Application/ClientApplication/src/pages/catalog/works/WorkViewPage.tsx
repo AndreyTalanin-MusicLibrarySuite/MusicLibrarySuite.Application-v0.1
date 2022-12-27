@@ -1,10 +1,11 @@
-import { Button, Card, Divider, Space, Tag, Tooltip, Typography } from "antd";
+import { Button, Card, Divider, Space, Tabs, Tag, Tooltip, Typography } from "antd";
 import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Work } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import WorkViewPageWorkRelationshipsTab from "./WorkViewPageWorkRelationshipsTab";
 import styles from "./WorkViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -42,6 +43,17 @@ const WorkViewPage = () => {
   const onCancelButtonClick = () => {
     navigate("/catalog/works/list");
   };
+
+  const tabs = useMemo(
+    () => [
+      {
+        key: "workRelationshipsTab",
+        label: "Work Relationships",
+        children: id && <WorkViewPageWorkRelationshipsTab id={id} />,
+      },
+    ],
+    [id]
+  );
 
   return (
     <>
@@ -93,6 +105,7 @@ const WorkViewPage = () => {
           )}
         </Card>
       )}
+      {work && <Tabs items={tabs} />}
     </>
   );
 };

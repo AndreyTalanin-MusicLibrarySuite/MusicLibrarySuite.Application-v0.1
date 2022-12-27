@@ -1,16 +1,17 @@
-import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Space, Typography } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Space, Tabs, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IWork, Work } from "../../../api/ApplicationClient";
+import { IWork, Work, WorkRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
-import useQueryStringId from "../../../hooks/useQueryStringId";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import useQueryStringId from "../../../hooks/useQueryStringId";
+import WorkEditPageWorkRelationshipsTab from "./WorkEditPageWorkRelationshipsTab";
 import styles from "./WorkEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -44,7 +45,12 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
       applicationClient
         .getWork(id)
         .then((work) => {
-          setWork(work);
+          setWork(
+            new Work({
+              ...work,
+              workRelationships: work.workRelationships.map((workRelationship) => new WorkRelationship({ ...workRelationship, work: work })),
+            })
+          );
           setWorkFormValues({ ...work, releasedOn: dayjs(work.releasedOn) });
         })
         .catch((error) => {
@@ -52,6 +58,15 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
         });
     }
   }, [id, applicationClient]);
+
+  const onWorkRelationshipsChange = useCallback(
+    (workRelationships: WorkRelationship[]) => {
+      if (work) {
+        setWork(new Work({ ...work, workRelationships: workRelationships }));
+      }
+    },
+    [work]
+  );
 
   useEffect(() => {
     fetchWork();
@@ -157,6 +172,24 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
+  const tabs = useMemo(
+    () => [
+      {
+        key: "workRelationshipsTab",
+        label: "Work Relationships",
+        children: work && (
+          <WorkEditPageWorkRelationshipsTab
+            work={work}
+            workRelationships={work.workRelationships}
+            workRelationshipsLoading={loading}
+            setWorkRelationships={onWorkRelationshipsChange}
+          />
+        ),
+      },
+    ],
+    [work, loading, onWorkRelationshipsChange]
+  );
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
@@ -246,6 +279,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
           onCancel={onConfirmDeleteModalCancel}
         />
       )}
+      {work && <Tabs items={tabs} />}
     </>
   );
 };

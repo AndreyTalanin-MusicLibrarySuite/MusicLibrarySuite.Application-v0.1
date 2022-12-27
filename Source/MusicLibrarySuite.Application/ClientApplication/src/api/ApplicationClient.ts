@@ -1389,6 +1389,56 @@ export class ApplicationClient {
   }
 
   /**
+   * @param includeReverseRelationships (optional)
+   * @return Success
+   */
+  getWorkRelationships(workId: string, includeReverseRelationships: boolean | undefined): Promise<WorkRelationship[]> {
+    let url_ = this.baseUrl + "/api/Work/GetWorkRelationships?";
+    if (workId === undefined || workId === null) throw new Error("The parameter 'workId' must be defined and cannot be null.");
+    else url_ += "workId=" + encodeURIComponent("" + workId) + "&";
+    if (includeReverseRelationships === null) throw new Error("The parameter 'includeReverseRelationships' cannot be null.");
+    else if (includeReverseRelationships !== undefined) url_ += "includeReverseRelationships=" + encodeURIComponent("" + includeReverseRelationships) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetWorkRelationships(_response);
+    });
+  }
+
+  protected processGetWorkRelationships(response: Response): Promise<WorkRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(WorkRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<WorkRelationship[]>(null as any);
+  }
+
+  /**
    * @return Success
    */
   createWork(body: Work): Promise<Work> {
@@ -2236,12 +2286,16 @@ export class Work implements IWork {
   enabled!: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  workRelationships!: WorkRelationship[];
 
   constructor(data?: IWork) {
     if (data) {
       for (var property in data) {
         if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
       }
+    }
+    if (!data) {
+      this.workRelationships = [];
     }
   }
 
@@ -2258,6 +2312,10 @@ export class Work implements IWork {
       this.enabled = _data["enabled"];
       this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
       this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+      if (Array.isArray(_data["workRelationships"])) {
+        this.workRelationships = [] as any;
+        for (let item of _data["workRelationships"]) this.workRelationships!.push(WorkRelationship.fromJS(item));
+      }
     }
   }
 
@@ -2281,6 +2339,10 @@ export class Work implements IWork {
     data["enabled"] = this.enabled;
     data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
     data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    if (Array.isArray(this.workRelationships)) {
+      data["workRelationships"] = [];
+      for (let item of this.workRelationships) data["workRelationships"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -2297,6 +2359,7 @@ export interface IWork {
   enabled: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  workRelationships: WorkRelationship[];
 }
 
 export class WorkPageResponse implements IWorkPageResponse {
@@ -2357,6 +2420,61 @@ export interface IWorkPageResponse {
   totalCount: number;
   items: Work[];
   completedOn: Date;
+}
+
+export class WorkRelationship implements IWorkRelationship {
+  workId!: string;
+  dependentWorkId!: string;
+  name!: string;
+  description?: string | undefined;
+  work?: Work;
+  dependentWork?: Work;
+
+  constructor(data?: IWorkRelationship) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.workId = _data["workId"];
+      this.dependentWorkId = _data["dependentWorkId"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.work = _data["work"] ? Work.fromJS(_data["work"]) : <any>undefined;
+      this.dependentWork = _data["dependentWork"] ? Work.fromJS(_data["dependentWork"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): WorkRelationship {
+    data = typeof data === "object" ? data : {};
+    let result = new WorkRelationship();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["workId"] = this.workId;
+    data["dependentWorkId"] = this.dependentWorkId;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["work"] = this.work ? this.work.toJSON() : <any>undefined;
+    data["dependentWork"] = this.dependentWork ? this.dependentWork.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IWorkRelationship {
+  workId: string;
+  dependentWorkId: string;
+  name: string;
+  description?: string | undefined;
+  work?: Work;
+  dependentWork?: Work;
 }
 
 export class ApiException extends Error {
