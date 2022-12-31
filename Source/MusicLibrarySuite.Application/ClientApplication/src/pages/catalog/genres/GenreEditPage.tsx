@@ -40,6 +40,7 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
         .getGenre(id)
         .then((genre) => {
           genre.genreRelationships = genre.genreRelationships.map((genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: genre }));
+
           setGenre(genre);
           setGenreFormValues(genre);
         })
@@ -106,8 +107,8 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
   };
 
   const onFinish = useCallback(
-    (genreValues: Store) => {
-      const genreModel = new Genre({ ...genre, ...(genreValues as IGenre) });
+    (genreFormValues: Store) => {
+      const genreModel = new Genre({ ...genre, ...(genreFormValues as IGenre) });
       genreModel.id = genreModel.id?.trim();
       genreModel.name = genreModel.name?.trim();
       genreModel.description = genreModel.description?.trim();
@@ -202,8 +203,8 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
           <Form
             form={form}
             initialValues={genreFormValues}
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 18 }}
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
           >
