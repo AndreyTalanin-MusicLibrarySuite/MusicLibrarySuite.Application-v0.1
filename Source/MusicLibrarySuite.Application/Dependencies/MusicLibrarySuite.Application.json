@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.5.0-rc2",
+    "title": "Music Library Suite - Application API v0.5.0-rc3",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.5.0-rc2"
+    "version": "v0.5.0-rc3"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1757,6 +1757,10 @@
           "releasedOnYearOnly",
           "systemEntity",
           "title",
+          "workArtists",
+          "workComposers",
+          "workFeaturedArtists",
+          "workPerformers",
           "workRelationships"
         ],
         "type": "object",
@@ -1807,6 +1811,117 @@
             "items": {
               "$ref": "#/components/schemas/WorkRelationship"
             }
+          },
+          "workArtists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkArtist"
+            }
+          },
+          "workFeaturedArtists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkFeaturedArtist"
+            }
+          },
+          "workPerformers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkPerformer"
+            }
+          },
+          "workComposers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkComposer"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkArtist": {
+        "required": [
+          "artistId",
+          "order",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkComposer": {
+        "required": [
+          "artistId",
+          "order",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkFeaturedArtist": {
+        "required": [
+          "artistId",
+          "order",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
           }
         },
         "additionalProperties": false
@@ -1842,6 +1957,35 @@
           "completedOn": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkPerformer": {
+        "required": [
+          "artistId",
+          "order",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
           }
         },
         "additionalProperties": false
