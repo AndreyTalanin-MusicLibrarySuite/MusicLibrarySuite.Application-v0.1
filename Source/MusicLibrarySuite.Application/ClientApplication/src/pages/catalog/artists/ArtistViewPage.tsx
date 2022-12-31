@@ -87,7 +87,7 @@ const ArtistViewPage = () => {
           {artist.artistGenres && artist.artistGenres.length > 0 && (
             <Paragraph>
               Artist Genres:{" "}
-              {artist.artistGenres?.map((artistGenre, index, array) => (
+              {artist.artistGenres.map((artistGenre, index, array) => (
                 <>
                   <Typography.Link key={artistGenre.genreId} href={`/catalog/genres/view?id=${artistGenre.genreId}`}>
                     {artistGenre?.genre?.name}
