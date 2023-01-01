@@ -2291,6 +2291,7 @@ export class Work implements IWork {
   workFeaturedArtists!: WorkFeaturedArtist[];
   workPerformers!: WorkPerformer[];
   workComposers!: WorkComposer[];
+  workGenres!: WorkGenre[];
 
   constructor(data?: IWork) {
     if (data) {
@@ -2304,6 +2305,7 @@ export class Work implements IWork {
       this.workFeaturedArtists = [];
       this.workPerformers = [];
       this.workComposers = [];
+      this.workGenres = [];
     }
   }
 
@@ -2339,6 +2341,10 @@ export class Work implements IWork {
       if (Array.isArray(_data["workComposers"])) {
         this.workComposers = [] as any;
         for (let item of _data["workComposers"]) this.workComposers!.push(WorkComposer.fromJS(item));
+      }
+      if (Array.isArray(_data["workGenres"])) {
+        this.workGenres = [] as any;
+        for (let item of _data["workGenres"]) this.workGenres!.push(WorkGenre.fromJS(item));
       }
     }
   }
@@ -2383,6 +2389,10 @@ export class Work implements IWork {
       data["workComposers"] = [];
       for (let item of this.workComposers) data["workComposers"].push(item.toJSON());
     }
+    if (Array.isArray(this.workGenres)) {
+      data["workGenres"] = [];
+      for (let item of this.workGenres) data["workGenres"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -2404,6 +2414,7 @@ export interface IWork {
   workFeaturedArtists: WorkFeaturedArtist[];
   workPerformers: WorkPerformer[];
   workComposers: WorkComposer[];
+  workGenres: WorkGenre[];
 }
 
 export class WorkArtist implements IWorkArtist {
@@ -2557,6 +2568,57 @@ export interface IWorkFeaturedArtist {
   order: number;
   work?: Work;
   artist?: Artist;
+}
+
+export class WorkGenre implements IWorkGenre {
+  workId!: string;
+  genreId!: string;
+  order!: number;
+  work?: Work;
+  genre?: Genre;
+
+  constructor(data?: IWorkGenre) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.workId = _data["workId"];
+      this.genreId = _data["genreId"];
+      this.order = _data["order"];
+      this.work = _data["work"] ? Work.fromJS(_data["work"]) : <any>undefined;
+      this.genre = _data["genre"] ? Genre.fromJS(_data["genre"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): WorkGenre {
+    data = typeof data === "object" ? data : {};
+    let result = new WorkGenre();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["workId"] = this.workId;
+    data["genreId"] = this.genreId;
+    data["order"] = this.order;
+    data["work"] = this.work ? this.work.toJSON() : <any>undefined;
+    data["genre"] = this.genre ? this.genre.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IWorkGenre {
+  workId: string;
+  genreId: string;
+  order: number;
+  work?: Work;
+  genre?: Genre;
 }
 
 export class WorkPageResponse implements IWorkPageResponse {
