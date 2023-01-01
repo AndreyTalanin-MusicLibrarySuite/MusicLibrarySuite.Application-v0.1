@@ -92,6 +92,58 @@ const WorkViewPage = () => {
           <Paragraph>
             Released On: <Text keyboard>{work.releasedOnYearOnly ? work.releasedOn.getUTCFullYear() : work.releasedOn.toLocaleDateString()}</Text>
           </Paragraph>
+          {work.workArtists && work.workArtists.length > 0 && (
+            <Paragraph>
+              Work Artists:{" "}
+              {work.workArtists.map((workArtist, index, array) => (
+                <>
+                  <Typography.Link key={workArtist.artistId} href={`/catalog/artists/view?id=${workArtist.artistId}`}>
+                    {workArtist?.artist?.name}
+                  </Typography.Link>
+                  {index < array.length - 1 && ", "}
+                </>
+              ))}
+            </Paragraph>
+          )}
+          {work.workFeaturedArtists && work.workFeaturedArtists.length > 0 && (
+            <Paragraph>
+              Work Featured Artists:{" "}
+              {work.workFeaturedArtists.map((workFeaturedArtist, index, array) => (
+                <>
+                  <Typography.Link key={workFeaturedArtist.artistId} href={`/catalog/artists/view?id=${workFeaturedArtist.artistId}`}>
+                    {workFeaturedArtist?.artist?.name}
+                  </Typography.Link>
+                  {index < array.length - 1 && ", "}
+                </>
+              ))}
+            </Paragraph>
+          )}
+          {work.workPerformers && work.workPerformers.length > 0 && (
+            <Paragraph>
+              Work Performers:{" "}
+              {work.workPerformers.map((workPerformer, index, array) => (
+                <>
+                  <Typography.Link key={workPerformer.artistId} href={`/catalog/artists/view?id=${workPerformer.artistId}`}>
+                    {workPerformer?.artist?.name}
+                  </Typography.Link>
+                  {index < array.length - 1 && ", "}
+                </>
+              ))}
+            </Paragraph>
+          )}
+          {work.workComposers && work.workComposers.length > 0 && (
+            <Paragraph>
+              Work Composers:{" "}
+              {work.workComposers.map((workComposer, index, array) => (
+                <>
+                  <Typography.Link key={workComposer.artistId} href={`/catalog/artists/view?id=${workComposer.artistId}`}>
+                    {workComposer?.artist?.name}
+                  </Typography.Link>
+                  {index < array.length - 1 && ", "}
+                </>
+              ))}
+            </Paragraph>
+          )}
           <Divider />
           {work.createdOn && (
             <Paragraph>

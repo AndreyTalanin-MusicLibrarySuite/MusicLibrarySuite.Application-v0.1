@@ -44,12 +44,15 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
           artist.artistRelationships = artist.artistRelationships.map(
             (artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: artist })
           );
+          artist.artistGenres = artist.artistGenres.map((artistGenre) => new ArtistGenre({ ...artistGenre, artist: artist }));
+
+          setArtist(artist);
+          setArtistFormValues({ ...artist, artistGenres: artist?.artistGenres.map((artistGenre) => artistGenre.genreId) ?? [] });
+
           applicationClient
             .getGenres(artist.artistGenres?.map((artistGenre) => artistGenre.genreId) ?? [])
             .then((genres) => {
-              setArtist(artist);
               setArtistGenreOptions(genres);
-              setArtistFormValues({ ...artist, artistGenres: artist?.artistGenres.map((artistGenre) => artistGenre.genreId) ?? [] });
             })
             .catch((error) => {
               alert(error);
@@ -119,9 +122,9 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
 
   const onFinish = useCallback(
     (artistFormValues: Store) => {
-      const artistGenreIds: string[] = artistFormValues.artistGenres as string[];
+      const artistGenreIds = artistFormValues.artistGenres as string[];
       if (artist?.id) {
-        artistFormValues.artistGenres = artistGenreIds.map((genreId: string) => new ArtistGenre({ artistId: artist.id, genreId, order: 0 }));
+        artistFormValues.artistGenres = artistGenreIds.map((genreId) => new ArtistGenre({ artistId: artist.id, genreId, order: 0 }));
       } else {
         artistFormValues.artistGenres = [];
       }
@@ -142,20 +145,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
       }
 
       artistModel.artistRelationships = artistModel.artistRelationships.map(
-        (artistRelationship) =>
-          new ArtistRelationship({
-            ...artistRelationship,
-            artist: undefined,
-            dependentArtist: undefined,
-          })
-      );
-      artistModel.artistGenres = artistModel.artistGenres.map(
-        (artistGenre) =>
-          new ArtistGenre({
-            ...artistGenre,
-            artist: undefined,
-            genre: undefined,
-          })
+        (artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: undefined, dependentArtist: undefined })
       );
 
       if (mode === ArtistEditPageMode.Create) {
@@ -195,9 +185,9 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
     (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
       applicationClient
         .getPagedGenres(20, 0, nameFilter, undefined)
-        .then((genres) => {
+        .then((genreResponse) => {
           setLoading(false);
-          setArtistGenreOptions(genres.items);
+          setArtistGenreOptions(genreResponse.items);
         })
         .catch((error) => {
           setLoading(false);
@@ -251,8 +241,8 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
           <Form
             form={form}
             initialValues={artistFormValues}
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 18 }}
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
           >
@@ -290,7 +280,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
               <Form.Item label="Artist Genres" name="artistGenres">
                 <EntitySelect
                   mode="multiple"
-                  options={artistGenreOptions.map((artistGenreOption) => ({ value: artistGenreOption.id, label: artistGenreOption.name }))}
+                  options={artistGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
                   onSearch={fetchArtistGenreOptions}
                 />
               </Form.Item>

@@ -45,14 +45,11 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
       applicationClient
         .getProduct(id)
         .then((product) => {
-          setProduct(
-            new Product({
-              ...product,
-              productRelationships: product.productRelationships.map(
-                (productRelationship) => new ProductRelationship({ ...productRelationship, product: product })
-              ),
-            })
+          product.productRelationships = product.productRelationships.map(
+            (productRelationship) => new ProductRelationship({ ...productRelationship, product: product })
           );
+
+          setProduct(product);
           setProductFormValues({ ...product, releasedOn: dayjs(product.releasedOn) });
         })
         .catch((error) => {
@@ -118,11 +115,11 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
   };
 
   const onFinish = useCallback(
-    (productValues: Store) => {
-      const releasedOn: Dayjs = productValues.releasedOn as Dayjs;
-      productValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
+    (productFormValues: Store) => {
+      const releasedOn = productFormValues.releasedOn as Dayjs;
+      productFormValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
 
-      const productModel = new Product({ ...product, ...(productValues as IProduct) });
+      const productModel = new Product({ ...product, ...(productFormValues as IProduct) });
       productModel.id = productModel.id?.trim();
       productModel.title = productModel.title?.trim();
       productModel.description = productModel.description?.trim();
@@ -212,8 +209,8 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           <Form
             form={form}
             initialValues={productFormValues}
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 18 }}
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
           >

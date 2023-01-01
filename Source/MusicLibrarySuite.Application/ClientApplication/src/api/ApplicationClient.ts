@@ -2287,6 +2287,10 @@ export class Work implements IWork {
   createdOn?: Date;
   updatedOn?: Date;
   workRelationships!: WorkRelationship[];
+  workArtists!: WorkArtist[];
+  workFeaturedArtists!: WorkFeaturedArtist[];
+  workPerformers!: WorkPerformer[];
+  workComposers!: WorkComposer[];
 
   constructor(data?: IWork) {
     if (data) {
@@ -2296,6 +2300,10 @@ export class Work implements IWork {
     }
     if (!data) {
       this.workRelationships = [];
+      this.workArtists = [];
+      this.workFeaturedArtists = [];
+      this.workPerformers = [];
+      this.workComposers = [];
     }
   }
 
@@ -2315,6 +2323,22 @@ export class Work implements IWork {
       if (Array.isArray(_data["workRelationships"])) {
         this.workRelationships = [] as any;
         for (let item of _data["workRelationships"]) this.workRelationships!.push(WorkRelationship.fromJS(item));
+      }
+      if (Array.isArray(_data["workArtists"])) {
+        this.workArtists = [] as any;
+        for (let item of _data["workArtists"]) this.workArtists!.push(WorkArtist.fromJS(item));
+      }
+      if (Array.isArray(_data["workFeaturedArtists"])) {
+        this.workFeaturedArtists = [] as any;
+        for (let item of _data["workFeaturedArtists"]) this.workFeaturedArtists!.push(WorkFeaturedArtist.fromJS(item));
+      }
+      if (Array.isArray(_data["workPerformers"])) {
+        this.workPerformers = [] as any;
+        for (let item of _data["workPerformers"]) this.workPerformers!.push(WorkPerformer.fromJS(item));
+      }
+      if (Array.isArray(_data["workComposers"])) {
+        this.workComposers = [] as any;
+        for (let item of _data["workComposers"]) this.workComposers!.push(WorkComposer.fromJS(item));
       }
     }
   }
@@ -2343,6 +2367,22 @@ export class Work implements IWork {
       data["workRelationships"] = [];
       for (let item of this.workRelationships) data["workRelationships"].push(item.toJSON());
     }
+    if (Array.isArray(this.workArtists)) {
+      data["workArtists"] = [];
+      for (let item of this.workArtists) data["workArtists"].push(item.toJSON());
+    }
+    if (Array.isArray(this.workFeaturedArtists)) {
+      data["workFeaturedArtists"] = [];
+      for (let item of this.workFeaturedArtists) data["workFeaturedArtists"].push(item.toJSON());
+    }
+    if (Array.isArray(this.workPerformers)) {
+      data["workPerformers"] = [];
+      for (let item of this.workPerformers) data["workPerformers"].push(item.toJSON());
+    }
+    if (Array.isArray(this.workComposers)) {
+      data["workComposers"] = [];
+      for (let item of this.workComposers) data["workComposers"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -2360,6 +2400,163 @@ export interface IWork {
   createdOn?: Date;
   updatedOn?: Date;
   workRelationships: WorkRelationship[];
+  workArtists: WorkArtist[];
+  workFeaturedArtists: WorkFeaturedArtist[];
+  workPerformers: WorkPerformer[];
+  workComposers: WorkComposer[];
+}
+
+export class WorkArtist implements IWorkArtist {
+  workId!: string;
+  artistId!: string;
+  order!: number;
+  work?: Work;
+  artist?: Artist;
+
+  constructor(data?: IWorkArtist) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.workId = _data["workId"];
+      this.artistId = _data["artistId"];
+      this.order = _data["order"];
+      this.work = _data["work"] ? Work.fromJS(_data["work"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): WorkArtist {
+    data = typeof data === "object" ? data : {};
+    let result = new WorkArtist();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["workId"] = this.workId;
+    data["artistId"] = this.artistId;
+    data["order"] = this.order;
+    data["work"] = this.work ? this.work.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IWorkArtist {
+  workId: string;
+  artistId: string;
+  order: number;
+  work?: Work;
+  artist?: Artist;
+}
+
+export class WorkComposer implements IWorkComposer {
+  workId!: string;
+  artistId!: string;
+  order!: number;
+  work?: Work;
+  artist?: Artist;
+
+  constructor(data?: IWorkComposer) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.workId = _data["workId"];
+      this.artistId = _data["artistId"];
+      this.order = _data["order"];
+      this.work = _data["work"] ? Work.fromJS(_data["work"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): WorkComposer {
+    data = typeof data === "object" ? data : {};
+    let result = new WorkComposer();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["workId"] = this.workId;
+    data["artistId"] = this.artistId;
+    data["order"] = this.order;
+    data["work"] = this.work ? this.work.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IWorkComposer {
+  workId: string;
+  artistId: string;
+  order: number;
+  work?: Work;
+  artist?: Artist;
+}
+
+export class WorkFeaturedArtist implements IWorkFeaturedArtist {
+  workId!: string;
+  artistId!: string;
+  order!: number;
+  work?: Work;
+  artist?: Artist;
+
+  constructor(data?: IWorkFeaturedArtist) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.workId = _data["workId"];
+      this.artistId = _data["artistId"];
+      this.order = _data["order"];
+      this.work = _data["work"] ? Work.fromJS(_data["work"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): WorkFeaturedArtist {
+    data = typeof data === "object" ? data : {};
+    let result = new WorkFeaturedArtist();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["workId"] = this.workId;
+    data["artistId"] = this.artistId;
+    data["order"] = this.order;
+    data["work"] = this.work ? this.work.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IWorkFeaturedArtist {
+  workId: string;
+  artistId: string;
+  order: number;
+  work?: Work;
+  artist?: Artist;
 }
 
 export class WorkPageResponse implements IWorkPageResponse {
@@ -2420,6 +2617,57 @@ export interface IWorkPageResponse {
   totalCount: number;
   items: Work[];
   completedOn: Date;
+}
+
+export class WorkPerformer implements IWorkPerformer {
+  workId!: string;
+  artistId!: string;
+  order!: number;
+  work?: Work;
+  artist?: Artist;
+
+  constructor(data?: IWorkPerformer) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.workId = _data["workId"];
+      this.artistId = _data["artistId"];
+      this.order = _data["order"];
+      this.work = _data["work"] ? Work.fromJS(_data["work"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): WorkPerformer {
+    data = typeof data === "object" ? data : {};
+    let result = new WorkPerformer();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["workId"] = this.workId;
+    data["artistId"] = this.artistId;
+    data["order"] = this.order;
+    data["work"] = this.work ? this.work.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IWorkPerformer {
+  workId: string;
+  artistId: string;
+  order: number;
+  work?: Work;
+  artist?: Artist;
 }
 
 export class WorkRelationship implements IWorkRelationship {

@@ -6,7 +6,8 @@ import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IWork, Work, WorkRelationship } from "../../../api/ApplicationClient";
+import { Artist, IWork, Work, WorkArtist, WorkComposer, WorkFeaturedArtist, WorkPerformer, WorkRelationship } from "../../../api/ApplicationClient";
+import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -32,6 +33,10 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
 
   const [work, setWork] = useState<Work>();
   const [workFormValues, setWorkFormValues] = useState<Store>({});
+  const [workArtistOptions, setWorkArtistOptions] = useState<Artist[]>([]);
+  const [workFeaturedArtistOptions, setWorkFeaturedArtistOptions] = useState<Artist[]>([]);
+  const [workPerformerOptions, setWorkPerformerOptions] = useState<Artist[]>([]);
+  const [workComposerOptions, setWorkComposerOptions] = useState<Artist[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
@@ -45,13 +50,54 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
       applicationClient
         .getWork(id)
         .then((work) => {
-          setWork(
-            new Work({
-              ...work,
-              workRelationships: work.workRelationships.map((workRelationship) => new WorkRelationship({ ...workRelationship, work: work })),
+          work.workRelationships = work.workRelationships.map((workRelationship) => new WorkRelationship({ ...workRelationship, work: work }));
+          work.workArtists = work.workArtists.map((workArtist) => new WorkArtist({ ...workArtist, work: work }));
+          work.workFeaturedArtists = work.workFeaturedArtists.map((workFeaturedArtist) => new WorkFeaturedArtist({ ...workFeaturedArtist, work: work }));
+          work.workPerformers = work.workPerformers.map((workPerformer) => new WorkPerformer({ ...workPerformer, work: work }));
+          work.workComposers = work.workComposers.map((workComposer) => new WorkComposer({ ...workComposer, work: work }));
+
+          setWork(work);
+          setWorkFormValues({
+            ...work,
+            releasedOn: dayjs(work.releasedOn),
+            workArtists: work?.workArtists.map((workArtist) => workArtist.artistId) ?? [],
+            workFeaturedArtists: work?.workFeaturedArtists.map((workFeaturedArtist) => workFeaturedArtist.artistId) ?? [],
+            workPerformers: work?.workPerformers.map((workPerformer) => workPerformer.artistId) ?? [],
+            workComposers: work?.workComposers.map((workComposer) => workComposer.artistId) ?? [],
+          });
+
+          applicationClient
+            .getArtists(work.workArtists?.map((workArtist) => workArtist.artistId) ?? [])
+            .then((workArtists) => {
+              setWorkArtistOptions(workArtists);
             })
-          );
-          setWorkFormValues({ ...work, releasedOn: dayjs(work.releasedOn) });
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getArtists(work.workFeaturedArtists?.map((workFeaturedArtist) => workFeaturedArtist.artistId) ?? [])
+            .then((workFeaturedArtists) => {
+              setWorkFeaturedArtistOptions(workFeaturedArtists);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getArtists(work.workPerformers?.map((workPerformer) => workPerformer.artistId) ?? [])
+            .then((workPerformers) => {
+              setWorkPerformerOptions(workPerformers);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getArtists(work.workComposers?.map((workComposer) => workComposer.artistId) ?? [])
+            .then((workComposers) => {
+              setWorkComposerOptions(workComposers);
+            })
+            .catch((error) => {
+              alert(error);
+            });
         })
         .catch((error) => {
           alert(error);
@@ -116,11 +162,27 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   };
 
   const onFinish = useCallback(
-    (workValues: Store) => {
-      const releasedOn: Dayjs = workValues.releasedOn as Dayjs;
-      workValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
+    (workFormValues: Store) => {
+      const releasedOn = workFormValues.releasedOn as Dayjs;
+      workFormValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
 
-      const workModel = new Work({ ...work, ...(workValues as IWork) });
+      const workArtistIds = workFormValues.workArtists as string[];
+      const workFeaturedArtistIds = workFormValues.workFeaturedArtists as string[];
+      const workPerformerIds = workFormValues.workPerformers as string[];
+      const workComposerIds = workFormValues.workComposers as string[];
+      if (work?.id) {
+        workFormValues.workArtists = workArtistIds.map((artistId) => new WorkArtist({ workId: work.id, artistId: artistId, order: 0 }));
+        workFormValues.workFeaturedArtists = workFeaturedArtistIds.map((artistId) => new WorkFeaturedArtist({ workId: work.id, artistId: artistId, order: 0 }));
+        workFormValues.workPerformers = workPerformerIds.map((artistId) => new WorkPerformer({ workId: work.id, artistId: artistId, order: 0 }));
+        workFormValues.workComposers = workComposerIds.map((artistId) => new WorkComposer({ workId: work.id, artistId: artistId, order: 0 }));
+      } else {
+        workFormValues.workArtists = [];
+        workFormValues.workFeaturedArtists = [];
+        workFormValues.workPerformers = [];
+        workFormValues.workComposers = [];
+      }
+
+      const workModel = new Work({ ...work, ...(workFormValues as IWork) });
       workModel.id = workModel.id?.trim();
       workModel.title = workModel.title?.trim();
       workModel.description = workModel.description?.trim();
@@ -138,6 +200,10 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
       if (workModel.internationalStandardMusicalWorkCode !== undefined && workModel.internationalStandardMusicalWorkCode.length === 0) {
         workModel.internationalStandardMusicalWorkCode = undefined;
       }
+
+      workModel.workRelationships = workModel.workRelationships.map(
+        (workRelationship) => new WorkRelationship({ ...workRelationship, work: undefined, dependentWork: undefined })
+      );
 
       if (mode === WorkEditPageMode.Create) {
         setLoading(true);
@@ -171,6 +237,78 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const onFinishFailed = () => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
+
+  const fetchWorkArtistOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setWorkArtistOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchWorkArtistOptions(undefined, () => void 0), [fetchWorkArtistOptions]);
+
+  const fetchWorkFeaturedArtistOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setWorkFeaturedArtistOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchWorkFeaturedArtistOptions(undefined, () => void 0), [fetchWorkFeaturedArtistOptions]);
+
+  const fetchWorkPerformerOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setWorkPerformerOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchWorkPerformerOptions(undefined, () => void 0), [fetchWorkPerformerOptions]);
+
+  const fetchWorkComposerOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setWorkComposerOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchWorkComposerOptions(undefined, () => void 0), [fetchWorkComposerOptions]);
 
   const tabs = useMemo(
     () => [
@@ -211,7 +349,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
       </Space>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-          <Form form={form} initialValues={workFormValues} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }} onFinish={onFinish} onFinishFailed={onFinishFailed}>
+          <Form form={form} initialValues={workFormValues} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} onFinish={onFinish} onFinishFailed={onFinishFailed}>
             <Form.Item label="Id" name="id">
               <Input readOnly={mode === WorkEditPageMode.Edit} />
             </Form.Item>
@@ -257,6 +395,42 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
             >
               <Checkbox />
             </Form.Item>
+            {mode === WorkEditPageMode.Edit && (
+              <Form.Item label="Work Artists" name="workArtists">
+                <EntitySelect
+                  mode="multiple"
+                  options={workArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchWorkArtistOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === WorkEditPageMode.Edit && (
+              <Form.Item label="Work Featured Artists" name="workFeaturedArtists">
+                <EntitySelect
+                  mode="multiple"
+                  options={workFeaturedArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchWorkFeaturedArtistOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === WorkEditPageMode.Edit && (
+              <Form.Item label="Work Performers" name="workPerformers">
+                <EntitySelect
+                  mode="multiple"
+                  options={workPerformerOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchWorkPerformerOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === WorkEditPageMode.Edit && (
+              <Form.Item label="Work Composers" name="workComposers">
+                <EntitySelect
+                  mode="multiple"
+                  options={workComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchWorkComposerOptions}
+                />
+              </Form.Item>
+            )}
             {mode === WorkEditPageMode.Edit && (
               <Form.Item label="Created On" name="createdOn">
                 <Input readOnly />
