@@ -6,7 +6,18 @@ import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Artist, IWork, Work, WorkArtist, WorkComposer, WorkFeaturedArtist, WorkPerformer, WorkRelationship } from "../../../api/ApplicationClient";
+import {
+  Artist,
+  Genre,
+  IWork,
+  Work,
+  WorkArtist,
+  WorkComposer,
+  WorkFeaturedArtist,
+  WorkGenre,
+  WorkPerformer,
+  WorkRelationship,
+} from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
@@ -37,6 +48,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const [workFeaturedArtistOptions, setWorkFeaturedArtistOptions] = useState<Artist[]>([]);
   const [workPerformerOptions, setWorkPerformerOptions] = useState<Artist[]>([]);
   const [workComposerOptions, setWorkComposerOptions] = useState<Artist[]>([]);
+  const [workGenreOptions, setWorkGenreOptions] = useState<Genre[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
@@ -55,6 +67,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
           work.workFeaturedArtists = work.workFeaturedArtists.map((workFeaturedArtist) => new WorkFeaturedArtist({ ...workFeaturedArtist, work: work }));
           work.workPerformers = work.workPerformers.map((workPerformer) => new WorkPerformer({ ...workPerformer, work: work }));
           work.workComposers = work.workComposers.map((workComposer) => new WorkComposer({ ...workComposer, work: work }));
+          work.workGenres = work.workGenres.map((workGenre) => new WorkGenre({ ...workGenre, work: work }));
 
           setWork(work);
           setWorkFormValues({
@@ -64,6 +77,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
             workFeaturedArtists: work?.workFeaturedArtists.map((workFeaturedArtist) => workFeaturedArtist.artistId) ?? [],
             workPerformers: work?.workPerformers.map((workPerformer) => workPerformer.artistId) ?? [],
             workComposers: work?.workComposers.map((workComposer) => workComposer.artistId) ?? [],
+            workGenres: work?.workGenres.map((workGenre) => workGenre.genreId) ?? [],
           });
 
           applicationClient
@@ -94,6 +108,14 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
             .getArtists(work.workComposers?.map((workComposer) => workComposer.artistId) ?? [])
             .then((workComposers) => {
               setWorkComposerOptions(workComposers);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getGenres(work.workGenres?.map((workGenre) => workGenre.genreId) ?? [])
+            .then((workGenres) => {
+              setWorkGenreOptions(workGenres);
             })
             .catch((error) => {
               alert(error);
@@ -170,16 +192,19 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
       const workFeaturedArtistIds = workFormValues.workFeaturedArtists as string[];
       const workPerformerIds = workFormValues.workPerformers as string[];
       const workComposerIds = workFormValues.workComposers as string[];
+      const workGenreIds = workFormValues.workGenres as string[];
       if (work?.id) {
         workFormValues.workArtists = workArtistIds.map((artistId) => new WorkArtist({ workId: work.id, artistId: artistId, order: 0 }));
         workFormValues.workFeaturedArtists = workFeaturedArtistIds.map((artistId) => new WorkFeaturedArtist({ workId: work.id, artistId: artistId, order: 0 }));
         workFormValues.workPerformers = workPerformerIds.map((artistId) => new WorkPerformer({ workId: work.id, artistId: artistId, order: 0 }));
         workFormValues.workComposers = workComposerIds.map((artistId) => new WorkComposer({ workId: work.id, artistId: artistId, order: 0 }));
+        workFormValues.workGenres = workGenreIds.map((genreId) => new WorkGenre({ workId: work.id, genreId: genreId, order: 0 }));
       } else {
         workFormValues.workArtists = [];
         workFormValues.workFeaturedArtists = [];
         workFormValues.workPerformers = [];
         workFormValues.workComposers = [];
+        workFormValues.workGenres = [];
       }
 
       const workModel = new Work({ ...work, ...(workFormValues as IWork) });
@@ -310,6 +335,24 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
 
   useEffect(() => fetchWorkComposerOptions(undefined, () => void 0), [fetchWorkComposerOptions]);
 
+  const fetchWorkGenreOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedGenres(20, 0, nameFilter, undefined)
+        .then((genreResponse) => {
+          setLoading(false);
+          setWorkGenreOptions(genreResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchWorkGenreOptions(undefined, () => void 0), [fetchWorkGenreOptions]);
+
   const tabs = useMemo(
     () => [
       {
@@ -428,6 +471,15 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
                   mode="multiple"
                   options={workComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
                   onSearch={fetchWorkComposerOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === WorkEditPageMode.Edit && (
+              <Form.Item label="Work Genres" name="workGenres">
+                <EntitySelect
+                  mode="multiple"
+                  options={workGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchWorkGenreOptions}
                 />
               </Form.Item>
             )}

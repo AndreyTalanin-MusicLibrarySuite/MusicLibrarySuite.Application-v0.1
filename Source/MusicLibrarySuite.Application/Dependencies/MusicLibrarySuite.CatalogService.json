@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Catalog Service API v0.6.0-rc3",
+    "title": "Music Library Suite - Catalog Service API v0.6.0-rc4",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
     },
-    "version": "v0.6.0-rc3"
+    "version": "v0.6.0-rc4"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1760,6 +1760,7 @@
           "workArtists",
           "workComposers",
           "workFeaturedArtists",
+          "workGenres",
           "workPerformers",
           "workRelationships"
         ],
@@ -1834,6 +1835,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkComposer"
+            }
+          },
+          "workGenres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkGenre"
             }
           }
         },
@@ -1922,6 +1929,35 @@
           },
           "artist": {
             "$ref": "#/components/schemas/Artist"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkGenre": {
+        "required": [
+          "genreId",
+          "order",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "genreId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
+          },
+          "genre": {
+            "$ref": "#/components/schemas/Genre"
           }
         },
         "additionalProperties": false

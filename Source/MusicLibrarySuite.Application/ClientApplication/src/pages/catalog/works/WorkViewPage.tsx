@@ -144,6 +144,19 @@ const WorkViewPage = () => {
               ))}
             </Paragraph>
           )}
+          {work.workGenres && work.workGenres.length > 0 && (
+            <Paragraph>
+              Work Genres:{" "}
+              {work.workGenres.map((workGenre, index, array) => (
+                <>
+                  <Typography.Link key={workGenre.genreId} href={`/catalog/genres/view?id=${workGenre.genreId}`}>
+                    {workGenre?.genre?.name}
+                  </Typography.Link>
+                  {index < array.length - 1 && ", "}
+                </>
+              ))}
+            </Paragraph>
+          )}
           <Divider />
           {work.createdOn && (
             <Paragraph>
