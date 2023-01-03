@@ -6,6 +6,7 @@ import { Work } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import WorkViewPageWorkRelationshipsTab from "./WorkViewPageWorkRelationshipsTab";
+import WorkViewPageWorkToProductRelationshipsTab from "./WorkViewPageWorkToProductRelationshipsTab";
 import styles from "./WorkViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -50,6 +51,11 @@ const WorkViewPage = () => {
         key: "workRelationshipsTab",
         label: "Work Relationships",
         children: id && <WorkViewPageWorkRelationshipsTab id={id} />,
+      },
+      {
+        key: "workToProductRelationshipsTab",
+        label: "Work-to-Product Relationships",
+        children: id && <WorkViewPageWorkToProductRelationshipsTab id={id} />,
       },
     ],
     [id]
