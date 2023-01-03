@@ -1441,6 +1441,100 @@ export class ApplicationClient {
   /**
    * @return Success
    */
+  getWorkToProductRelationships(workId: string): Promise<WorkToProductRelationship[]> {
+    let url_ = this.baseUrl + "/api/Work/GetWorkToProductRelationships?";
+    if (workId === undefined || workId === null) throw new Error("The parameter 'workId' must be defined and cannot be null.");
+    else url_ += "workId=" + encodeURIComponent("" + workId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetWorkToProductRelationships(_response);
+    });
+  }
+
+  protected processGetWorkToProductRelationships(response: Response): Promise<WorkToProductRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(WorkToProductRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<WorkToProductRelationship[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getWorkToProductRelationshipsByProduct(productId: string): Promise<WorkToProductRelationship[]> {
+    let url_ = this.baseUrl + "/api/Work/GetWorkToProductRelationshipsByProduct?";
+    if (productId === undefined || productId === null) throw new Error("The parameter 'productId' must be defined and cannot be null.");
+    else url_ += "productId=" + encodeURIComponent("" + productId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetWorkToProductRelationshipsByProduct(_response);
+    });
+  }
+
+  protected processGetWorkToProductRelationshipsByProduct(response: Response): Promise<WorkToProductRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(WorkToProductRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<WorkToProductRelationship[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
   createWork(body: Work): Promise<Work> {
     let url_ = this.baseUrl + "/api/Work/CreateWork";
     url_ = url_.replace(/[?&]$/, "");
@@ -1505,6 +1599,56 @@ export class ApplicationClient {
   }
 
   protected processUpdateWork(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @param useReferenceOrder (optional)
+   * @return Success
+   */
+  updateWorkToProductRelationshipsOrder(useReferenceOrder: boolean | undefined, body: WorkToProductRelationship[]): Promise<void> {
+    let url_ = this.baseUrl + "/api/Work/UpdateWorkToProductRelationshipsOrder?";
+    if (useReferenceOrder === null) throw new Error("The parameter 'useReferenceOrder' cannot be null.");
+    else if (useReferenceOrder !== undefined) url_ += "useReferenceOrder=" + encodeURIComponent("" + useReferenceOrder) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processUpdateWorkToProductRelationshipsOrder(_response);
+    });
+  }
+
+  protected processUpdateWorkToProductRelationshipsOrder(response: Response): Promise<void> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && response.headers.forEach) {
@@ -2292,6 +2436,7 @@ export class Work implements IWork {
   workPerformers!: WorkPerformer[];
   workComposers!: WorkComposer[];
   workGenres!: WorkGenre[];
+  workToProductRelationships!: WorkToProductRelationship[];
 
   constructor(data?: IWork) {
     if (data) {
@@ -2306,6 +2451,7 @@ export class Work implements IWork {
       this.workPerformers = [];
       this.workComposers = [];
       this.workGenres = [];
+      this.workToProductRelationships = [];
     }
   }
 
@@ -2345,6 +2491,10 @@ export class Work implements IWork {
       if (Array.isArray(_data["workGenres"])) {
         this.workGenres = [] as any;
         for (let item of _data["workGenres"]) this.workGenres!.push(WorkGenre.fromJS(item));
+      }
+      if (Array.isArray(_data["workToProductRelationships"])) {
+        this.workToProductRelationships = [] as any;
+        for (let item of _data["workToProductRelationships"]) this.workToProductRelationships!.push(WorkToProductRelationship.fromJS(item));
       }
     }
   }
@@ -2393,6 +2543,10 @@ export class Work implements IWork {
       data["workGenres"] = [];
       for (let item of this.workGenres) data["workGenres"].push(item.toJSON());
     }
+    if (Array.isArray(this.workToProductRelationships)) {
+      data["workToProductRelationships"] = [];
+      for (let item of this.workToProductRelationships) data["workToProductRelationships"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -2415,6 +2569,7 @@ export interface IWork {
   workPerformers: WorkPerformer[];
   workComposers: WorkComposer[];
   workGenres: WorkGenre[];
+  workToProductRelationships: WorkToProductRelationship[];
 }
 
 export class WorkArtist implements IWorkArtist {
@@ -2785,6 +2940,61 @@ export interface IWorkRelationship {
   description?: string | undefined;
   work?: Work;
   dependentWork?: Work;
+}
+
+export class WorkToProductRelationship implements IWorkToProductRelationship {
+  workId!: string;
+  productId!: string;
+  name!: string;
+  description?: string | undefined;
+  work?: Work;
+  product?: Product;
+
+  constructor(data?: IWorkToProductRelationship) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.workId = _data["workId"];
+      this.productId = _data["productId"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.work = _data["work"] ? Work.fromJS(_data["work"]) : <any>undefined;
+      this.product = _data["product"] ? Product.fromJS(_data["product"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): WorkToProductRelationship {
+    data = typeof data === "object" ? data : {};
+    let result = new WorkToProductRelationship();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["workId"] = this.workId;
+    data["productId"] = this.productId;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["work"] = this.work ? this.work.toJSON() : <any>undefined;
+    data["product"] = this.product ? this.product.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IWorkToProductRelationship {
+  workId: string;
+  productId: string;
+  name: string;
+  description?: string | undefined;
+  work?: Work;
+  product?: Product;
 }
 
 export class ApiException extends Error {
