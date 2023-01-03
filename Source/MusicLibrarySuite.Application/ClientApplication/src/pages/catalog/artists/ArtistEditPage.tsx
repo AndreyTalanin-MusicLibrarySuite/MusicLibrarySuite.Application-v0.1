@@ -44,6 +44,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
           artist.artistRelationships = artist.artistRelationships.map(
             (artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: artist })
           );
+
           artist.artistGenres = artist.artistGenres.map((artistGenre) => new ArtistGenre({ ...artistGenre, artist: artist }));
 
           setArtist(artist);

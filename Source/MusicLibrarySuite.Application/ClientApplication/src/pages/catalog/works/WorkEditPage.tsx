@@ -17,6 +17,7 @@ import {
   WorkGenre,
   WorkPerformer,
   WorkRelationship,
+  WorkToProductRelationship,
 } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
@@ -24,6 +25,7 @@ import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import WorkEditPageWorkRelationshipsTab from "./WorkEditPageWorkRelationshipsTab";
+import WorkEditPageWorkToProductRelationshipsTab from "./WorkEditPageWorkToProductRelationshipsTab";
 import styles from "./WorkEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -63,6 +65,11 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
         .getWork(id)
         .then((work) => {
           work.workRelationships = work.workRelationships.map((workRelationship) => new WorkRelationship({ ...workRelationship, work: work }));
+
+          work.workToProductRelationships = work.workToProductRelationships.map(
+            (workToProductRelationship) => new WorkToProductRelationship({ ...workToProductRelationship, work: work })
+          );
+
           work.workArtists = work.workArtists.map((workArtist) => new WorkArtist({ ...workArtist, work: work }));
           work.workFeaturedArtists = work.workFeaturedArtists.map((workFeaturedArtist) => new WorkFeaturedArtist({ ...workFeaturedArtist, work: work }));
           work.workPerformers = work.workPerformers.map((workPerformer) => new WorkPerformer({ ...workPerformer, work: work }));
@@ -131,6 +138,15 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
     (workRelationships: WorkRelationship[]) => {
       if (work) {
         setWork(new Work({ ...work, workRelationships: workRelationships }));
+      }
+    },
+    [work]
+  );
+
+  const onWorkToProductRelationshipsChange = useCallback(
+    (workToProductRelationships: WorkToProductRelationship[]) => {
+      if (work) {
+        setWork(new Work({ ...work, workToProductRelationships: workToProductRelationships }));
       }
     },
     [work]
@@ -228,6 +244,10 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
 
       workModel.workRelationships = workModel.workRelationships.map(
         (workRelationship) => new WorkRelationship({ ...workRelationship, work: undefined, dependentWork: undefined })
+      );
+
+      workModel.workToProductRelationships = workModel.workToProductRelationships.map(
+        (workToProductRelationship) => new WorkToProductRelationship({ ...workToProductRelationship, work: undefined, product: undefined })
       );
 
       if (mode === WorkEditPageMode.Create) {
@@ -367,8 +387,20 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
           />
         ),
       },
+      {
+        key: "workToProductRelationshipsTab",
+        label: "Work-to-Product Relationships",
+        children: work && (
+          <WorkEditPageWorkToProductRelationshipsTab
+            work={work}
+            workToProductRelationships={work.workToProductRelationships}
+            workToProductRelationshipsLoading={loading}
+            setWorkToProductRelationships={onWorkToProductRelationshipsChange}
+          />
+        ),
+      },
     ],
-    [work, loading, onWorkRelationshipsChange]
+    [work, loading, onWorkRelationshipsChange, onWorkToProductRelationshipsChange]
   );
 
   return (
