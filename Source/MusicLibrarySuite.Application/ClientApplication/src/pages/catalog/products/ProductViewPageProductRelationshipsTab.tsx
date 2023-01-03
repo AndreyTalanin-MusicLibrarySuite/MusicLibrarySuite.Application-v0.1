@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
-import { ProductRelationship } from "../../../api/ApplicationClient";
-import useApplicationClient from "../../../hooks/useApplicationClient";
 import { Checkbox, Typography } from "antd";
+import { useEffect, useState } from "react";
+import { ProductRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
+import useApplicationClient from "../../../hooks/useApplicationClient";
+import "antd/dist/antd.min.css";
 
 export interface ProductViewPageProductRelationshipsTabProps {
   id: string;
@@ -15,7 +16,7 @@ const ProductViewPageProductRelationshipsTab = ({ id }: ProductViewPageProductRe
 
   const applicationClient = useApplicationClient();
 
-  const fetchProductRelationships = useCallback(() => {
+  useEffect(() => {
     setProductRelationshipsLoading(true);
     applicationClient
       .getProductRelationships(id, includeReverseRelationships)
@@ -27,10 +28,6 @@ const ProductViewPageProductRelationshipsTab = ({ id }: ProductViewPageProductRe
         alert(error);
       });
   }, [id, includeReverseRelationships, applicationClient]);
-
-  useEffect(() => {
-    fetchProductRelationships();
-  }, [fetchProductRelationships]);
 
   return (
     <>

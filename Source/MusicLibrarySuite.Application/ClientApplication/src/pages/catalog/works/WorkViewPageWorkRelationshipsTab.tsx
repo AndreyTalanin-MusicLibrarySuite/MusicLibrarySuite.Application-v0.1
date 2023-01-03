@@ -1,8 +1,9 @@
 import { Checkbox, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { WorkRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import "antd/dist/antd.min.css";
 
 export interface WorkViewPageWorkRelationshipsTabProps {
   id: string;
@@ -15,7 +16,7 @@ const WorkViewPageWorkRelationshipsTab = ({ id }: WorkViewPageWorkRelationshipsT
 
   const applicationClient = useApplicationClient();
 
-  const fetchWorkRelationships = useCallback(() => {
+  useEffect(() => {
     setWorkRelationshipsLoading(true);
     applicationClient
       .getWorkRelationships(id, includeReverseRelationships)
@@ -27,10 +28,6 @@ const WorkViewPageWorkRelationshipsTab = ({ id }: WorkViewPageWorkRelationshipsT
         alert(error);
       });
   }, [id, includeReverseRelationships, applicationClient]);
-
-  useEffect(() => {
-    fetchWorkRelationships();
-  }, [fetchWorkRelationships]);
 
   return (
     <>
