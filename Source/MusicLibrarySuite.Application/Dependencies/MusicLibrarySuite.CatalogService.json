@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Catalog Service API v0.6.0-rc4",
+    "title": "Music Library Suite - Catalog Service API v0.6.0-rc5",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
     },
-    "version": "v0.6.0-rc4"
+    "version": "v0.6.0-rc5"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1193,6 +1193,72 @@
         }
       }
     },
+    "/api/Work/GetWorkToProductRelationships": {
+      "get": {
+        "tags": [
+          "Work"
+        ],
+        "parameters": [
+          {
+            "name": "workId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkToProductRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Work/GetWorkToProductRelationshipsByProduct": {
+      "get": {
+        "tags": [
+          "Work"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkToProductRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Work/CreateWork": {
       "post": {
         "tags": [
@@ -1252,6 +1318,76 @@
             "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/Work"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Work/UpdateWorkToProductRelationshipsOrder": {
+      "put": {
+        "tags": [
+          "Work"
+        ],
+        "parameters": [
+          {
+            "name": "useReferenceOrder",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WorkToProductRelationship"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WorkToProductRelationship"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WorkToProductRelationship"
+                }
               }
             }
           },
@@ -1762,7 +1898,8 @@
           "workFeaturedArtists",
           "workGenres",
           "workPerformers",
-          "workRelationships"
+          "workRelationships",
+          "workToProductRelationships"
         ],
         "type": "object",
         "properties": {
@@ -1841,6 +1978,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkGenre"
+            }
+          },
+          "workToProductRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkToProductRelationship"
             }
           }
         },
@@ -2055,6 +2198,39 @@
           },
           "dependentWork": {
             "$ref": "#/components/schemas/Work"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkToProductRelationship": {
+        "required": [
+          "name",
+          "productId",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
           }
         },
         "additionalProperties": false

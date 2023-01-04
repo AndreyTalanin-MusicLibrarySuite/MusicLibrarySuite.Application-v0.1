@@ -6,6 +6,7 @@ import { Product } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductViewPageProductRelationshipsTab from "./ProductViewPageProductRelationshipsTab";
+import ProductViewPageWorkToProductRelationshipsTab from "./ProductViewPageWorkToProductRelationshipsTab";
 import styles from "./ProductViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -50,6 +51,11 @@ const ProductViewPage = () => {
         key: "productRelationshipsTab",
         label: "Product Relationships",
         children: id && <ProductViewPageProductRelationshipsTab id={id} />,
+      },
+      {
+        key: "workToProductRelationshipsTab",
+        label: "Work-to-Product Relationships",
+        children: id && <ProductViewPageWorkToProductRelationshipsTab id={id} />,
       },
     ],
     [id]

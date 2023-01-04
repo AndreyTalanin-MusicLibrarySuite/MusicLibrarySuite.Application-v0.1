@@ -1,5 +1,5 @@
 import { Checkbox, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { GenreRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -16,7 +16,7 @@ const GenreViewPageGenreRelationshipsTab = ({ id }: GenreViewPageGenreRelationsh
 
   const applicationClient = useApplicationClient();
 
-  const fetchGenreRelationships = useCallback(() => {
+  useEffect(() => {
     setGenreRelationshipsLoading(true);
     applicationClient
       .getGenreRelationships(id, includeReverseRelationships)
@@ -28,10 +28,6 @@ const GenreViewPageGenreRelationshipsTab = ({ id }: GenreViewPageGenreRelationsh
         alert(error);
       });
   }, [id, includeReverseRelationships, applicationClient]);
-
-  useEffect(() => {
-    fetchGenreRelationships();
-  }, [fetchGenreRelationships]);
 
   return (
     <>

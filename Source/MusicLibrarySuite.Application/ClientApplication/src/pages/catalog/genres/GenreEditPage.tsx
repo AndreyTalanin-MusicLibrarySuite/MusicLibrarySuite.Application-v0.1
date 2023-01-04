@@ -120,12 +120,7 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
       }
 
       genreModel.genreRelationships = genreModel.genreRelationships.map(
-        (genreRelationship) =>
-          new GenreRelationship({
-            ...genreRelationship,
-            genre: undefined,
-            dependentGenre: undefined,
-          })
+        (genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: undefined, dependentGenre: undefined })
       );
 
       if (mode === GenreEditPageMode.Create) {

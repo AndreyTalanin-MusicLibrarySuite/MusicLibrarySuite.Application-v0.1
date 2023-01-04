@@ -1,5 +1,5 @@
 import { Checkbox, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArtistRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -16,7 +16,7 @@ const ArtistViewPageArtistRelationshipsTab = ({ id }: ArtistViewPageArtistRelati
 
   const applicationClient = useApplicationClient();
 
-  const fetchArtistRelationships = useCallback(() => {
+  useEffect(() => {
     setArtistRelationshipsLoading(true);
     applicationClient
       .getArtistRelationships(id, includeReverseRelationships)
@@ -28,10 +28,6 @@ const ArtistViewPageArtistRelationshipsTab = ({ id }: ArtistViewPageArtistRelati
         alert(error);
       });
   }, [id, includeReverseRelationships, applicationClient]);
-
-  useEffect(() => {
-    fetchArtistRelationships();
-  }, [fetchArtistRelationships]);
 
   return (
     <>

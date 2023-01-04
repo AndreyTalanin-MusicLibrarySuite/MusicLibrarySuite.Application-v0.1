@@ -6,12 +6,13 @@ import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IProduct, Product, ProductRelationship } from "../../../api/ApplicationClient";
+import { IProduct, Product, ProductRelationship, WorkToProductRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductEditPageProductRelationshipsTab from "./ProductEditPageProductRelationshipsTab";
+import ProductEditPageWorkToProductRelationshipsTab from "./ProductEditPageWorkToProductRelationshipsTab";
 import styles from "./ProductEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -32,6 +33,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
 
   const [product, setProduct] = useState<Product>();
   const [productFormValues, setProductFormValues] = useState<Store>({});
+  const [workToProductRelationships, setWorkToProductRelationships] = useState<WorkToProductRelationship[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
@@ -51,6 +53,10 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
 
           setProduct(product);
           setProductFormValues({ ...product, releasedOn: dayjs(product.releasedOn) });
+
+          applicationClient.getWorkToProductRelationshipsByProduct(id).then((workToProductRelationships) => {
+            setWorkToProductRelationships(workToProductRelationships);
+          });
         })
         .catch((error) => {
           alert(error);
@@ -134,6 +140,10 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         productModel.disambiguationText = undefined;
       }
 
+      productModel.productRelationships = productModel.productRelationships.map(
+        (productRelationship) => new ProductRelationship({ ...productRelationship, product: undefined, dependentProduct: undefined })
+      );
+
       if (mode === ProductEditPageMode.Create) {
         setLoading(true);
         applicationClient
@@ -151,8 +161,15 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         applicationClient
           .updateProduct(productModel)
           .then(() => {
-            setLoading(false);
-            fetchProduct();
+            Promise.all([applicationClient.updateWorkToProductRelationshipsOrder(true, workToProductRelationships)])
+              .then(() => {
+                setLoading(false);
+                fetchProduct();
+              })
+              .catch((error) => {
+                setLoading(false);
+                alert(error);
+              });
           })
           .catch((error) => {
             setLoading(false);
@@ -160,7 +177,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           });
       }
     },
-    [mode, navigate, product, applicationClient, fetchProduct]
+    [mode, navigate, product, workToProductRelationships, applicationClient, fetchProduct]
   );
 
   const onFinishFailed = () => {
@@ -181,8 +198,19 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           />
         ),
       },
+      {
+        key: "workToProductRelationshipsTab",
+        label: "Work-to-Product Relationships",
+        children: product && (
+          <ProductEditPageWorkToProductRelationshipsTab
+            workToProductRelationships={workToProductRelationships}
+            workToProductRelationshipsLoading={loading}
+            setWorkToProductRelationships={setWorkToProductRelationships}
+          />
+        ),
+      },
     ],
-    [product, loading, onProductRelationshipsChange]
+    [product, loading, workToProductRelationships, onProductRelationshipsChange]
   );
 
   return (

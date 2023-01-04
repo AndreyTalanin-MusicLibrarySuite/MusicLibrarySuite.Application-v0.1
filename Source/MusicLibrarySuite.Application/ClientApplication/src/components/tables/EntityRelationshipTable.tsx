@@ -64,6 +64,7 @@ export interface EntityRelationshipTableProps {
   entityRelationships: EntityRelationship[];
   loading?: boolean;
   editMode?: boolean;
+  reorderMode?: boolean;
   onEntityRelationshipEdit?: (entityRelationship: EntityRelationship) => void;
   onEntityRelationshipDelete?: (entityRelationship: EntityRelationship) => void;
   onEntityRelationshipsChange?: (entityRelationships: EntityRelationship[]) => void;
@@ -75,6 +76,7 @@ const EntityRelationshipTable = ({
   entityRelationships,
   loading,
   editMode,
+  reorderMode,
   onEntityRelationshipEdit,
   onEntityRelationshipDelete,
   onEntityRelationshipsChange,
@@ -151,12 +153,12 @@ const EntityRelationshipTable = ({
       <Table
         size="small"
         columns={editMode ? editModeColumns : columns}
-        components={editMode ? components : undefined}
-        pagination={editMode ? { showSizeChanger: true } : undefined}
+        components={editMode || reorderMode ? components : undefined}
+        pagination={editMode || reorderMode ? { showSizeChanger: true } : undefined}
         loading={loading}
         dataSource={entityRelationships}
         rowKey={getEntityRelationshipKey}
-        onRow={editMode ? (_, index) => ({ index, moveRow } as React.HTMLAttributes<any>) : undefined}
+        onRow={editMode || reorderMode ? (_, index) => ({ index, moveRow } as React.HTMLAttributes<any>) : undefined}
       />
     </DndProvider>
   );
