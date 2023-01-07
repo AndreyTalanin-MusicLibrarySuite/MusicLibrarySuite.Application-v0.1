@@ -1,0 +1,8 @@
+.tabParagraph {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.tabParagraph *:first-child {
+  margin-right: auto;
+}
