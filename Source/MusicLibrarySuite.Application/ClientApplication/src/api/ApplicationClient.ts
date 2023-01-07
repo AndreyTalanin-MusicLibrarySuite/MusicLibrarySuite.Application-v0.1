@@ -1389,6 +1389,56 @@ export class ApplicationClient {
   }
 
   /**
+   * @param includeReverseRelationships (optional)
+   * @return Success
+   */
+  getReleaseGroupRelationships(releaseGroupId: string, includeReverseRelationships: boolean | undefined): Promise<ReleaseGroupRelationship[]> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/GetReleaseGroupRelationships?";
+    if (releaseGroupId === undefined || releaseGroupId === null) throw new Error("The parameter 'releaseGroupId' must be defined and cannot be null.");
+    else url_ += "releaseGroupId=" + encodeURIComponent("" + releaseGroupId) + "&";
+    if (includeReverseRelationships === null) throw new Error("The parameter 'includeReverseRelationships' cannot be null.");
+    else if (includeReverseRelationships !== undefined) url_ += "includeReverseRelationships=" + encodeURIComponent("" + includeReverseRelationships) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetReleaseGroupRelationships(_response);
+    });
+  }
+
+  protected processGetReleaseGroupRelationships(response: Response): Promise<ReleaseGroupRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ReleaseGroupRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseGroupRelationship[]>(null as any);
+  }
+
+  /**
    * @return Success
    */
   createReleaseGroup(body: ReleaseGroup): Promise<ReleaseGroup> {
@@ -2756,12 +2806,16 @@ export class ReleaseGroup implements IReleaseGroup {
   enabled!: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseGroupRelationships!: ReleaseGroupRelationship[];
 
   constructor(data?: IReleaseGroup) {
     if (data) {
       for (var property in data) {
         if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
       }
+    }
+    if (!data) {
+      this.releaseGroupRelationships = [];
     }
   }
 
@@ -2774,6 +2828,10 @@ export class ReleaseGroup implements IReleaseGroup {
       this.enabled = _data["enabled"];
       this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
       this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+      if (Array.isArray(_data["releaseGroupRelationships"])) {
+        this.releaseGroupRelationships = [] as any;
+        for (let item of _data["releaseGroupRelationships"]) this.releaseGroupRelationships!.push(ReleaseGroupRelationship.fromJS(item));
+      }
     }
   }
 
@@ -2793,6 +2851,10 @@ export class ReleaseGroup implements IReleaseGroup {
     data["enabled"] = this.enabled;
     data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
     data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    if (Array.isArray(this.releaseGroupRelationships)) {
+      data["releaseGroupRelationships"] = [];
+      for (let item of this.releaseGroupRelationships) data["releaseGroupRelationships"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -2805,6 +2867,7 @@ export interface IReleaseGroup {
   enabled: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseGroupRelationships: ReleaseGroupRelationship[];
 }
 
 export class ReleaseGroupPageResponse implements IReleaseGroupPageResponse {
@@ -2865,6 +2928,61 @@ export interface IReleaseGroupPageResponse {
   totalCount: number;
   items: ReleaseGroup[];
   completedOn: Date;
+}
+
+export class ReleaseGroupRelationship implements IReleaseGroupRelationship {
+  releaseGroupId!: string;
+  dependentReleaseGroupId!: string;
+  name!: string;
+  description?: string | undefined;
+  releaseGroup?: ReleaseGroup;
+  dependentReleaseGroup?: ReleaseGroup;
+
+  constructor(data?: IReleaseGroupRelationship) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.releaseGroupId = _data["releaseGroupId"];
+      this.dependentReleaseGroupId = _data["dependentReleaseGroupId"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.releaseGroup = _data["releaseGroup"] ? ReleaseGroup.fromJS(_data["releaseGroup"]) : <any>undefined;
+      this.dependentReleaseGroup = _data["dependentReleaseGroup"] ? ReleaseGroup.fromJS(_data["dependentReleaseGroup"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseGroupRelationship {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseGroupRelationship();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["releaseGroupId"] = this.releaseGroupId;
+    data["dependentReleaseGroupId"] = this.dependentReleaseGroupId;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["releaseGroup"] = this.releaseGroup ? this.releaseGroup.toJSON() : <any>undefined;
+    data["dependentReleaseGroup"] = this.dependentReleaseGroup ? this.dependentReleaseGroup.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseGroupRelationship {
+  releaseGroupId: string;
+  dependentReleaseGroupId: string;
+  name: string;
+  description?: string | undefined;
+  releaseGroup?: ReleaseGroup;
+  dependentReleaseGroup?: ReleaseGroup;
 }
 
 export class Work implements IWork {
