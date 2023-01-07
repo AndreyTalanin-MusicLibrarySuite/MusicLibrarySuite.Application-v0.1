@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Catalog Service API v0.7.0-rc1",
+    "title": "Music Library Suite - Catalog Service API v0.7.0-rc2",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
     },
-    "version": "v0.7.0-rc1"
+    "version": "v0.7.0-rc2"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1153,6 +1153,46 @@
         }
       }
     },
+    "/api/ReleaseGroup/GetReleaseGroupRelationships": {
+      "get": {
+        "tags": [
+          "ReleaseGroup"
+        ],
+        "parameters": [
+          {
+            "name": "releaseGroupId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeReverseRelationships",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReleaseGroupRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ReleaseGroup/CreateReleaseGroup": {
       "post": {
         "tags": [
@@ -2174,6 +2214,7 @@
         "required": [
           "enabled",
           "id",
+          "releaseGroupRelationships",
           "title"
         ],
         "type": "object",
@@ -2204,6 +2245,12 @@
           "updatedOn": {
             "type": "string",
             "format": "date-time"
+          },
+          "releaseGroupRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseGroupRelationship"
+            }
           }
         },
         "additionalProperties": false
@@ -2239,6 +2286,39 @@
           "completedOn": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseGroupRelationship": {
+        "required": [
+          "dependentReleaseGroupId",
+          "name",
+          "releaseGroupId"
+        ],
+        "type": "object",
+        "properties": {
+          "releaseGroupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dependentReleaseGroupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "releaseGroup": {
+            "$ref": "#/components/schemas/ReleaseGroup"
+          },
+          "dependentReleaseGroup": {
+            "$ref": "#/components/schemas/ReleaseGroup"
           }
         },
         "additionalProperties": false
