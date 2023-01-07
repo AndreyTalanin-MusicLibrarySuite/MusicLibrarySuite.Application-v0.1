@@ -1196,6 +1196,336 @@ export class ApplicationClient {
   /**
    * @return Success
    */
+  getReleaseGroup(releaseGroupId: string): Promise<ReleaseGroup> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/GetReleaseGroup?";
+    if (releaseGroupId === undefined || releaseGroupId === null) throw new Error("The parameter 'releaseGroupId' must be defined and cannot be null.");
+    else url_ += "releaseGroupId=" + encodeURIComponent("" + releaseGroupId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetReleaseGroup(_response);
+    });
+  }
+
+  protected processGetReleaseGroup(response: Response): Promise<ReleaseGroup> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = ReleaseGroup.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseGroup>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getReleaseGroups(releaseGroupIds: string[]): Promise<ReleaseGroup[]> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/GetReleaseGroups?";
+    if (releaseGroupIds === undefined || releaseGroupIds === null) throw new Error("The parameter 'releaseGroupIds' must be defined and cannot be null.");
+    else
+      releaseGroupIds &&
+        releaseGroupIds.forEach((item) => {
+          url_ += "releaseGroupIds=" + encodeURIComponent("" + item) + "&";
+        });
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetReleaseGroups(_response);
+    });
+  }
+
+  protected processGetReleaseGroups(response: Response): Promise<ReleaseGroup[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ReleaseGroup.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseGroup[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getAllReleaseGroups(): Promise<ReleaseGroup[]> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/GetAllReleaseGroups";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetAllReleaseGroups(_response);
+    });
+  }
+
+  protected processGetAllReleaseGroups(response: Response): Promise<ReleaseGroup[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ReleaseGroup.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseGroup[]>(null as any);
+  }
+
+  /**
+   * @param title (optional)
+   * @param enabled (optional)
+   * @return Success
+   */
+  getPagedReleaseGroups(pageSize: number, pageIndex: number, title: string | undefined, enabled: boolean | undefined): Promise<ReleaseGroupPageResponse> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/GetPagedReleaseGroups?";
+    if (pageSize === undefined || pageSize === null) throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+    else url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+    if (pageIndex === undefined || pageIndex === null) throw new Error("The parameter 'pageIndex' must be defined and cannot be null.");
+    else url_ += "pageIndex=" + encodeURIComponent("" + pageIndex) + "&";
+    if (title === null) throw new Error("The parameter 'title' cannot be null.");
+    else if (title !== undefined) url_ += "title=" + encodeURIComponent("" + title) + "&";
+    if (enabled === null) throw new Error("The parameter 'enabled' cannot be null.");
+    else if (enabled !== undefined) url_ += "enabled=" + encodeURIComponent("" + enabled) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetPagedReleaseGroups(_response);
+    });
+  }
+
+  protected processGetPagedReleaseGroups(response: Response): Promise<ReleaseGroupPageResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = ReleaseGroupPageResponse.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseGroupPageResponse>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  createReleaseGroup(body: ReleaseGroup): Promise<ReleaseGroup> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/CreateReleaseGroup";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processCreateReleaseGroup(_response);
+    });
+  }
+
+  protected processCreateReleaseGroup(response: Response): Promise<ReleaseGroup> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = ReleaseGroup.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseGroup>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  updateReleaseGroup(body: ReleaseGroup): Promise<void> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/UpdateReleaseGroup";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processUpdateReleaseGroup(_response);
+    });
+  }
+
+  protected processUpdateReleaseGroup(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  deleteReleaseGroup(releaseGroupId: string): Promise<void> {
+    let url_ = this.baseUrl + "/api/ReleaseGroup/DeleteReleaseGroup?";
+    if (releaseGroupId === undefined || releaseGroupId === null) throw new Error("The parameter 'releaseGroupId' must be defined and cannot be null.");
+    else url_ += "releaseGroupId=" + encodeURIComponent("" + releaseGroupId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "DELETE",
+      headers: {},
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processDeleteReleaseGroup(_response);
+    });
+  }
+
+  protected processDeleteReleaseGroup(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
   getWork(workId: string): Promise<Work> {
     let url_ = this.baseUrl + "/api/Work/GetWork?";
     if (workId === undefined || workId === null) throw new Error("The parameter 'workId' must be defined and cannot be null.");
@@ -2416,6 +2746,125 @@ export interface IProductRelationship {
   description?: string | undefined;
   product?: Product;
   dependentProduct?: Product;
+}
+
+export class ReleaseGroup implements IReleaseGroup {
+  id!: string;
+  title!: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  enabled!: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+
+  constructor(data?: IReleaseGroup) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.id = _data["id"];
+      this.title = _data["title"];
+      this.description = _data["description"];
+      this.disambiguationText = _data["disambiguationText"];
+      this.enabled = _data["enabled"];
+      this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
+      this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseGroup {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseGroup();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["id"] = this.id;
+    data["title"] = this.title;
+    data["description"] = this.description;
+    data["disambiguationText"] = this.disambiguationText;
+    data["enabled"] = this.enabled;
+    data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
+    data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseGroup {
+  id: string;
+  title: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  enabled: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+}
+
+export class ReleaseGroupPageResponse implements IReleaseGroupPageResponse {
+  pageSize!: number;
+  pageIndex!: number;
+  totalCount!: number;
+  items!: ReleaseGroup[];
+  completedOn!: Date;
+
+  constructor(data?: IReleaseGroupPageResponse) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+    if (!data) {
+      this.items = [];
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.pageSize = _data["pageSize"];
+      this.pageIndex = _data["pageIndex"];
+      this.totalCount = _data["totalCount"];
+      if (Array.isArray(_data["items"])) {
+        this.items = [] as any;
+        for (let item of _data["items"]) this.items!.push(ReleaseGroup.fromJS(item));
+      }
+      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseGroupPageResponse {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseGroupPageResponse();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["pageSize"] = this.pageSize;
+    data["pageIndex"] = this.pageIndex;
+    data["totalCount"] = this.totalCount;
+    if (Array.isArray(this.items)) {
+      data["items"] = [];
+      for (let item of this.items) data["items"].push(item.toJSON());
+    }
+    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseGroupPageResponse {
+  pageSize: number;
+  pageIndex: number;
+  totalCount: number;
+  items: ReleaseGroup[];
+  completedOn: Date;
 }
 
 export class Work implements IWork {
