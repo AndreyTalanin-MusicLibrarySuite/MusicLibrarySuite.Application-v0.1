@@ -145,9 +145,10 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
         artistModel.disambiguationText = undefined;
       }
 
-      artistModel.artistRelationships = artistModel.artistRelationships.map(
-        (artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: undefined, dependentArtist: undefined })
-      );
+      artistModel.artistRelationships =
+        artistModel.artistRelationships?.map(
+          (artistRelationship) => new ArtistRelationship({ ...artistRelationship, artist: undefined, dependentArtist: undefined })
+        ) ?? [];
 
       if (mode === ArtistEditPageMode.Create) {
         setLoading(true);

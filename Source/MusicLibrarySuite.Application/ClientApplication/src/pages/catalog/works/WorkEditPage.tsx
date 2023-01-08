@@ -242,13 +242,13 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
         workModel.internationalStandardMusicalWorkCode = undefined;
       }
 
-      workModel.workRelationships = workModel.workRelationships.map(
-        (workRelationship) => new WorkRelationship({ ...workRelationship, work: undefined, dependentWork: undefined })
-      );
+      workModel.workRelationships =
+        workModel.workRelationships?.map((workRelationship) => new WorkRelationship({ ...workRelationship, work: undefined, dependentWork: undefined })) ?? [];
 
-      workModel.workToProductRelationships = workModel.workToProductRelationships.map(
-        (workToProductRelationship) => new WorkToProductRelationship({ ...workToProductRelationship, work: undefined, product: undefined })
-      );
+      workModel.workToProductRelationships =
+        workModel.workToProductRelationships?.map(
+          (workToProductRelationship) => new WorkToProductRelationship({ ...workToProductRelationship, work: undefined, product: undefined })
+        ) ?? [];
 
       if (mode === WorkEditPageMode.Create) {
         setLoading(true);

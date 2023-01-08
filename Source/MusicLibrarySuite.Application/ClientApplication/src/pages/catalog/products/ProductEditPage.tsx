@@ -140,9 +140,10 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         productModel.disambiguationText = undefined;
       }
 
-      productModel.productRelationships = productModel.productRelationships.map(
-        (productRelationship) => new ProductRelationship({ ...productRelationship, product: undefined, dependentProduct: undefined })
-      );
+      productModel.productRelationships =
+        productModel.productRelationships?.map(
+          (productRelationship) => new ProductRelationship({ ...productRelationship, product: undefined, dependentProduct: undefined })
+        ) ?? [];
 
       if (mode === ProductEditPageMode.Create) {
         setLoading(true);
