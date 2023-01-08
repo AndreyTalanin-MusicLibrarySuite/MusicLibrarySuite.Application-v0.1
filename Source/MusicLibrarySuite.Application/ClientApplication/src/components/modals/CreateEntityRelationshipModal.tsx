@@ -41,6 +41,7 @@ const CreateEntityRelationshipModal = ({
 
   useEffect(() => {
     form.resetFields();
+    setDependentEntityId(entityRelationship?.dependentEntityId ?? EmptyGuidString);
   }, [entityRelationship, form]);
 
   const onOk = () => {
@@ -101,6 +102,7 @@ const CreateEntityRelationshipModal = ({
             placeholder="Search"
             filterSort={dependentEntityFilterSort}
             filterOption={dependentEntityFilterOption}
+            value={dependentEntityId}
             options={dependentEntities.map(({ id, name }) => ({ value: id, label: name }))}
             optionFilterProp="label"
             onSearch={onDependentEntitySearch}

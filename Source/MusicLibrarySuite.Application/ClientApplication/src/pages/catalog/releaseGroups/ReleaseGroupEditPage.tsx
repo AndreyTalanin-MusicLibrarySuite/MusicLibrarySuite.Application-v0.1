@@ -1,13 +1,14 @@
-import { Button, Checkbox, Col, Form, Input, Row, Space, Typography } from "antd";
+import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IReleaseGroup, ReleaseGroup } from "../../../api/ApplicationClient";
+import { IReleaseGroup, ReleaseGroup, ReleaseGroupRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ReleaseGroupEditPageReleaseGroupRelationshipsTab from "./ReleaseGroupEditPageReleaseGroupRelationshipsTab";
 import styles from "./ReleaseGroupEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -38,7 +39,14 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
       applicationClient
         .getReleaseGroup(id)
         .then((releaseGroup) => {
-          setReleaseGroup(releaseGroup);
+          setReleaseGroup(
+            new ReleaseGroup({
+              ...releaseGroup,
+              releaseGroupRelationships: releaseGroup.releaseGroupRelationships.map(
+                (releaseGroupRelationship) => new ReleaseGroupRelationship({ ...releaseGroupRelationship, releaseGroup: releaseGroup })
+              ),
+            })
+          );
           setReleaseGroupFormValues(releaseGroup);
         })
         .catch((error) => {
@@ -46,6 +54,15 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
         });
     }
   }, [id, applicationClient]);
+
+  const onReleaseGroupRelationshipsChange = useCallback(
+    (releaseGroupRelationships: ReleaseGroupRelationship[]) => {
+      if (releaseGroup) {
+        setReleaseGroup(new ReleaseGroup({ ...releaseGroup, releaseGroupRelationships: releaseGroupRelationships }));
+      }
+    },
+    [releaseGroup]
+  );
 
   useEffect(() => {
     fetchReleaseGroup();
@@ -144,6 +161,24 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
+  const tabs = useMemo(
+    () => [
+      {
+        key: "releaseGroupRelationshipsTab",
+        label: "Release Group Relationships",
+        children: releaseGroup && (
+          <ReleaseGroupEditPageReleaseGroupRelationshipsTab
+            releaseGroup={releaseGroup}
+            releaseGroupRelationships={releaseGroup.releaseGroupRelationships}
+            releaseGroupRelationshipsLoading={loading}
+            setReleaseGroupRelationships={onReleaseGroupRelationshipsChange}
+          />
+        ),
+      },
+    ],
+    [releaseGroup, loading, onReleaseGroupRelationshipsChange]
+  );
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
@@ -216,6 +251,7 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
           onCancel={onConfirmDeleteModalCancel}
         />
       )}
+      {releaseGroup && <Tabs items={tabs} />}
     </>
   );
 };

@@ -1,10 +1,11 @@
-import { Button, Card, Divider, Space, Tag, Tooltip, Typography } from "antd";
+import { Button, Card, Divider, Space, Tabs, Tag, Tooltip, Typography } from "antd";
 import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { ReleaseGroup } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ReleaseGroupViewPageReleaseGroupRelationshipsTab from "./ReleaseGroupViewPageReleaseGroupRelationshipsTab";
 import styles from "./ReleaseGroupViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -42,6 +43,17 @@ const ReleaseGroupViewPage = () => {
   const onCancelButtonClick = () => {
     navigate("/catalog/releaseGroups/list");
   };
+
+  const tabs = useMemo(
+    () => [
+      {
+        key: "releaseGroupRelationshipsTab",
+        label: "Release Group Relationships",
+        children: id && <ReleaseGroupViewPageReleaseGroupRelationshipsTab id={id} />,
+      },
+    ],
+    [id]
+  );
 
   return (
     <>
@@ -88,6 +100,7 @@ const ReleaseGroupViewPage = () => {
           )}
         </Card>
       )}
+      {tabs && <Tabs items={tabs} />}
     </>
   );
 };
