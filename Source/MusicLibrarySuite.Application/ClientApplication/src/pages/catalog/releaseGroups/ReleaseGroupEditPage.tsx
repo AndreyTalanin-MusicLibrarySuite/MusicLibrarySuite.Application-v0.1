@@ -128,6 +128,11 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
         releaseGroupModel.disambiguationText = undefined;
       }
 
+      releaseGroupModel.releaseGroupRelationships =
+        releaseGroupModel.releaseGroupRelationships?.map(
+          (releaseGroupRelationship) => new ReleaseGroupRelationship({ ...releaseGroupRelationship, releaseGroup: undefined, dependentReleaseGroup: undefined })
+        ) ?? [];
+
       if (mode === ReleaseGroupEditPageMode.Create) {
         setLoading(true);
         applicationClient

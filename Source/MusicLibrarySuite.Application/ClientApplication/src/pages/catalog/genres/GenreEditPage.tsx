@@ -119,9 +119,10 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
         genreModel.description = undefined;
       }
 
-      genreModel.genreRelationships = genreModel.genreRelationships.map(
-        (genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: undefined, dependentGenre: undefined })
-      );
+      genreModel.genreRelationships =
+        genreModel.genreRelationships?.map(
+          (genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: undefined, dependentGenre: undefined })
+        ) ?? [];
 
       if (mode === GenreEditPageMode.Create) {
         setLoading(true);
