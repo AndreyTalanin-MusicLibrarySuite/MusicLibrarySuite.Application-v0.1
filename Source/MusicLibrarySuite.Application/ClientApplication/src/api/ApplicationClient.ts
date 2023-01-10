@@ -1196,6 +1196,336 @@ export class ApplicationClient {
   /**
    * @return Success
    */
+  getRelease(releaseId: string): Promise<Release> {
+    let url_ = this.baseUrl + "/api/Release/GetRelease?";
+    if (releaseId === undefined || releaseId === null) throw new Error("The parameter 'releaseId' must be defined and cannot be null.");
+    else url_ += "releaseId=" + encodeURIComponent("" + releaseId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetRelease(_response);
+    });
+  }
+
+  protected processGetRelease(response: Response): Promise<Release> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = Release.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Release>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getReleases(releaseIds: string[]): Promise<Release[]> {
+    let url_ = this.baseUrl + "/api/Release/GetReleases?";
+    if (releaseIds === undefined || releaseIds === null) throw new Error("The parameter 'releaseIds' must be defined and cannot be null.");
+    else
+      releaseIds &&
+        releaseIds.forEach((item) => {
+          url_ += "releaseIds=" + encodeURIComponent("" + item) + "&";
+        });
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetReleases(_response);
+    });
+  }
+
+  protected processGetReleases(response: Response): Promise<Release[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(Release.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Release[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getAllReleases(): Promise<Release[]> {
+    let url_ = this.baseUrl + "/api/Release/GetAllReleases";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetAllReleases(_response);
+    });
+  }
+
+  protected processGetAllReleases(response: Response): Promise<Release[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(Release.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Release[]>(null as any);
+  }
+
+  /**
+   * @param title (optional)
+   * @param enabled (optional)
+   * @return Success
+   */
+  getPagedReleases(pageSize: number, pageIndex: number, title: string | undefined, enabled: boolean | undefined): Promise<ReleasePageResponse> {
+    let url_ = this.baseUrl + "/api/Release/GetPagedReleases?";
+    if (pageSize === undefined || pageSize === null) throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+    else url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+    if (pageIndex === undefined || pageIndex === null) throw new Error("The parameter 'pageIndex' must be defined and cannot be null.");
+    else url_ += "pageIndex=" + encodeURIComponent("" + pageIndex) + "&";
+    if (title === null) throw new Error("The parameter 'title' cannot be null.");
+    else if (title !== undefined) url_ += "title=" + encodeURIComponent("" + title) + "&";
+    if (enabled === null) throw new Error("The parameter 'enabled' cannot be null.");
+    else if (enabled !== undefined) url_ += "enabled=" + encodeURIComponent("" + enabled) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetPagedReleases(_response);
+    });
+  }
+
+  protected processGetPagedReleases(response: Response): Promise<ReleasePageResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = ReleasePageResponse.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleasePageResponse>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  createRelease(body: Release): Promise<Release> {
+    let url_ = this.baseUrl + "/api/Release/CreateRelease";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processCreateRelease(_response);
+    });
+  }
+
+  protected processCreateRelease(response: Response): Promise<Release> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = Release.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<Release>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  updateRelease(body: Release): Promise<void> {
+    let url_ = this.baseUrl + "/api/Release/UpdateRelease";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processUpdateRelease(_response);
+    });
+  }
+
+  protected processUpdateRelease(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  deleteRelease(releaseId: string): Promise<void> {
+    let url_ = this.baseUrl + "/api/Release/DeleteRelease?";
+    if (releaseId === undefined || releaseId === null) throw new Error("The parameter 'releaseId' must be defined and cannot be null.");
+    else url_ += "releaseId=" + encodeURIComponent("" + releaseId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "DELETE",
+      headers: {},
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processDeleteRelease(_response);
+    });
+  }
+
+  protected processDeleteRelease(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
   getReleaseGroup(releaseGroupId: string): Promise<ReleaseGroup> {
     let url_ = this.baseUrl + "/api/ReleaseGroup/GetReleaseGroup?";
     if (releaseGroupId === undefined || releaseGroupId === null) throw new Error("The parameter 'releaseGroupId' must be defined and cannot be null.");
@@ -2798,6 +3128,89 @@ export interface IProductRelationship {
   dependentProduct?: Product;
 }
 
+export class Release implements IRelease {
+  id!: string;
+  title!: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  barcode?: string | undefined;
+  catalogNumber?: string | undefined;
+  mediaFormat?: string | undefined;
+  publishFormat?: string | undefined;
+  releasedOn!: Date;
+  releasedOnYearOnly!: boolean;
+  enabled!: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+
+  constructor(data?: IRelease) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.id = _data["id"];
+      this.title = _data["title"];
+      this.description = _data["description"];
+      this.disambiguationText = _data["disambiguationText"];
+      this.barcode = _data["barcode"];
+      this.catalogNumber = _data["catalogNumber"];
+      this.mediaFormat = _data["mediaFormat"];
+      this.publishFormat = _data["publishFormat"];
+      this.releasedOn = _data["releasedOn"] ? new Date(_data["releasedOn"].toString()) : <any>undefined;
+      this.releasedOnYearOnly = _data["releasedOnYearOnly"];
+      this.enabled = _data["enabled"];
+      this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
+      this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): Release {
+    data = typeof data === "object" ? data : {};
+    let result = new Release();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["id"] = this.id;
+    data["title"] = this.title;
+    data["description"] = this.description;
+    data["disambiguationText"] = this.disambiguationText;
+    data["barcode"] = this.barcode;
+    data["catalogNumber"] = this.catalogNumber;
+    data["mediaFormat"] = this.mediaFormat;
+    data["publishFormat"] = this.publishFormat;
+    data["releasedOn"] = this.releasedOn ? this.releasedOn.toISOString() : <any>undefined;
+    data["releasedOnYearOnly"] = this.releasedOnYearOnly;
+    data["enabled"] = this.enabled;
+    data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
+    data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IRelease {
+  id: string;
+  title: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  barcode?: string | undefined;
+  catalogNumber?: string | undefined;
+  mediaFormat?: string | undefined;
+  publishFormat?: string | undefined;
+  releasedOn: Date;
+  releasedOnYearOnly: boolean;
+  enabled: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+}
+
 export class ReleaseGroup implements IReleaseGroup {
   id!: string;
   title!: string;
@@ -2983,6 +3396,66 @@ export interface IReleaseGroupRelationship {
   description?: string | undefined;
   releaseGroup?: ReleaseGroup;
   dependentReleaseGroup?: ReleaseGroup;
+}
+
+export class ReleasePageResponse implements IReleasePageResponse {
+  pageSize!: number;
+  pageIndex!: number;
+  totalCount!: number;
+  items!: Release[];
+  completedOn!: Date;
+
+  constructor(data?: IReleasePageResponse) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+    if (!data) {
+      this.items = [];
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.pageSize = _data["pageSize"];
+      this.pageIndex = _data["pageIndex"];
+      this.totalCount = _data["totalCount"];
+      if (Array.isArray(_data["items"])) {
+        this.items = [] as any;
+        for (let item of _data["items"]) this.items!.push(Release.fromJS(item));
+      }
+      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleasePageResponse {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleasePageResponse();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["pageSize"] = this.pageSize;
+    data["pageIndex"] = this.pageIndex;
+    data["totalCount"] = this.totalCount;
+    if (Array.isArray(this.items)) {
+      data["items"] = [];
+      for (let item of this.items) data["items"].push(item.toJSON());
+    }
+    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleasePageResponse {
+  pageSize: number;
+  pageIndex: number;
+  totalCount: number;
+  items: Release[];
+  completedOn: Date;
 }
 
 export class Work implements IWork {
