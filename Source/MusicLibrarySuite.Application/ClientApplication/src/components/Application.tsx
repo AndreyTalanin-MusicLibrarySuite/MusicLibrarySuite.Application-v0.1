@@ -18,6 +18,9 @@ import ProductViewPage from "../pages/catalog/products/ProductViewPage";
 import ReleaseGroupEditPage, { ReleaseGroupEditPageMode } from "../pages/catalog/releaseGroups/ReleaseGroupEditPage";
 import ReleaseGroupListPage from "../pages/catalog/releaseGroups/ReleaseGroupListPage";
 import ReleaseGroupViewPage from "../pages/catalog/releaseGroups/ReleaseGroupViewPage";
+import ReleaseEditPage, { ReleaseEditPageMode } from "../pages/catalog/releases/ReleaseEditPage";
+import ReleaseListPage from "../pages/catalog/releases/ReleaseListPage";
+import ReleaseViewPage from "../pages/catalog/releases/ReleaseViewPage";
 import WorkEditPage, { WorkEditPageMode } from "../pages/catalog/works/WorkEditPage";
 import WorkListPage from "../pages/catalog/works/WorkListPage";
 import WorkViewPage from "../pages/catalog/works/WorkViewPage";
@@ -31,6 +34,11 @@ const applicationPageDescriptors: ApplicationPageDescriptor[] = [
   { key: "catalog-artist-view-page", path: "/catalog/artists/view", name: "View", componentFactory: () => <ArtistViewPage /> },
   { key: "catalog-artist-create-page", path: "/catalog/artists/create", name: "Create", componentFactory: () => <ArtistEditPage mode={ArtistEditPageMode.Create} />, },
   { key: "catalog-artist-edit-page", path: "/catalog/artists/edit", name: "Edit", componentFactory: () => <ArtistEditPage mode={ArtistEditPageMode.Edit} /> },
+  { key: "catalog-release-node", path: "/catalog/releases", name: "Releases" },
+  { key: "catalog-release-list-page", path: "/catalog/releases/list", name: "Browse All", componentFactory: () => <ReleaseListPage /> },
+  { key: "catalog-release-view-page", path: "/catalog/releases/view", name: "View", componentFactory: () => <ReleaseViewPage /> },
+  { key: "catalog-release-create-page", path: "/catalog/releases/create", name: "Create", componentFactory: () => <ReleaseEditPage mode={ReleaseEditPageMode.Create} />, },
+  { key: "catalog-release-edit-page", path: "/catalog/releases/edit", name: "Edit", componentFactory: () => <ReleaseEditPage mode={ReleaseEditPageMode.Edit} /> },
   { key: "catalog-release-group-node", path: "/catalog/releaseGroups", name: "Release Groups" },
   { key: "catalog-release-group-list-page", path: "/catalog/releaseGroups/list", name: "Browse All", componentFactory: () => <ReleaseGroupListPage /> },
   { key: "catalog-release-group-view-page", path: "/catalog/releaseGroups/view", name: "View", componentFactory: () => <ReleaseGroupViewPage /> },
@@ -63,6 +71,7 @@ const applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[] = [
     type: "menu",
     items: [
       { key: "catalog-artist-list-page", label: "Artists", type: "item" },
+      { key: "catalog-release-list-page", label: "Releases", type: "item" },
       { key: "catalog-release-group-list-page", label: "Release Groups", type: "item" },
       { key: "catalog-genre-list-page", label: "Genres", type: "item" },
       { key: "catalog-product-list-page", label: "Products", type: "item" },
