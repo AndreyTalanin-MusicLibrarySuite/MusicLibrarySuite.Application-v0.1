@@ -3422,12 +3422,16 @@ export class ReleaseMedia implements IReleaseMedia {
   mediaFormat?: string | undefined;
   tableOfContentsChecksum?: string | undefined;
   tableOfContentsChecksumLong?: string | undefined;
+  releaseTrackCollection!: ReleaseTrack[];
 
   constructor(data?: IReleaseMedia) {
     if (data) {
       for (var property in data) {
         if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
       }
+    }
+    if (!data) {
+      this.releaseTrackCollection = [];
     }
   }
 
@@ -3443,6 +3447,10 @@ export class ReleaseMedia implements IReleaseMedia {
       this.mediaFormat = _data["mediaFormat"];
       this.tableOfContentsChecksum = _data["tableOfContentsChecksum"];
       this.tableOfContentsChecksumLong = _data["tableOfContentsChecksumLong"];
+      if (Array.isArray(_data["releaseTrackCollection"])) {
+        this.releaseTrackCollection = [] as any;
+        for (let item of _data["releaseTrackCollection"]) this.releaseTrackCollection!.push(ReleaseTrack.fromJS(item));
+      }
     }
   }
 
@@ -3465,6 +3473,10 @@ export class ReleaseMedia implements IReleaseMedia {
     data["mediaFormat"] = this.mediaFormat;
     data["tableOfContentsChecksum"] = this.tableOfContentsChecksum;
     data["tableOfContentsChecksumLong"] = this.tableOfContentsChecksumLong;
+    if (Array.isArray(this.releaseTrackCollection)) {
+      data["releaseTrackCollection"] = [];
+      for (let item of this.releaseTrackCollection) data["releaseTrackCollection"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -3480,6 +3492,7 @@ export interface IReleaseMedia {
   mediaFormat?: string | undefined;
   tableOfContentsChecksum?: string | undefined;
   tableOfContentsChecksumLong?: string | undefined;
+  releaseTrackCollection: ReleaseTrack[];
 }
 
 export class ReleasePageResponse implements IReleasePageResponse {
@@ -3540,6 +3553,73 @@ export interface IReleasePageResponse {
   totalCount: number;
   items: Release[];
   completedOn: Date;
+}
+
+export class ReleaseTrack implements IReleaseTrack {
+  trackNumber!: number;
+  totalTrackCount?: number;
+  mediaNumber!: number;
+  totalMediaCount?: number;
+  releaseId!: string;
+  title!: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  internationalStandardRecordingCode?: string | undefined;
+
+  constructor(data?: IReleaseTrack) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.trackNumber = _data["trackNumber"];
+      this.totalTrackCount = _data["totalTrackCount"];
+      this.mediaNumber = _data["mediaNumber"];
+      this.totalMediaCount = _data["totalMediaCount"];
+      this.releaseId = _data["releaseId"];
+      this.title = _data["title"];
+      this.description = _data["description"];
+      this.disambiguationText = _data["disambiguationText"];
+      this.internationalStandardRecordingCode = _data["internationalStandardRecordingCode"];
+    }
+  }
+
+  static fromJS(data: any): ReleaseTrack {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseTrack();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["trackNumber"] = this.trackNumber;
+    data["totalTrackCount"] = this.totalTrackCount;
+    data["mediaNumber"] = this.mediaNumber;
+    data["totalMediaCount"] = this.totalMediaCount;
+    data["releaseId"] = this.releaseId;
+    data["title"] = this.title;
+    data["description"] = this.description;
+    data["disambiguationText"] = this.disambiguationText;
+    data["internationalStandardRecordingCode"] = this.internationalStandardRecordingCode;
+    return data;
+  }
+}
+
+export interface IReleaseTrack {
+  trackNumber: number;
+  totalTrackCount?: number;
+  mediaNumber: number;
+  totalMediaCount?: number;
+  releaseId: string;
+  title: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  internationalStandardRecordingCode?: string | undefined;
 }
 
 export class Work implements IWork {
