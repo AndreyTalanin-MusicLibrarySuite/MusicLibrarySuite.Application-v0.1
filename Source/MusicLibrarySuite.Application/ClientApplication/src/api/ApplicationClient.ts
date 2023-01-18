@@ -3142,12 +3142,16 @@ export class Release implements IRelease {
   enabled!: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseMediaCollection!: ReleaseMedia[];
 
   constructor(data?: IRelease) {
     if (data) {
       for (var property in data) {
         if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
       }
+    }
+    if (!data) {
+      this.releaseMediaCollection = [];
     }
   }
 
@@ -3166,6 +3170,10 @@ export class Release implements IRelease {
       this.enabled = _data["enabled"];
       this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
       this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+      if (Array.isArray(_data["releaseMediaCollection"])) {
+        this.releaseMediaCollection = [] as any;
+        for (let item of _data["releaseMediaCollection"]) this.releaseMediaCollection!.push(ReleaseMedia.fromJS(item));
+      }
     }
   }
 
@@ -3191,6 +3199,10 @@ export class Release implements IRelease {
     data["enabled"] = this.enabled;
     data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
     data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    if (Array.isArray(this.releaseMediaCollection)) {
+      data["releaseMediaCollection"] = [];
+      for (let item of this.releaseMediaCollection) data["releaseMediaCollection"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -3209,6 +3221,7 @@ export interface IRelease {
   enabled: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseMediaCollection: ReleaseMedia[];
 }
 
 export class ReleaseGroup implements IReleaseGroup {
@@ -3396,6 +3409,77 @@ export interface IReleaseGroupRelationship {
   description?: string | undefined;
   releaseGroup?: ReleaseGroup;
   dependentReleaseGroup?: ReleaseGroup;
+}
+
+export class ReleaseMedia implements IReleaseMedia {
+  mediaNumber!: number;
+  totalMediaCount?: number;
+  releaseId!: string;
+  title!: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  catalogNumber?: string | undefined;
+  mediaFormat?: string | undefined;
+  tableOfContentsChecksum?: string | undefined;
+  tableOfContentsChecksumLong?: string | undefined;
+
+  constructor(data?: IReleaseMedia) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.mediaNumber = _data["mediaNumber"];
+      this.totalMediaCount = _data["totalMediaCount"];
+      this.releaseId = _data["releaseId"];
+      this.title = _data["title"];
+      this.description = _data["description"];
+      this.disambiguationText = _data["disambiguationText"];
+      this.catalogNumber = _data["catalogNumber"];
+      this.mediaFormat = _data["mediaFormat"];
+      this.tableOfContentsChecksum = _data["tableOfContentsChecksum"];
+      this.tableOfContentsChecksumLong = _data["tableOfContentsChecksumLong"];
+    }
+  }
+
+  static fromJS(data: any): ReleaseMedia {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseMedia();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["mediaNumber"] = this.mediaNumber;
+    data["totalMediaCount"] = this.totalMediaCount;
+    data["releaseId"] = this.releaseId;
+    data["title"] = this.title;
+    data["description"] = this.description;
+    data["disambiguationText"] = this.disambiguationText;
+    data["catalogNumber"] = this.catalogNumber;
+    data["mediaFormat"] = this.mediaFormat;
+    data["tableOfContentsChecksum"] = this.tableOfContentsChecksum;
+    data["tableOfContentsChecksumLong"] = this.tableOfContentsChecksumLong;
+    return data;
+  }
+}
+
+export interface IReleaseMedia {
+  mediaNumber: number;
+  totalMediaCount?: number;
+  releaseId: string;
+  title: string;
+  description?: string | undefined;
+  disambiguationText?: string | undefined;
+  catalogNumber?: string | undefined;
+  mediaFormat?: string | undefined;
+  tableOfContentsChecksum?: string | undefined;
+  tableOfContentsChecksumLong?: string | undefined;
 }
 
 export class ReleasePageResponse implements IReleasePageResponse {
