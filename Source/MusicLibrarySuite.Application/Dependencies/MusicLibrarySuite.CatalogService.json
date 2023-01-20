@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Catalog Service API v0.8.0-rc1",
+    "title": "Music Library Suite - Catalog Service API v0.8.0-rc2",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
     },
-    "version": "v0.8.0-rc1"
+    "version": "v0.8.0-rc2"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -2501,6 +2501,7 @@
           "id",
           "releasedOn",
           "releasedOnYearOnly",
+          "releaseMediaCollection",
           "title"
         ],
         "type": "object",
@@ -2554,6 +2555,12 @@
           "updatedOn": {
             "type": "string",
             "format": "date-time"
+          },
+          "releaseMediaCollection": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseMedia"
+            }
           }
         },
         "additionalProperties": false
@@ -2667,6 +2674,57 @@
           },
           "dependentReleaseGroup": {
             "$ref": "#/components/schemas/ReleaseGroup"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseMedia": {
+        "required": [
+          "mediaNumber",
+          "releaseId",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "mediaNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalMediaCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "disambiguationText": {
+            "type": "string",
+            "nullable": true
+          },
+          "catalogNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "mediaFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "tableOfContentsChecksum": {
+            "type": "string",
+            "nullable": true
+          },
+          "tableOfContentsChecksumLong": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

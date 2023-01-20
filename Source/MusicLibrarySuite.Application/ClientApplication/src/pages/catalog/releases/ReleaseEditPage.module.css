@@ -6,3 +6,12 @@
 .pageHeader *:first-child {
   margin-right: auto;
 }
+
+.cardHeader {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.cardHeader *:first-child {
+  margin-right: auto;
+}
