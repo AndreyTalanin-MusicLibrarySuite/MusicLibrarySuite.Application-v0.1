@@ -33,6 +33,8 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
       const mediaNumber = releaseMediaValues.mediaNumber as string;
       releaseMediaValues.mediaNumber = parseInt(mediaNumber);
 
+      releaseMediaValues.releaseTrackCollection = [];
+
       const releaseMediaModel = new ReleaseMedia({ ...releaseMedia, ...(releaseMediaValues as IReleaseMedia) });
       releaseMediaModel.title = releaseMediaModel.title?.trim();
       releaseMediaModel.description = releaseMediaModel.description?.trim();

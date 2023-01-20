@@ -1,10 +1,12 @@
-import { Button, Card, Collapse, Divider, Space, Tag, Tooltip, Typography } from "antd";
+import { Button, Card, Collapse, Divider, Space, Table, Tag, Tooltip, Typography } from "antd";
 import { EditOutlined, MonitorOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Release, ReleaseMedia } from "../../../api/ApplicationClient";
+import { Release, ReleaseMedia, ReleaseTrack } from "../../../api/ApplicationClient";
 import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
+import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
 import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
+import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import styles from "./ReleaseViewPage.module.css";
@@ -18,6 +20,8 @@ const ReleaseViewPage = () => {
   const [release, setRelease] = useState<Release>();
   const [viewReleaseMediaModalOpen, setViewReleaseMediaModalOpen] = useState<boolean>(false);
   const [releaseMediaToView, setReleaseMediaToView] = useState<ReleaseMedia>();
+  const [viewReleaseTrackModalOpen, setViewReleaseTrackModalOpen] = useState<boolean>(false);
+  const [releaseTrackToView, setReleaseTrackToView] = useState<ReleaseTrack>();
 
   const [id] = useQueryStringId(true);
   const applicationClient = useApplicationClient();
@@ -51,6 +55,52 @@ const ReleaseViewPage = () => {
     setReleaseMediaToView(releaseMedia);
     setViewReleaseMediaModalOpen(true);
   };
+
+  const onViewReleaseTrackButtonClick = (releaseTrack: ReleaseTrack) => {
+    setReleaseTrackToView(releaseTrack);
+    setViewReleaseTrackModalOpen(true);
+  };
+
+  const releaseTrackTableColumns = [
+    {
+      key: "trackNumber",
+      title: "Track #",
+      dataIndex: "trackNumber",
+      render: (_: number, { trackNumber, totalTrackCount }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber, totalTrackCount),
+    },
+    {
+      key: "mediaNumber",
+      title: "Media #",
+      dataIndex: "mediaNumber",
+      render: (_: number, { mediaNumber, totalMediaCount }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber, totalMediaCount),
+    },
+    {
+      key: "title",
+      title: "Title",
+      dataIndex: "title",
+      render: (_: string, { title, disambiguationText }: ReleaseTrack) => (
+        <Space wrap>
+          {title}
+          {disambiguationText && (
+            <Tooltip title={disambiguationText}>
+              <QuestionCircleOutlined />
+            </Tooltip>
+          )}
+        </Space>
+      ),
+    },
+    {
+      key: "action",
+      title: "Action",
+      render: (_: string, releaseTrack: ReleaseTrack) => (
+        <Space wrap>
+          <Button onClick={() => onViewReleaseTrackButtonClick(releaseTrack)}>
+            <MonitorOutlined /> View
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -136,42 +186,53 @@ const ReleaseViewPage = () => {
                 </Space>
               }
             >
-              {(releaseMedia.description ||
-                releaseMedia.catalogNumber ||
-                releaseMedia.mediaFormat ||
-                releaseMedia.tableOfContentsChecksum ||
-                releaseMedia.tableOfContentsChecksumLong) && (
-                <Collapse>
-                  <Collapse.Panel key="release-media-details" header="Release Media Details">
-                    {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
-                    {releaseMedia.description &&
-                      (releaseMedia.catalogNumber ||
-                        releaseMedia.mediaFormat ||
-                        releaseMedia.tableOfContentsChecksum ||
-                        releaseMedia.tableOfContentsChecksumLong) && <Divider />}
-                    {releaseMedia.catalogNumber && (
-                      <Paragraph>
-                        Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
-                      </Paragraph>
-                    )}
-                    {releaseMedia.mediaFormat && (
-                      <Paragraph>
-                        Media Format: <Text>{releaseMedia.mediaFormat}</Text>
-                      </Paragraph>
-                    )}
-                    {releaseMedia.tableOfContentsChecksum && (
-                      <Paragraph>
-                        CDDB Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksum}</Text>
-                      </Paragraph>
-                    )}
-                    {releaseMedia.tableOfContentsChecksumLong && (
-                      <Paragraph>
-                        MusicBrainz Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksumLong}</Text>
-                      </Paragraph>
-                    )}
-                  </Collapse.Panel>
-                </Collapse>
-              )}
+              <Space direction="vertical" style={{ display: "flex" }}>
+                {(releaseMedia.description ||
+                  releaseMedia.catalogNumber ||
+                  releaseMedia.mediaFormat ||
+                  releaseMedia.tableOfContentsChecksum ||
+                  releaseMedia.tableOfContentsChecksumLong) && (
+                  <Collapse>
+                    <Collapse.Panel key="release-media-details" header="Release Media Details">
+                      {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
+                      {releaseMedia.description &&
+                        (releaseMedia.catalogNumber ||
+                          releaseMedia.mediaFormat ||
+                          releaseMedia.tableOfContentsChecksum ||
+                          releaseMedia.tableOfContentsChecksumLong) && <Divider />}
+                      {releaseMedia.catalogNumber && (
+                        <Paragraph>
+                          Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.mediaFormat && (
+                        <Paragraph>
+                          Media Format: <Text>{releaseMedia.mediaFormat}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.tableOfContentsChecksum && (
+                        <Paragraph>
+                          CDDB Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksum}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.tableOfContentsChecksumLong && (
+                        <Paragraph>
+                          MusicBrainz Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksumLong}</Text>
+                        </Paragraph>
+                      )}
+                    </Collapse.Panel>
+                  </Collapse>
+                )}
+                {releaseMedia.releaseTrackCollection.length > 0 && (
+                  <Table
+                    size="small"
+                    columns={releaseTrackTableColumns}
+                    rowKey={getReleaseTrackKey}
+                    dataSource={releaseMedia.releaseTrackCollection}
+                    pagination={false}
+                  />
+                )}
+              </Space>
             </Card>
           ))}
       </Space>
@@ -181,6 +242,14 @@ const ReleaseViewPage = () => {
           releaseMedia={releaseMediaToView}
           onOk={() => setViewReleaseMediaModalOpen(false)}
           onCancel={() => setViewReleaseMediaModalOpen(false)}
+        />
+      )}
+      {release && (
+        <CreateReleaseTrackModal
+          open={viewReleaseTrackModalOpen}
+          releaseTrack={releaseTrackToView}
+          onOk={() => setViewReleaseTrackModalOpen(false)}
+          onCancel={() => setViewReleaseTrackModalOpen(false)}
         />
       )}
     </>

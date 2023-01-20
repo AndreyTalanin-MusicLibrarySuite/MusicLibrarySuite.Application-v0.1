@@ -1,9 +1,10 @@
-import { Button, Card, Checkbox, Col, Collapse, DatePicker, Divider, Form, Input, Row, Space, Tooltip, Typography } from "antd";
+import { Button, Card, Checkbox, Col, Collapse, DatePicker, Divider, Form, Input, Row, Space, Table, Tooltip, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import {
   DeleteOutlined,
   EditOutlined,
   FieldNumberOutlined,
+  FileAddOutlined,
   FolderAddOutlined,
   QuestionCircleOutlined,
   RollbackOutlined,
@@ -12,13 +13,15 @@ import {
 import dayjs, { Dayjs } from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IRelease, Release, ReleaseMedia } from "../../../api/ApplicationClient";
+import { IRelease, Release, ReleaseMedia, ReleaseTrack } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
+import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
+import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import styles from "./ReleaseEditPage.module.css";
@@ -47,6 +50,8 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
   const [createReleaseMediaModalOpen, setCreateReleaseMediaModalOpen] = useState<boolean>(false);
   const [releaseMediaToEdit, setReleaseMediaToEdit] = useState<ReleaseMedia>();
+  const [createReleaseTrackModalOpen, setCreateReleaseTrackModalOpen] = useState<boolean>(false);
+  const [releaseTrackToEdit, setReleaseTrackToEdit] = useState<ReleaseTrack>();
 
   const [id] = useQueryStringId(mode === ReleaseEditPageMode.Edit);
   const applicationClient = useApplicationClient();
@@ -89,6 +94,13 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     navigate("/catalog/releases/list");
   };
 
+  const onCreateReleaseTrackButtonClick = useCallback(() => {
+    if (release) {
+      setReleaseTrackToEdit(undefined);
+      setCreateReleaseTrackModalOpen(true);
+    }
+  }, [release]);
+
   const onCreateReleaseMediaButtonClick = useCallback(() => {
     if (release) {
       setReleaseMediaToEdit(undefined);
@@ -98,19 +110,24 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
 
   const onRenumberReleaseContentButtonClick = useCallback(() => {
     if (release) {
-      const orderedReleaseMediaCollection = [...release.releaseMediaCollection].sort(
-        (item, otherItem) => (item.mediaNumber ?? 0) - (otherItem.mediaNumber ?? 0)
-      );
+      const orderedReleaseMediaCollection = [...release.releaseMediaCollection].sort((item, otherItem) => item.mediaNumber - otherItem.mediaNumber);
       setRelease(
         new Release({
           ...release,
-          releaseMediaCollection: orderedReleaseMediaCollection.map(
-            (releaseMedia, index) =>
-              new ReleaseMedia({
-                ...releaseMedia,
-                mediaNumber: index + 1,
-              })
-          ),
+          releaseMediaCollection: orderedReleaseMediaCollection.map((releaseMedia, releaseMediaIndex) => {
+            const orderedReleaseTrackCollection = [...releaseMedia.releaseTrackCollection].sort((item, otherItem) => item.trackNumber - otherItem.trackNumber);
+            return new ReleaseMedia({
+              ...releaseMedia,
+              mediaNumber: releaseMediaIndex + 1,
+              releaseTrackCollection: orderedReleaseTrackCollection.map((releaseTrack, releaseTrackIndex) => {
+                return new ReleaseTrack({
+                  ...releaseTrack,
+                  trackNumber: releaseTrackIndex + 1,
+                  mediaNumber: releaseMediaIndex + 1,
+                });
+              }),
+            });
+          }),
         })
       );
     }
@@ -133,6 +150,36 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           new Release({
             ...release,
             releaseMediaCollection: release.releaseMediaCollection.filter((releaseMediaToCompare) => releaseMediaToCompare !== releaseMedia),
+          })
+        );
+      }
+    },
+    [release]
+  );
+
+  const onEditReleaseTrackButtonClick = useCallback(
+    (releaseTrack: ReleaseTrack) => {
+      if (release) {
+        setReleaseTrackToEdit(releaseTrack);
+        setCreateReleaseTrackModalOpen(true);
+      }
+    },
+    [release]
+  );
+
+  const onDeleteReleaseTrackButtonClick = useCallback(
+    (releaseTrack: ReleaseTrack) => {
+      if (release) {
+        setRelease(
+          new Release({
+            ...release,
+            releaseMediaCollection: release.releaseMediaCollection.map(
+              (releaseMedia) =>
+                new ReleaseMedia({
+                  ...releaseMedia,
+                  releaseTrackCollection: releaseMedia.releaseTrackCollection.filter((releaseTrackToCompare) => releaseTrackToCompare !== releaseTrack),
+                })
+            ),
           })
         );
       }
@@ -270,6 +317,130 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     setCreateReleaseMediaModalOpen(false);
   };
 
+  const onCreateReleaseTrackModalOk = useCallback(
+    (releaseTrack: ReleaseTrack, resetFormFields: () => void) => {
+      if (release) {
+        const existingReleaseTrack = release.releaseMediaCollection
+          .map((releaseMedia) =>
+            releaseMedia.releaseTrackCollection.find(
+              (releaseTrackToCompare) =>
+                releaseTrackToCompare.trackNumber === releaseTrack.trackNumber && releaseTrackToCompare.mediaNumber === releaseTrack.mediaNumber
+            )
+          )
+          .reduce((previousValue, currentValue) => (previousValue !== undefined ? previousValue : currentValue), undefined);
+        if (existingReleaseTrack && !releaseTrackToEdit) {
+          alert(
+            `Unable to create a release track with a non-unique pair of track and media numbers: ${releaseTrack.trackNumber}, ${releaseTrack.mediaNumber}.`
+          );
+          return;
+        }
+
+        const shouldMoveReleaseTrack = !releaseTrackToEdit || releaseTrackToEdit?.mediaNumber !== releaseTrack.mediaNumber;
+        const destinationReleaseMedia = release.releaseMediaCollection.find(
+          (releaseMediaToCompare) => releaseMediaToCompare.mediaNumber === releaseTrack.mediaNumber
+        );
+        const sourceReleaseMedia = release.releaseMediaCollection.find(
+          (releaseMediaToCompare) => releaseMediaToCompare.mediaNumber === releaseTrackToEdit?.mediaNumber
+        );
+        if (shouldMoveReleaseTrack && !destinationReleaseMedia) {
+          alert(`Unable to add or move the release track to a non-existing release media: ${releaseTrack.mediaNumber}.`);
+          return;
+        }
+
+        setRelease(
+          new Release({
+            ...release,
+            releaseMediaCollection: release.releaseMediaCollection.map((releaseMediaToCompare) => {
+              if (releaseMediaToCompare === destinationReleaseMedia) {
+                return new ReleaseMedia({
+                  ...releaseMediaToCompare,
+                  releaseTrackCollection: shouldMoveReleaseTrack
+                    ? [...releaseMediaToCompare.releaseTrackCollection, releaseTrack]
+                    : releaseMediaToCompare.releaseTrackCollection.map((releaseTrackToCompare) =>
+                        releaseTrackToCompare !== releaseTrackToEdit ? releaseTrackToCompare : releaseTrack
+                      ),
+                });
+              } else if (shouldMoveReleaseTrack && releaseMediaToCompare === sourceReleaseMedia) {
+                return new ReleaseMedia({
+                  ...releaseMediaToCompare,
+                  releaseTrackCollection: releaseMediaToCompare.releaseTrackCollection.filter(
+                    (releaseTrackToCompare) => releaseTrackToCompare !== releaseTrackToEdit
+                  ),
+                });
+              } else {
+                return releaseMediaToCompare;
+              }
+            }),
+          })
+        );
+        setCreateReleaseTrackModalOpen(false);
+        resetFormFields();
+      }
+    },
+    [release, releaseTrackToEdit]
+  );
+
+  const onCreateReleaseTrackModalCancel = () => {
+    setCreateReleaseTrackModalOpen(false);
+  };
+
+  const releaseTrackTableColumns = [
+    {
+      key: "trackNumber",
+      title: "Track #",
+      dataIndex: "trackNumber",
+      render: (_: number, { trackNumber, totalTrackCount }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber, totalTrackCount),
+    },
+    {
+      key: "mediaNumber",
+      title: "Media #",
+      dataIndex: "mediaNumber",
+      render: (_: number, { mediaNumber, totalMediaCount }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber, totalMediaCount),
+    },
+    {
+      key: "title",
+      title: "Title",
+      dataIndex: "title",
+      render: (_: string, { title, disambiguationText }: ReleaseTrack) => (
+        <Space wrap>
+          {title}
+          {disambiguationText && (
+            <Tooltip title={disambiguationText}>
+              <QuestionCircleOutlined />
+            </Tooltip>
+          )}
+        </Space>
+      ),
+    },
+    {
+      key: "action",
+      title: "Action",
+      render: (_: string, releaseTrack: ReleaseTrack) => (
+        <Space wrap>
+          <Button onClick={() => onEditReleaseTrackButtonClick(releaseTrack)}>
+            <EditOutlined /> Edit
+          </Button>
+          <Button danger onClick={() => onDeleteReleaseTrackButtonClick(releaseTrack)}>
+            <DeleteOutlined /> Delete
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const releaseInfoCardText = useMemo(() => {
+    if (release) {
+      const releaseMediaCollectionLength = release.releaseMediaCollection.length;
+      const releaseTrackCollectionLength = release.releaseMediaCollection
+        .map((releaseMedia) => releaseMedia.releaseTrackCollection.length)
+        .reduce((sum, currentLength) => sum + currentLength, 0);
+
+      return `The current release contains ${releaseTrackCollectionLength} tracks and ${releaseMediaCollectionLength} media.`;
+    }
+
+    return undefined;
+  }, [release]);
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
@@ -373,6 +544,9 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
             title={
               <Space wrap className={styles.cardHeader} direction="horizontal" align="baseline">
                 Release Content
+                <Button onClick={onCreateReleaseTrackButtonClick}>
+                  <FileAddOutlined /> Create Track
+                </Button>
                 <Button onClick={onCreateReleaseMediaButtonClick}>
                   <FolderAddOutlined /> Create Media
                 </Button>
@@ -382,7 +556,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               </Space>
             }
           >
-            <Paragraph>The current release contains {release.releaseMediaCollection.length ?? 0} release media.</Paragraph>
+            {releaseInfoCardText && <Paragraph>{releaseInfoCardText}</Paragraph>}
           </Card>
           {release.releaseMediaCollection.map((releaseMedia) => (
             <Card
@@ -407,42 +581,54 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                 </Space>
               }
             >
-              {(releaseMedia.description ||
-                releaseMedia.catalogNumber ||
-                releaseMedia.mediaFormat ||
-                releaseMedia.tableOfContentsChecksum ||
-                releaseMedia.tableOfContentsChecksumLong) && (
-                <Collapse>
-                  <Collapse.Panel key="release-media-details" header="Release Media Details">
-                    {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
-                    {releaseMedia.description &&
-                      (releaseMedia.catalogNumber ||
-                        releaseMedia.mediaFormat ||
-                        releaseMedia.tableOfContentsChecksum ||
-                        releaseMedia.tableOfContentsChecksumLong) && <Divider />}
-                    {releaseMedia.catalogNumber && (
-                      <Paragraph>
-                        Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
-                      </Paragraph>
-                    )}
-                    {releaseMedia.mediaFormat && (
-                      <Paragraph>
-                        Media Format: <Text>{releaseMedia.mediaFormat}</Text>
-                      </Paragraph>
-                    )}
-                    {releaseMedia.tableOfContentsChecksum && (
-                      <Paragraph>
-                        CDDB Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksum}</Text>
-                      </Paragraph>
-                    )}
-                    {releaseMedia.tableOfContentsChecksumLong && (
-                      <Paragraph>
-                        MusicBrainz Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksumLong}</Text>
-                      </Paragraph>
-                    )}
-                  </Collapse.Panel>
-                </Collapse>
-              )}
+              <Space direction="vertical" style={{ display: "flex" }}>
+                {(releaseMedia.description ||
+                  releaseMedia.catalogNumber ||
+                  releaseMedia.mediaFormat ||
+                  releaseMedia.tableOfContentsChecksum ||
+                  releaseMedia.tableOfContentsChecksumLong) && (
+                  <Collapse>
+                    <Collapse.Panel key="release-media-details" header="Release Media Details">
+                      {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
+                      {releaseMedia.description &&
+                        (releaseMedia.catalogNumber ||
+                          releaseMedia.mediaFormat ||
+                          releaseMedia.tableOfContentsChecksum ||
+                          releaseMedia.tableOfContentsChecksumLong) && <Divider />}
+                      {releaseMedia.catalogNumber && (
+                        <Paragraph>
+                          Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.mediaFormat && (
+                        <Paragraph>
+                          Media Format: <Text>{releaseMedia.mediaFormat}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.tableOfContentsChecksum && (
+                        <Paragraph>
+                          CDDB Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksum}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.tableOfContentsChecksumLong && (
+                        <Paragraph>
+                          MusicBrainz Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksumLong}</Text>
+                        </Paragraph>
+                      )}
+                    </Collapse.Panel>
+                  </Collapse>
+                )}
+                {releaseMedia.releaseTrackCollection.length > 0 && (
+                  <Table
+                    size="small"
+                    columns={releaseTrackTableColumns}
+                    rowKey={getReleaseTrackKey}
+                    dataSource={releaseMedia.releaseTrackCollection}
+                    loading={loading}
+                    pagination={false}
+                  />
+                )}
+              </Space>
             </Card>
           ))}
         </Space>
@@ -463,6 +649,15 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           releaseMedia={releaseMediaToEdit}
           onOk={onCreateReleaseMediaModalOk}
           onCancel={onCreateReleaseMediaModalCancel}
+        />
+      )}
+      {release && (
+        <CreateReleaseTrackModal
+          edit
+          open={createReleaseTrackModalOpen}
+          releaseTrack={releaseTrackToEdit}
+          onOk={onCreateReleaseTrackModalOk}
+          onCancel={onCreateReleaseTrackModalCancel}
         />
       )}
     </>
