@@ -1389,6 +1389,56 @@ export class ApplicationClient {
   }
 
   /**
+   * @param includeReverseRelationships (optional)
+   * @return Success
+   */
+  getReleaseRelationships(releaseId: string, includeReverseRelationships: boolean | undefined): Promise<ReleaseRelationship[]> {
+    let url_ = this.baseUrl + "/api/Release/GetReleaseRelationships?";
+    if (releaseId === undefined || releaseId === null) throw new Error("The parameter 'releaseId' must be defined and cannot be null.");
+    else url_ += "releaseId=" + encodeURIComponent("" + releaseId) + "&";
+    if (includeReverseRelationships === null) throw new Error("The parameter 'includeReverseRelationships' cannot be null.");
+    else if (includeReverseRelationships !== undefined) url_ += "includeReverseRelationships=" + encodeURIComponent("" + includeReverseRelationships) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetReleaseRelationships(_response);
+    });
+  }
+
+  protected processGetReleaseRelationships(response: Response): Promise<ReleaseRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ReleaseRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseRelationship[]>(null as any);
+  }
+
+  /**
    * @return Success
    */
   createRelease(body: Release): Promise<Release> {
@@ -3142,6 +3192,7 @@ export class Release implements IRelease {
   enabled!: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseRelationships!: ReleaseRelationship[];
   releaseMediaCollection!: ReleaseMedia[];
 
   constructor(data?: IRelease) {
@@ -3151,6 +3202,7 @@ export class Release implements IRelease {
       }
     }
     if (!data) {
+      this.releaseRelationships = [];
       this.releaseMediaCollection = [];
     }
   }
@@ -3170,6 +3222,10 @@ export class Release implements IRelease {
       this.enabled = _data["enabled"];
       this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
       this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+      if (Array.isArray(_data["releaseRelationships"])) {
+        this.releaseRelationships = [] as any;
+        for (let item of _data["releaseRelationships"]) this.releaseRelationships!.push(ReleaseRelationship.fromJS(item));
+      }
       if (Array.isArray(_data["releaseMediaCollection"])) {
         this.releaseMediaCollection = [] as any;
         for (let item of _data["releaseMediaCollection"]) this.releaseMediaCollection!.push(ReleaseMedia.fromJS(item));
@@ -3199,6 +3255,10 @@ export class Release implements IRelease {
     data["enabled"] = this.enabled;
     data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
     data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    if (Array.isArray(this.releaseRelationships)) {
+      data["releaseRelationships"] = [];
+      for (let item of this.releaseRelationships) data["releaseRelationships"].push(item.toJSON());
+    }
     if (Array.isArray(this.releaseMediaCollection)) {
       data["releaseMediaCollection"] = [];
       for (let item of this.releaseMediaCollection) data["releaseMediaCollection"].push(item.toJSON());
@@ -3221,6 +3281,7 @@ export interface IRelease {
   enabled: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseRelationships: ReleaseRelationship[];
   releaseMediaCollection: ReleaseMedia[];
 }
 
@@ -3553,6 +3614,61 @@ export interface IReleasePageResponse {
   totalCount: number;
   items: Release[];
   completedOn: Date;
+}
+
+export class ReleaseRelationship implements IReleaseRelationship {
+  releaseId!: string;
+  dependentReleaseId!: string;
+  name!: string;
+  description?: string | undefined;
+  release?: Release;
+  dependentRelease?: Release;
+
+  constructor(data?: IReleaseRelationship) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.releaseId = _data["releaseId"];
+      this.dependentReleaseId = _data["dependentReleaseId"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.release = _data["release"] ? Release.fromJS(_data["release"]) : <any>undefined;
+      this.dependentRelease = _data["dependentRelease"] ? Release.fromJS(_data["dependentRelease"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseRelationship {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseRelationship();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["releaseId"] = this.releaseId;
+    data["dependentReleaseId"] = this.dependentReleaseId;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["release"] = this.release ? this.release.toJSON() : <any>undefined;
+    data["dependentRelease"] = this.dependentRelease ? this.dependentRelease.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseRelationship {
+  releaseId: string;
+  dependentReleaseId: string;
+  name: string;
+  description?: string | undefined;
+  release?: Release;
+  dependentRelease?: Release;
 }
 
 export class ReleaseTrack implements IReleaseTrack {
