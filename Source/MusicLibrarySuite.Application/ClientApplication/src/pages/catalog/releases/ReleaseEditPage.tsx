@@ -1,4 +1,4 @@
-import { Button, Card, Checkbox, Col, Collapse, DatePicker, Divider, Form, Input, Row, Space, Table, Tooltip, Typography } from "antd";
+import { Button, Card, Checkbox, Col, Collapse, DatePicker, Divider, Form, Input, Row, Space, Table, Tabs, Tooltip, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import {
   DeleteOutlined,
@@ -15,7 +15,7 @@ import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IRelease, Release, ReleaseMedia, ReleaseTrack } from "../../../api/ApplicationClient";
+import { IRelease, Release, ReleaseMedia, ReleaseRelationship, ReleaseTrack } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
 import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
@@ -24,6 +24,7 @@ import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/R
 import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ReleaseEditPageReleaseRelationshipsTab from "./ReleaseEditPageReleaseRelationshipsTab";
 import styles from "./ReleaseEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -63,7 +64,14 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
       applicationClient
         .getRelease(id)
         .then((release) => {
-          setRelease(release);
+          setRelease(
+            new Release({
+              ...release,
+              releaseRelationships: release.releaseRelationships.map(
+                (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: release })
+              ),
+            })
+          );
           setReleaseFormValues({ ...release, releasedOn: dayjs(release.releasedOn) });
         })
         .catch((error) => {
@@ -71,6 +79,15 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         });
     }
   }, [id, applicationClient]);
+
+  const onReleaseRelationshipsChange = useCallback(
+    (releaseRelationships: ReleaseRelationship[]) => {
+      if (release) {
+        setRelease(new Release({ ...release, releaseRelationships: releaseRelationships }));
+      }
+    },
+    [release]
+  );
 
   useEffect(() => {
     fetchRelease();
@@ -222,6 +239,11 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
       if (releaseModel.publishFormat !== undefined && releaseModel.publishFormat.length === 0) {
         releaseModel.publishFormat = undefined;
       }
+
+      releaseModel.releaseRelationships =
+        releaseModel.releaseRelationships?.map(
+          (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: undefined, dependentRelease: undefined })
+        ) ?? [];
 
       if (mode === ReleaseEditPageMode.Create) {
         setLoading(true);
@@ -441,6 +463,24 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     return undefined;
   }, [release]);
 
+  const tabs = useMemo(
+    () => [
+      {
+        key: "releaseRelationshipsTab",
+        label: "Release Relationships",
+        children: release && (
+          <ReleaseEditPageReleaseRelationshipsTab
+            release={release}
+            releaseRelationships={release.releaseRelationships}
+            releaseRelationshipsLoading={loading}
+            setReleaseRelationships={onReleaseRelationshipsChange}
+          />
+        ),
+      },
+    ],
+    [release, loading, onReleaseRelationshipsChange]
+  );
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
@@ -631,6 +671,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               </Space>
             </Card>
           ))}
+          {release && <Tabs items={tabs} />}
         </Space>
       )}
       {release && (
