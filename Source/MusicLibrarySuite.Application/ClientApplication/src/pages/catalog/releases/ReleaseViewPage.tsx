@@ -1,6 +1,6 @@
-import { Button, Card, Collapse, Divider, Space, Table, Tag, Tooltip, Typography } from "antd";
+import { Button, Card, Collapse, Divider, Space, Table, Tabs, Tag, Tooltip, Typography } from "antd";
 import { EditOutlined, MonitorOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Release, ReleaseMedia, ReleaseTrack } from "../../../api/ApplicationClient";
 import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
@@ -9,6 +9,7 @@ import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/R
 import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ReleaseViewPageReleaseRelationshipsTab from "./ReleaseViewPageReleaseRelationshipsTab";
 import styles from "./ReleaseViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -101,6 +102,17 @@ const ReleaseViewPage = () => {
       ),
     },
   ];
+
+  const tabs = useMemo(
+    () => [
+      {
+        key: "releaseRelationshipsTab",
+        label: "Release Relationships",
+        children: id && <ReleaseViewPageReleaseRelationshipsTab id={id} />,
+      },
+    ],
+    [id]
+  );
 
   return (
     <>
@@ -235,6 +247,7 @@ const ReleaseViewPage = () => {
               </Space>
             </Card>
           ))}
+        {release && <Tabs items={tabs} />}
       </Space>
       {release && (
         <CreateReleaseMediaModal
