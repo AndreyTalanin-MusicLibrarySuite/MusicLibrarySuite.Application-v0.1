@@ -210,10 +210,10 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
       const workComposerIds = workFormValues.workComposers as string[];
       const workGenreIds = workFormValues.workGenres as string[];
       if (work?.id) {
-        workFormValues.workArtists = workArtistIds.map((artistId) => new WorkArtist({ workId: work.id, artistId: artistId, order: 0 }));
-        workFormValues.workFeaturedArtists = workFeaturedArtistIds.map((artistId) => new WorkFeaturedArtist({ workId: work.id, artistId: artistId, order: 0 }));
-        workFormValues.workPerformers = workPerformerIds.map((artistId) => new WorkPerformer({ workId: work.id, artistId: artistId, order: 0 }));
-        workFormValues.workComposers = workComposerIds.map((artistId) => new WorkComposer({ workId: work.id, artistId: artistId, order: 0 }));
+        workFormValues.workArtists = workArtistIds.map((artistId) => new WorkArtist({ workId: work.id, artistId: artistId }));
+        workFormValues.workFeaturedArtists = workFeaturedArtistIds.map((artistId) => new WorkFeaturedArtist({ workId: work.id, artistId: artistId }));
+        workFormValues.workPerformers = workPerformerIds.map((artistId) => new WorkPerformer({ workId: work.id, artistId: artistId }));
+        workFormValues.workComposers = workComposerIds.map((artistId) => new WorkComposer({ workId: work.id, artistId: artistId }));
         workFormValues.workGenres = workGenreIds.map((genreId) => new WorkGenre({ workId: work.id, genreId: genreId, order: 0 }));
       } else {
         workFormValues.workArtists = [];
