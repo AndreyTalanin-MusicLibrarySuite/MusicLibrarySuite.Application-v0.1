@@ -15,7 +15,19 @@ import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IRelease, Release, ReleaseMedia, ReleaseRelationship, ReleaseTrack } from "../../../api/ApplicationClient";
+import {
+  Artist,
+  IRelease,
+  Release,
+  ReleaseArtist,
+  ReleaseComposer,
+  ReleaseFeaturedArtist,
+  ReleaseMedia,
+  ReleasePerformer,
+  ReleaseRelationship,
+  ReleaseTrack,
+} from "../../../api/ApplicationClient";
+import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
 import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
@@ -47,6 +59,10 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
 
   const [release, setRelease] = useState<Release>();
   const [releaseFormValues, setReleaseFormValues] = useState<Store>({});
+  const [releaseArtistOptions, setReleaseArtistOptions] = useState<Artist[]>([]);
+  const [releaseFeaturedArtistOptions, setReleaseFeaturedArtistOptions] = useState<Artist[]>([]);
+  const [releasePerformerOptions, setReleasePerformerOptions] = useState<Artist[]>([]);
+  const [releaseComposerOptions, setReleaseComposerOptions] = useState<Artist[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
   const [createReleaseMediaModalOpen, setCreateReleaseMediaModalOpen] = useState<boolean>(false);
@@ -64,15 +80,59 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
       applicationClient
         .getRelease(id)
         .then((release) => {
-          setRelease(
-            new Release({
-              ...release,
-              releaseRelationships: release.releaseRelationships.map(
-                (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: release })
-              ),
-            })
+          release.releaseRelationships = release.releaseRelationships.map(
+            (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: release })
           );
-          setReleaseFormValues({ ...release, releasedOn: dayjs(release.releasedOn) });
+
+          release.releaseArtists = release.releaseArtists.map((releaseArtist) => new ReleaseArtist({ ...releaseArtist, release: release }));
+          release.releaseFeaturedArtists = release.releaseFeaturedArtists.map(
+            (releaseFeaturedArtist) => new ReleaseFeaturedArtist({ ...releaseFeaturedArtist, release: release })
+          );
+          release.releasePerformers = release.releasePerformers.map((releasePerformer) => new ReleasePerformer({ ...releasePerformer, release: release }));
+          release.releaseComposers = release.releaseComposers.map((releaseComposer) => new ReleaseComposer({ ...releaseComposer, release: release }));
+
+          setRelease(release);
+          setReleaseFormValues({
+            ...release,
+            releasedOn: dayjs(release.releasedOn),
+            releaseArtists: release?.releaseArtists.map((releaseArtist) => releaseArtist.artistId) ?? [],
+            releaseFeaturedArtists: release?.releaseFeaturedArtists.map((releaseFeaturedArtist) => releaseFeaturedArtist.artistId) ?? [],
+            releasePerformers: release?.releasePerformers.map((releasePerformer) => releasePerformer.artistId) ?? [],
+            releaseComposers: release?.releaseComposers.map((releaseComposer) => releaseComposer.artistId) ?? [],
+          });
+
+          applicationClient
+            .getArtists(release.releaseArtists?.map((releaseArtist) => releaseArtist.artistId) ?? [])
+            .then((releaseArtists) => {
+              setReleaseArtistOptions(releaseArtists);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getArtists(release.releaseFeaturedArtists?.map((releaseFeaturedArtist) => releaseFeaturedArtist.artistId) ?? [])
+            .then((releaseFeaturedArtists) => {
+              setReleaseFeaturedArtistOptions(releaseFeaturedArtists);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getArtists(release.releasePerformers?.map((releasePerformer) => releasePerformer.artistId) ?? [])
+            .then((releasePerformers) => {
+              setReleasePerformerOptions(releasePerformers);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getArtists(release.releaseComposers?.map((releaseComposer) => releaseComposer.artistId) ?? [])
+            .then((releaseComposers) => {
+              setReleaseComposerOptions(releaseComposers);
+            })
+            .catch((error) => {
+              alert(error);
+            });
         })
         .catch((error) => {
           alert(error);
@@ -208,6 +268,24 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     (releaseFormValues: Store) => {
       const releasedOn = releaseFormValues.releasedOn as Dayjs;
       releaseFormValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
+
+      const releaseArtistIds = releaseFormValues.releaseArtists as string[];
+      const releaseFeaturedArtistIds = releaseFormValues.releaseFeaturedArtists as string[];
+      const releasePerformerIds = releaseFormValues.releasePerformers as string[];
+      const releaseComposerIds = releaseFormValues.releaseComposers as string[];
+      if (release?.id) {
+        releaseFormValues.releaseArtists = releaseArtistIds.map((artistId) => new ReleaseArtist({ releaseId: release.id, artistId: artistId }));
+        releaseFormValues.releaseFeaturedArtists = releaseFeaturedArtistIds.map(
+          (artistId) => new ReleaseFeaturedArtist({ releaseId: release.id, artistId: artistId })
+        );
+        releaseFormValues.releasePerformers = releasePerformerIds.map((artistId) => new ReleasePerformer({ releaseId: release.id, artistId: artistId }));
+        releaseFormValues.releaseComposers = releaseComposerIds.map((artistId) => new ReleaseComposer({ releaseId: release.id, artistId: artistId }));
+      } else {
+        releaseFormValues.releaseArtists = [];
+        releaseFormValues.releaseFeaturedArtists = [];
+        releaseFormValues.releasePerformers = [];
+        releaseFormValues.releaseComposers = [];
+      }
 
       const releaseModel = new Release({ ...release, ...(releaseFormValues as IRelease) });
       releaseModel.id = releaseModel.id?.trim();
@@ -406,6 +484,78 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     setCreateReleaseTrackModalOpen(false);
   };
 
+  const fetchReleaseArtistOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setReleaseArtistOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchReleaseArtistOptions(undefined, () => void 0), [fetchReleaseArtistOptions]);
+
+  const fetchReleaseFeaturedArtistOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setReleaseFeaturedArtistOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchReleaseFeaturedArtistOptions(undefined, () => void 0), [fetchReleaseFeaturedArtistOptions]);
+
+  const fetchReleasePerformerOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setReleasePerformerOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchReleasePerformerOptions(undefined, () => void 0), [fetchReleasePerformerOptions]);
+
+  const fetchReleaseComposerOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedArtists(20, 0, nameFilter, undefined)
+        .then((artistResponse) => {
+          setLoading(false);
+          setReleaseComposerOptions(artistResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchReleaseComposerOptions(undefined, () => void 0), [fetchReleaseComposerOptions]);
+
   const releaseTrackTableColumns = [
     {
       key: "trackNumber",
@@ -564,6 +714,42 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
             >
               <Checkbox />
             </Form.Item>
+            {mode === ReleaseEditPageMode.Edit && (
+              <Form.Item label="Artists" name="releaseArtists">
+                <EntitySelect
+                  mode="multiple"
+                  options={releaseArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchReleaseArtistOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === ReleaseEditPageMode.Edit && (
+              <Form.Item label="Featured Artists" name="releaseFeaturedArtists">
+                <EntitySelect
+                  mode="multiple"
+                  options={releaseFeaturedArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchReleaseFeaturedArtistOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === ReleaseEditPageMode.Edit && (
+              <Form.Item label="Performers" name="releasePerformers">
+                <EntitySelect
+                  mode="multiple"
+                  options={releasePerformerOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchReleasePerformerOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === ReleaseEditPageMode.Edit && (
+              <Form.Item label="Composers" name="releaseComposers">
+                <EntitySelect
+                  mode="multiple"
+                  options={releaseComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchReleaseComposerOptions}
+                />
+              </Form.Item>
+            )}
             {mode === ReleaseEditPageMode.Edit && (
               <Form.Item label="Created On" name="createdOn">
                 <Input readOnly />

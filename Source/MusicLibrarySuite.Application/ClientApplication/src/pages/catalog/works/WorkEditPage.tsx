@@ -471,7 +471,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               <Checkbox />
             </Form.Item>
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Artists" name="workArtists">
+              <Form.Item label="Artists" name="workArtists">
                 <EntitySelect
                   mode="multiple"
                   options={workArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -480,7 +480,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Featured Artists" name="workFeaturedArtists">
+              <Form.Item label="Featured Artists" name="workFeaturedArtists">
                 <EntitySelect
                   mode="multiple"
                   options={workFeaturedArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -489,7 +489,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Performers" name="workPerformers">
+              <Form.Item label="Performers" name="workPerformers">
                 <EntitySelect
                   mode="multiple"
                   options={workPerformerOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -498,7 +498,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Composers" name="workComposers">
+              <Form.Item label="Composers" name="workComposers">
                 <EntitySelect
                   mode="multiple"
                   options={workComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
