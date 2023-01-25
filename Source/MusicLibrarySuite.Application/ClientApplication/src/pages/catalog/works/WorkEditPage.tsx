@@ -210,10 +210,10 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
       const workComposerIds = workFormValues.workComposers as string[];
       const workGenreIds = workFormValues.workGenres as string[];
       if (work?.id) {
-        workFormValues.workArtists = workArtistIds.map((artistId) => new WorkArtist({ workId: work.id, artistId: artistId, order: 0 }));
-        workFormValues.workFeaturedArtists = workFeaturedArtistIds.map((artistId) => new WorkFeaturedArtist({ workId: work.id, artistId: artistId, order: 0 }));
-        workFormValues.workPerformers = workPerformerIds.map((artistId) => new WorkPerformer({ workId: work.id, artistId: artistId, order: 0 }));
-        workFormValues.workComposers = workComposerIds.map((artistId) => new WorkComposer({ workId: work.id, artistId: artistId, order: 0 }));
+        workFormValues.workArtists = workArtistIds.map((artistId) => new WorkArtist({ workId: work.id, artistId: artistId }));
+        workFormValues.workFeaturedArtists = workFeaturedArtistIds.map((artistId) => new WorkFeaturedArtist({ workId: work.id, artistId: artistId }));
+        workFormValues.workPerformers = workPerformerIds.map((artistId) => new WorkPerformer({ workId: work.id, artistId: artistId }));
+        workFormValues.workComposers = workComposerIds.map((artistId) => new WorkComposer({ workId: work.id, artistId: artistId }));
         workFormValues.workGenres = workGenreIds.map((genreId) => new WorkGenre({ workId: work.id, genreId: genreId, order: 0 }));
       } else {
         workFormValues.workArtists = [];
@@ -471,7 +471,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               <Checkbox />
             </Form.Item>
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Artists" name="workArtists">
+              <Form.Item label="Artists" name="workArtists">
                 <EntitySelect
                   mode="multiple"
                   options={workArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -480,7 +480,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Featured Artists" name="workFeaturedArtists">
+              <Form.Item label="Featured Artists" name="workFeaturedArtists">
                 <EntitySelect
                   mode="multiple"
                   options={workFeaturedArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -489,7 +489,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Performers" name="workPerformers">
+              <Form.Item label="Performers" name="workPerformers">
                 <EntitySelect
                   mode="multiple"
                   options={workPerformerOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -498,7 +498,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Composers" name="workComposers">
+              <Form.Item label="Composers" name="workComposers">
                 <EntitySelect
                   mode="multiple"
                   options={workComposerOptions.map((option) => ({ value: option.id, label: option.name }))}

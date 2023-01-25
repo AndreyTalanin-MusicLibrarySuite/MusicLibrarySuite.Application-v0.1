@@ -164,6 +164,58 @@ const ReleaseViewPage = () => {
             <Paragraph>
               Released On: <Text keyboard>{release.releasedOnYearOnly ? release.releasedOn.getUTCFullYear() : release.releasedOn.toLocaleDateString()}</Text>
             </Paragraph>
+            {release.releaseArtists && release.releaseArtists.length > 0 && (
+              <Paragraph>
+                Release Artists:{" "}
+                {release.releaseArtists.map((releaseArtist, index, array) => (
+                  <>
+                    <Typography.Link key={releaseArtist.artistId} href={`/catalog/artists/view?id=${releaseArtist.artistId}`}>
+                      {releaseArtist?.artist?.name}
+                    </Typography.Link>
+                    {index < array.length - 1 && ", "}
+                  </>
+                ))}
+              </Paragraph>
+            )}
+            {release.releaseFeaturedArtists && release.releaseFeaturedArtists.length > 0 && (
+              <Paragraph>
+                Release Featured Artists:{" "}
+                {release.releaseFeaturedArtists.map((releaseFeaturedArtist, index, array) => (
+                  <>
+                    <Typography.Link key={releaseFeaturedArtist.artistId} href={`/catalog/artists/view?id=${releaseFeaturedArtist.artistId}`}>
+                      {releaseFeaturedArtist?.artist?.name}
+                    </Typography.Link>
+                    {index < array.length - 1 && ", "}
+                  </>
+                ))}
+              </Paragraph>
+            )}
+            {release.releasePerformers && release.releasePerformers.length > 0 && (
+              <Paragraph>
+                Release Performers:{" "}
+                {release.releasePerformers.map((releasePerformer, index, array) => (
+                  <>
+                    <Typography.Link key={releasePerformer.artistId} href={`/catalog/artists/view?id=${releasePerformer.artistId}`}>
+                      {releasePerformer?.artist?.name}
+                    </Typography.Link>
+                    {index < array.length - 1 && ", "}
+                  </>
+                ))}
+              </Paragraph>
+            )}
+            {release.releaseComposers && release.releaseComposers.length > 0 && (
+              <Paragraph>
+                Release Composers:{" "}
+                {release.releaseComposers.map((releaseComposer, index, array) => (
+                  <>
+                    <Typography.Link key={releaseComposer.artistId} href={`/catalog/artists/view?id=${releaseComposer.artistId}`}>
+                      {releaseComposer?.artist?.name}
+                    </Typography.Link>
+                    {index < array.length - 1 && ", "}
+                  </>
+                ))}
+              </Paragraph>
+            )}
             <Divider />
             {release.createdOn && (
               <Paragraph>
