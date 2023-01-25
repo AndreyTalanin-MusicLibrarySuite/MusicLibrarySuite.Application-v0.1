@@ -279,7 +279,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
               <Checkbox />
             </Form.Item>
             {mode === ArtistEditPageMode.Edit && (
-              <Form.Item label="Artist Genres" name="artistGenres">
+              <Form.Item label="Genres" name="artistGenres">
                 <EntitySelect
                   mode="multiple"
                   options={artistGenreOptions.map((option) => ({ value: option.id, label: option.name }))}

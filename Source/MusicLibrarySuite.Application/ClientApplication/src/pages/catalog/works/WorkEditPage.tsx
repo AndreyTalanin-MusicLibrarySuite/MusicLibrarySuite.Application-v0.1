@@ -507,7 +507,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Work Genres" name="workGenres">
+              <Form.Item label="Genres" name="workGenres">
                 <EntitySelect
                   mode="multiple"
                   options={workGenreOptions.map((option) => ({ value: option.id, label: option.name }))}

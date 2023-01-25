@@ -17,11 +17,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Artist,
+  Genre,
   IRelease,
   Release,
   ReleaseArtist,
   ReleaseComposer,
   ReleaseFeaturedArtist,
+  ReleaseGenre,
   ReleaseMedia,
   ReleasePerformer,
   ReleaseRelationship,
@@ -63,6 +65,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const [releaseFeaturedArtistOptions, setReleaseFeaturedArtistOptions] = useState<Artist[]>([]);
   const [releasePerformerOptions, setReleasePerformerOptions] = useState<Artist[]>([]);
   const [releaseComposerOptions, setReleaseComposerOptions] = useState<Artist[]>([]);
+  const [releaseGenreOptions, setReleaseGenreOptions] = useState<Genre[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
   const [createReleaseMediaModalOpen, setCreateReleaseMediaModalOpen] = useState<boolean>(false);
@@ -90,6 +93,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           );
           release.releasePerformers = release.releasePerformers.map((releasePerformer) => new ReleasePerformer({ ...releasePerformer, release: release }));
           release.releaseComposers = release.releaseComposers.map((releaseComposer) => new ReleaseComposer({ ...releaseComposer, release: release }));
+          release.releaseGenres = release.releaseGenres.map((releaseGenre) => new ReleaseGenre({ ...releaseGenre, release: release }));
 
           setRelease(release);
           setReleaseFormValues({
@@ -99,6 +103,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
             releaseFeaturedArtists: release?.releaseFeaturedArtists.map((releaseFeaturedArtist) => releaseFeaturedArtist.artistId) ?? [],
             releasePerformers: release?.releasePerformers.map((releasePerformer) => releasePerformer.artistId) ?? [],
             releaseComposers: release?.releaseComposers.map((releaseComposer) => releaseComposer.artistId) ?? [],
+            releaseGenres: release?.releaseGenres.map((releaseGenre) => releaseGenre.genreId) ?? [],
           });
 
           applicationClient
@@ -129,6 +134,14 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
             .getArtists(release.releaseComposers?.map((releaseComposer) => releaseComposer.artistId) ?? [])
             .then((releaseComposers) => {
               setReleaseComposerOptions(releaseComposers);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getGenres(release.releaseGenres?.map((releaseGenre) => releaseGenre.genreId) ?? [])
+            .then((releaseGenres) => {
+              setReleaseGenreOptions(releaseGenres);
             })
             .catch((error) => {
               alert(error);
@@ -273,6 +286,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
       const releaseFeaturedArtistIds = releaseFormValues.releaseFeaturedArtists as string[];
       const releasePerformerIds = releaseFormValues.releasePerformers as string[];
       const releaseComposerIds = releaseFormValues.releaseComposers as string[];
+      const releaseGenreIds = releaseFormValues.releaseGenres as string[];
       if (release?.id) {
         releaseFormValues.releaseArtists = releaseArtistIds.map((artistId) => new ReleaseArtist({ releaseId: release.id, artistId: artistId }));
         releaseFormValues.releaseFeaturedArtists = releaseFeaturedArtistIds.map(
@@ -280,11 +294,13 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         );
         releaseFormValues.releasePerformers = releasePerformerIds.map((artistId) => new ReleasePerformer({ releaseId: release.id, artistId: artistId }));
         releaseFormValues.releaseComposers = releaseComposerIds.map((artistId) => new ReleaseComposer({ releaseId: release.id, artistId: artistId }));
+        releaseFormValues.releaseGenres = releaseGenreIds.map((genreId) => new ReleaseGenre({ releaseId: release.id, genreId: genreId }));
       } else {
         releaseFormValues.releaseArtists = [];
         releaseFormValues.releaseFeaturedArtists = [];
         releaseFormValues.releasePerformers = [];
         releaseFormValues.releaseComposers = [];
+        releaseFormValues.releaseGenres = [];
       }
 
       const releaseModel = new Release({ ...release, ...(releaseFormValues as IRelease) });
@@ -556,6 +572,24 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
 
   useEffect(() => fetchReleaseComposerOptions(undefined, () => void 0), [fetchReleaseComposerOptions]);
 
+  const fetchReleaseGenreOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedGenres(20, 0, nameFilter, undefined)
+        .then((genreResponse) => {
+          setLoading(false);
+          setReleaseGenreOptions(genreResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchReleaseGenreOptions(undefined, () => void 0), [fetchReleaseGenreOptions]);
+
   const releaseTrackTableColumns = [
     {
       key: "trackNumber",
@@ -747,6 +781,15 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                   mode="multiple"
                   options={releaseComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
                   onSearch={fetchReleaseComposerOptions}
+                />
+              </Form.Item>
+            )}
+            {mode === ReleaseEditPageMode.Edit && (
+              <Form.Item label="Genres" name="releaseGenres">
+                <EntitySelect
+                  mode="multiple"
+                  options={releaseGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
+                  onSearch={fetchReleaseGenreOptions}
                 />
               </Form.Item>
             )}
