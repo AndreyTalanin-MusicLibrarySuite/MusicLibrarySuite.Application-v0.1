@@ -158,7 +158,7 @@ const ReleaseViewPage = () => {
             )}
             {release.publishFormat?.length && (
               <Paragraph>
-                Media Format: <Text>{release.publishFormat}</Text>
+                Publish Format: <Text>{release.publishFormat}</Text>
               </Paragraph>
             )}
             <Paragraph>
@@ -210,6 +210,19 @@ const ReleaseViewPage = () => {
                   <>
                     <Typography.Link key={releaseComposer.artistId} href={`/catalog/artists/view?id=${releaseComposer.artistId}`}>
                       {releaseComposer?.artist?.name}
+                    </Typography.Link>
+                    {index < array.length - 1 && ", "}
+                  </>
+                ))}
+              </Paragraph>
+            )}
+            {release.releaseGenres && release.releaseGenres.length > 0 && (
+              <Paragraph>
+                Release Genres:{" "}
+                {release.releaseGenres.map((releaseGenre, index, array) => (
+                  <>
+                    <Typography.Link key={releaseGenre.genreId} href={`/catalog/genres/view?id=${releaseGenre.genreId}`}>
+                      {releaseGenre?.genre?.name}
                     </Typography.Link>
                     {index < array.length - 1 && ", "}
                   </>

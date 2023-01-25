@@ -125,7 +125,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
     (artistFormValues: Store) => {
       const artistGenreIds = artistFormValues.artistGenres as string[];
       if (artist?.id) {
-        artistFormValues.artistGenres = artistGenreIds.map((genreId) => new ArtistGenre({ artistId: artist.id, genreId, order: 0 }));
+        artistFormValues.artistGenres = artistGenreIds.map((genreId) => new ArtistGenre({ artistId: artist.id, genreId }));
       } else {
         artistFormValues.artistGenres = [];
       }
@@ -279,7 +279,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
               <Checkbox />
             </Form.Item>
             {mode === ArtistEditPageMode.Edit && (
-              <Form.Item label="Artist Genres" name="artistGenres">
+              <Form.Item label="Genres" name="artistGenres">
                 <EntitySelect
                   mode="multiple"
                   options={artistGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
