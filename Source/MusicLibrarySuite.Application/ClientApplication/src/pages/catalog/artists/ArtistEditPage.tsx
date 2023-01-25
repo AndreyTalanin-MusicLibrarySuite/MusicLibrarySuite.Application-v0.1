@@ -125,7 +125,7 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
     (artistFormValues: Store) => {
       const artistGenreIds = artistFormValues.artistGenres as string[];
       if (artist?.id) {
-        artistFormValues.artistGenres = artistGenreIds.map((genreId) => new ArtistGenre({ artistId: artist.id, genreId, order: 0 }));
+        artistFormValues.artistGenres = artistGenreIds.map((genreId) => new ArtistGenre({ artistId: artist.id, genreId }));
       } else {
         artistFormValues.artistGenres = [];
       }
