@@ -254,6 +254,28 @@ public class ReleaseController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously updates order of existing release-to-release-group relationships.
+    /// </summary>
+    /// <param name="releaseToReleaseGroupRelationships">A collection of release-to-release-group relationships to reorder.</param>
+    /// <param name="useReferenceOrder">A value indicating whether the reference order should be used.</param>
+    /// <returns>The task object representing the asynchronous operation.</returns>
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateReleaseToReleaseGroupRelationshipsOrderAsync([Required][FromBody] ReleaseToReleaseGroupRelationship[] releaseToReleaseGroupRelationships, [FromQuery] bool? useReferenceOrder)
+    {
+        try
+        {
+            await m_catalogServiceClient.UpdateReleaseToReleaseGroupRelationshipsOrderAsync(useReferenceOrder, releaseToReleaseGroupRelationships);
+            return Ok();
+        }
+        catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
     /// Asynchronously deletes an existing release.
     /// </summary>
     /// <param name="releaseId">The unique identifier of the release to delete.</param>
