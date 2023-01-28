@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.7.0-rc6",
+    "title": "Music Library Suite - Application API v0.7.0-rc7",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.7.0-rc6"
+    "version": "v0.7.0-rc7"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1193,6 +1193,72 @@
         }
       }
     },
+    "/api/Release/GetReleaseToProductRelationships": {
+      "get": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "releaseId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReleaseToProductRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Release/GetReleaseToProductRelationshipsByProduct": {
+      "get": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReleaseToProductRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Release/CreateRelease": {
       "post": {
         "tags": [
@@ -1252,6 +1318,76 @@
             "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/Release"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Release/UpdateReleaseToProductRelationshipsOrder": {
+      "put": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "useReferenceOrder",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseToProductRelationship"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseToProductRelationship"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseToProductRelationship"
+                }
               }
             }
           },
@@ -2543,6 +2679,7 @@
           "releaseMediaCollection",
           "releasePerformers",
           "releaseRelationships",
+          "releaseToProductRelationships",
           "title"
         ],
         "type": "object",
@@ -2631,6 +2768,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReleaseGenre"
+            }
+          },
+          "releaseToProductRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseToProductRelationship"
             }
           },
           "releaseMediaCollection": {
@@ -2997,6 +3140,39 @@
           },
           "dependentRelease": {
             "$ref": "#/components/schemas/Release"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseToProductRelationship": {
+        "required": [
+          "name",
+          "productId",
+          "releaseId"
+        ],
+        "type": "object",
+        "properties": {
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "release": {
+            "$ref": "#/components/schemas/Release"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
           }
         },
         "additionalProperties": false
