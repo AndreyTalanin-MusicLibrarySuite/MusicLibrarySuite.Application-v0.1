@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.7.0-rc7",
+    "title": "Music Library Suite - Application API v0.7.0-rc8",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.7.0-rc7"
+    "version": "v0.7.0-rc8"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1259,6 +1259,72 @@
         }
       }
     },
+    "/api/Release/GetReleaseToReleaseGroupRelationships": {
+      "get": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "releaseId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Release/GetReleaseToReleaseGroupRelationshipsByReleaseGroup": {
+      "get": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "releaseGroupId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Release/CreateRelease": {
       "post": {
         "tags": [
@@ -1387,6 +1453,76 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/ReleaseToProductRelationship"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Release/UpdateReleaseToReleaseGroupRelationshipsOrder": {
+      "put": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "useReferenceOrder",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
                 }
               }
             }
@@ -2680,6 +2816,7 @@
           "releasePerformers",
           "releaseRelationships",
           "releaseToProductRelationships",
+          "releaseToReleaseGroupRelationships",
           "title"
         ],
         "type": "object",
@@ -2774,6 +2911,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReleaseToProductRelationship"
+            }
+          },
+          "releaseToReleaseGroupRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
             }
           },
           "releaseMediaCollection": {
@@ -3173,6 +3316,39 @@
           },
           "product": {
             "$ref": "#/components/schemas/Product"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseToReleaseGroupRelationship": {
+        "required": [
+          "name",
+          "releaseGroupId",
+          "releaseId"
+        ],
+        "type": "object",
+        "properties": {
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "releaseGroupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "release": {
+            "$ref": "#/components/schemas/Release"
+          },
+          "releaseGroup": {
+            "$ref": "#/components/schemas/ReleaseGroup"
           }
         },
         "additionalProperties": false

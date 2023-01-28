@@ -3,12 +3,13 @@ import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IReleaseGroup, ReleaseGroup, ReleaseGroupRelationship } from "../../../api/ApplicationClient";
+import { IReleaseGroup, ReleaseGroup, ReleaseGroupRelationship, ReleaseToReleaseGroupRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseGroupEditPageReleaseGroupRelationshipsTab from "./ReleaseGroupEditPageReleaseGroupRelationshipsTab";
+import ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab";
 import styles from "./ReleaseGroupEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -26,6 +27,7 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
 
   const [releaseGroup, setReleaseGroup] = useState<ReleaseGroup>();
   const [releaseGroupFormValues, setReleaseGroupFormValues] = useState<Store>({});
+  const [releaseToReleaseGroupRelationships, setReleaseToReleaseGroupRelationships] = useState<ReleaseToReleaseGroupRelationship[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
@@ -39,15 +41,16 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
       applicationClient
         .getReleaseGroup(id)
         .then((releaseGroup) => {
-          setReleaseGroup(
-            new ReleaseGroup({
-              ...releaseGroup,
-              releaseGroupRelationships: releaseGroup.releaseGroupRelationships.map(
-                (releaseGroupRelationship) => new ReleaseGroupRelationship({ ...releaseGroupRelationship, releaseGroup: releaseGroup })
-              ),
-            })
+          releaseGroup.releaseGroupRelationships = releaseGroup.releaseGroupRelationships.map(
+            (releaseGroupRelationship) => new ReleaseGroupRelationship({ ...releaseGroupRelationship, releaseGroup: releaseGroup })
           );
+
+          setReleaseGroup(releaseGroup);
           setReleaseGroupFormValues(releaseGroup);
+
+          applicationClient.getReleaseToReleaseGroupRelationshipsByReleaseGroup(id).then((releaseToReleaseGroupRelationships) => {
+            setReleaseToReleaseGroupRelationships(releaseToReleaseGroupRelationships);
+          });
         })
         .catch((error) => {
           alert(error);
@@ -150,8 +153,15 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
         applicationClient
           .updateReleaseGroup(releaseGroupModel)
           .then(() => {
-            setLoading(false);
-            fetchReleaseGroup();
+            Promise.all([applicationClient.updateReleaseToReleaseGroupRelationshipsOrder(true, releaseToReleaseGroupRelationships)])
+              .then(() => {
+                setLoading(false);
+                fetchReleaseGroup();
+              })
+              .catch((error) => {
+                setLoading(false);
+                alert(error);
+              });
           })
           .catch((error) => {
             setLoading(false);
@@ -159,7 +169,7 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
           });
       }
     },
-    [mode, navigate, releaseGroup, applicationClient, fetchReleaseGroup]
+    [mode, navigate, releaseGroup, releaseToReleaseGroupRelationships, applicationClient, fetchReleaseGroup]
   );
 
   const onFinishFailed = () => {
@@ -180,8 +190,19 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
           />
         ),
       },
+      {
+        key: "releaseToReleaseGroupRelationshipsTab",
+        label: "Release-to-Release-Group Relationships",
+        children: releaseGroup && (
+          <ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab
+            releaseToReleaseGroupRelationships={releaseToReleaseGroupRelationships}
+            releaseToReleaseGroupRelationshipsLoading={loading}
+            setReleaseToReleaseGroupRelationships={setReleaseToReleaseGroupRelationships}
+          />
+        ),
+      },
     ],
-    [releaseGroup, loading, onReleaseGroupRelationshipsChange]
+    [releaseGroup, loading, releaseToReleaseGroupRelationships, onReleaseGroupRelationshipsChange]
   );
 
   return (

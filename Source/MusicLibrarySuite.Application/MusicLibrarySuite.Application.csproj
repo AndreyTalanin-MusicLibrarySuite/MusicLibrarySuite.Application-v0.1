@@ -35,7 +35,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
-    <PackageReference Include="MusicLibrarySuite.CatalogService.Interfaces" Version="0.8.0-rc7" />
+    <PackageReference Include="MusicLibrarySuite.CatalogService.Interfaces" Version="0.8.0-rc8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="NSwag.ApiDescription.Client" Version="13.18.0">
       <PrivateAssets>all</PrivateAssets>

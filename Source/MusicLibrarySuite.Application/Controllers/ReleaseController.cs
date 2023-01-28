@@ -160,6 +160,40 @@ public class ReleaseController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all release-to-release-group relationships by a release's unique identifier.
+    /// </summary>
+    /// <param name="releaseId">The release's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-to-release-group relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseToReleaseGroupRelationship[]>> GetReleaseToReleaseGroupRelationshipsAsync([Required][FromQuery] Guid releaseId)
+    {
+        ReleaseToReleaseGroupRelationship[] releaseToReleaseGroupRelationshipArray = (await m_catalogServiceClient.GetReleaseToReleaseGroupRelationshipsAsync(releaseId)).ToArray();
+        return Ok(releaseToReleaseGroupRelationshipArray);
+    }
+
+    /// <summary>
+    /// Asynchronously gets all release-to-release-group relationships by a release group's unique identifier.
+    /// </summary>
+    /// <param name="releaseGroupId">The release group's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-to-release-group relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseToReleaseGroupRelationship[]>> GetReleaseToReleaseGroupRelationshipsByReleaseGroupAsync([Required][FromQuery] Guid releaseGroupId)
+    {
+        ReleaseToReleaseGroupRelationship[] releaseToReleaseGroupRelationshipArray = (await m_catalogServiceClient.GetReleaseToReleaseGroupRelationshipsByReleaseGroupAsync(releaseGroupId)).ToArray();
+        return Ok(releaseToReleaseGroupRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously creates a new release.
     /// </summary>
     /// <param name="release">The release to create.</param>
@@ -211,6 +245,28 @@ public class ReleaseController : ControllerBase
         try
         {
             await m_catalogServiceClient.UpdateReleaseToProductRelationshipsOrderAsync(useReferenceOrder, releaseToProductRelationships);
+            return Ok();
+        }
+        catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously updates order of existing release-to-release-group relationships.
+    /// </summary>
+    /// <param name="releaseToReleaseGroupRelationships">A collection of release-to-release-group relationships to reorder.</param>
+    /// <param name="useReferenceOrder">A value indicating whether the reference order should be used.</param>
+    /// <returns>The task object representing the asynchronous operation.</returns>
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateReleaseToReleaseGroupRelationshipsOrderAsync([Required][FromBody] ReleaseToReleaseGroupRelationship[] releaseToReleaseGroupRelationships, [FromQuery] bool? useReferenceOrder)
+    {
+        try
+        {
+            await m_catalogServiceClient.UpdateReleaseToReleaseGroupRelationshipsOrderAsync(useReferenceOrder, releaseToReleaseGroupRelationships);
             return Ok();
         }
         catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)

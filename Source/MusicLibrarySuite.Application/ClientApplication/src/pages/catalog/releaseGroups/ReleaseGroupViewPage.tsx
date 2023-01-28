@@ -6,6 +6,7 @@ import { ReleaseGroup } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseGroupViewPageReleaseGroupRelationshipsTab from "./ReleaseGroupViewPageReleaseGroupRelationshipsTab";
+import ReleaseGroupViewPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseGroupViewPageReleaseToReleaseGroupRelationshipsTab";
 import styles from "./ReleaseGroupViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -50,6 +51,11 @@ const ReleaseGroupViewPage = () => {
         key: "releaseGroupRelationshipsTab",
         label: "Release Group Relationships",
         children: id && <ReleaseGroupViewPageReleaseGroupRelationshipsTab id={id} />,
+      },
+      {
+        key: "releaseToReleaseGroupRelationshipsTab",
+        label: "Release-to-Release-Group Relationships",
+        children: id && <ReleaseGroupViewPageReleaseToReleaseGroupRelationshipsTab id={id} />,
       },
     ],
     [id]
