@@ -139,7 +139,7 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
   return (
     <>
       <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust the order in which the release relationships are displayed by dragging them.</Typography.Paragraph>
+        <Typography.Paragraph>You can adjust order in which the release relationships are displayed by dragging them.</Typography.Paragraph>
         <Button type="primary" onClick={onCreateReleaseRelationshipButtonClick}>
           Create a Release Relationship
         </Button>
