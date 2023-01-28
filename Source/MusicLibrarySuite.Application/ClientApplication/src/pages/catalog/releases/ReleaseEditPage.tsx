@@ -27,6 +27,7 @@ import {
   ReleaseMedia,
   ReleasePerformer,
   ReleaseRelationship,
+  ReleaseToProductRelationship,
   ReleaseTrack,
 } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
@@ -39,6 +40,7 @@ import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/R
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseEditPageReleaseRelationshipsTab from "./ReleaseEditPageReleaseRelationshipsTab";
+import ReleaseEditPageReleaseToProductRelationshipsTab from "./ReleaseEditPageReleaseToProductRelationshipsTab";
 import styles from "./ReleaseEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -85,6 +87,10 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         .then((release) => {
           release.releaseRelationships = release.releaseRelationships.map(
             (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: release })
+          );
+
+          release.releaseToProductRelationships = release.releaseToProductRelationships.map(
+            (releaseToProductRelationship) => new ReleaseToProductRelationship({ ...releaseToProductRelationship, release: release })
           );
 
           release.releaseArtists = release.releaseArtists.map((releaseArtist) => new ReleaseArtist({ ...releaseArtist, release: release }));
@@ -157,6 +163,15 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     (releaseRelationships: ReleaseRelationship[]) => {
       if (release) {
         setRelease(new Release({ ...release, releaseRelationships: releaseRelationships }));
+      }
+    },
+    [release]
+  );
+
+  const onReleaseToProductRelationshipsChange = useCallback(
+    (releaseToProductRelationships: ReleaseToProductRelationship[]) => {
+      if (release) {
+        setRelease(new Release({ ...release, releaseToProductRelationships: releaseToProductRelationships }));
       }
     },
     [release]
@@ -337,6 +352,11 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
       releaseModel.releaseRelationships =
         releaseModel.releaseRelationships?.map(
           (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: undefined, dependentRelease: undefined })
+        ) ?? [];
+
+      releaseModel.releaseToProductRelationships =
+        releaseModel.releaseToProductRelationships.map(
+          (releaseToProductRelationship) => new ReleaseToProductRelationship({ ...releaseToProductRelationship, release: undefined, product: undefined })
         ) ?? [];
 
       if (mode === ReleaseEditPageMode.Create) {
@@ -661,8 +681,20 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           />
         ),
       },
+      {
+        key: "releaseToProductRelationshipsTab",
+        label: "Release-to-Product Relationships",
+        children: release && (
+          <ReleaseEditPageReleaseToProductRelationshipsTab
+            release={release}
+            releaseToProductRelationships={release.releaseToProductRelationships}
+            releaseToProductRelationshipsLoading={loading}
+            setReleaseToProductRelationships={onReleaseToProductRelationshipsChange}
+          />
+        ),
+      },
     ],
-    [release, loading, onReleaseRelationshipsChange]
+    [release, loading, onReleaseRelationshipsChange, onReleaseToProductRelationshipsChange]
   );
 
   return (

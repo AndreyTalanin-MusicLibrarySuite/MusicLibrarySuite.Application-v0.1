@@ -126,6 +126,40 @@ public class ReleaseController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all release-to-product relationships by a release's unique identifier.
+    /// </summary>
+    /// <param name="releaseId">The release's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-to-product relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseToProductRelationship[]>> GetReleaseToProductRelationshipsAsync([Required][FromQuery] Guid releaseId)
+    {
+        ReleaseToProductRelationship[] releaseToProductRelationshipArray = (await m_catalogServiceClient.GetReleaseToProductRelationshipsAsync(releaseId)).ToArray();
+        return Ok(releaseToProductRelationshipArray);
+    }
+
+    /// <summary>
+    /// Asynchronously gets all release-to-product relationships by a product's unique identifier.
+    /// </summary>
+    /// <param name="productId">The product's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-to-product relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseToProductRelationship[]>> GetReleaseToProductRelationshipsByProductAsync([Required][FromQuery] Guid productId)
+    {
+        ReleaseToProductRelationship[] releaseToProductRelationshipArray = (await m_catalogServiceClient.GetReleaseToProductRelationshipsByProductAsync(productId)).ToArray();
+        return Ok(releaseToProductRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously creates a new release.
     /// </summary>
     /// <param name="release">The release to create.</param>
@@ -155,6 +189,28 @@ public class ReleaseController : ControllerBase
         try
         {
             await m_catalogServiceClient.UpdateReleaseAsync(release);
+            return Ok();
+        }
+        catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously updates order of existing release-to-product relationships.
+    /// </summary>
+    /// <param name="releaseToProductRelationships">A collection of release-to-product relationships to reorder.</param>
+    /// <param name="useReferenceOrder">A value indicating whether the reference order should be used.</param>
+    /// <returns>The task object representing the asynchronous operation.</returns>
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateReleaseToProductRelationshipsOrderAsync([Required][FromBody] ReleaseToProductRelationship[] releaseToProductRelationships, [FromQuery] bool? useReferenceOrder)
+    {
+        try
+        {
+            await m_catalogServiceClient.UpdateReleaseToProductRelationshipsOrderAsync(useReferenceOrder, releaseToProductRelationships);
             return Ok();
         }
         catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)

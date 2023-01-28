@@ -6,12 +6,13 @@ import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IProduct, Product, ProductRelationship, WorkToProductRelationship } from "../../../api/ApplicationClient";
+import { IProduct, Product, ProductRelationship, ReleaseToProductRelationship, WorkToProductRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductEditPageProductRelationshipsTab from "./ProductEditPageProductRelationshipsTab";
+import ProductEditPageReleaseToProductRelationshipsTab from "./ProductEditPageReleaseToProductRelationshipsTab";
 import ProductEditPageWorkToProductRelationshipsTab from "./ProductEditPageWorkToProductRelationshipsTab";
 import styles from "./ProductEditPage.module.css";
 import "antd/dist/antd.min.css";
@@ -33,6 +34,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
 
   const [product, setProduct] = useState<Product>();
   const [productFormValues, setProductFormValues] = useState<Store>({});
+  const [releaseToProductRelationships, setReleaseToProductRelationships] = useState<ReleaseToProductRelationship[]>([]);
   const [workToProductRelationships, setWorkToProductRelationships] = useState<WorkToProductRelationship[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
@@ -54,6 +56,9 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           setProduct(product);
           setProductFormValues({ ...product, releasedOn: dayjs(product.releasedOn) });
 
+          applicationClient.getReleaseToProductRelationshipsByProduct(id).then((releaseToProductRelationships) => {
+            setReleaseToProductRelationships(releaseToProductRelationships);
+          });
           applicationClient.getWorkToProductRelationshipsByProduct(id).then((workToProductRelationships) => {
             setWorkToProductRelationships(workToProductRelationships);
           });
@@ -162,7 +167,10 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         applicationClient
           .updateProduct(productModel)
           .then(() => {
-            Promise.all([applicationClient.updateWorkToProductRelationshipsOrder(true, workToProductRelationships)])
+            Promise.all([
+              applicationClient.updateReleaseToProductRelationshipsOrder(true, releaseToProductRelationships),
+              applicationClient.updateWorkToProductRelationshipsOrder(true, workToProductRelationships),
+            ])
               .then(() => {
                 setLoading(false);
                 fetchProduct();
@@ -178,7 +186,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           });
       }
     },
-    [mode, navigate, product, workToProductRelationships, applicationClient, fetchProduct]
+    [mode, navigate, product, releaseToProductRelationships, workToProductRelationships, applicationClient, fetchProduct]
   );
 
   const onFinishFailed = () => {
@@ -200,6 +208,17 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         ),
       },
       {
+        key: "releaseToProductRelationshipsTab",
+        label: "Release-to-Product Relationships",
+        children: product && (
+          <ProductEditPageReleaseToProductRelationshipsTab
+            releaseToProductRelationships={releaseToProductRelationships}
+            releaseToProductRelationshipsLoading={loading}
+            setReleaseToProductRelationships={setReleaseToProductRelationships}
+          />
+        ),
+      },
+      {
         key: "workToProductRelationshipsTab",
         label: "Work-to-Product Relationships",
         children: product && (
@@ -211,7 +230,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         ),
       },
     ],
-    [product, loading, workToProductRelationships, onProductRelationshipsChange]
+    [product, loading, releaseToProductRelationships, workToProductRelationships, onProductRelationshipsChange]
   );
 
   return (

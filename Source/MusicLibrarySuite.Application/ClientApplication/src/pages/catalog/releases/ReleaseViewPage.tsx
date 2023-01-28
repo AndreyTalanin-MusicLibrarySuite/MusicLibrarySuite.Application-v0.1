@@ -10,6 +10,7 @@ import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/R
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseViewPageReleaseRelationshipsTab from "./ReleaseViewPageReleaseRelationshipsTab";
+import ReleaseViewPageReleaseToProductRelationshipsTab from "./ReleaseViewPageReleaseToProductRelationshipsTab";
 import styles from "./ReleaseViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -109,6 +110,11 @@ const ReleaseViewPage = () => {
         key: "releaseRelationshipsTab",
         label: "Release Relationships",
         children: id && <ReleaseViewPageReleaseRelationshipsTab id={id} />,
+      },
+      {
+        key: "releaseToProductRelationshipsTab",
+        label: "Release-to-Product Relationships",
+        children: id && <ReleaseViewPageReleaseToProductRelationshipsTab id={id} />,
       },
     ],
     [id]
