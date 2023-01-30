@@ -7,24 +7,28 @@ export interface EntitySelectProps {
   value?: string[];
   defaultValue?: string[];
   options: { value: string; label: string }[];
+  readOnly?: boolean;
   onChange?: (value: string[]) => void;
   onSearch: (value: string | undefined, setLoading: (value: boolean) => void) => void;
 }
 
-const EntitySelect = ({ mode, value, defaultValue, options, onChange, onSearch }: EntitySelectProps) => {
+const EntitySelect = ({ mode, value, defaultValue, options, readOnly, onChange, onSearch }: EntitySelectProps) => {
   const [loading, setLoading] = useState(false);
 
   return (
     <Select
       showSearch
+      mode={mode}
       value={value}
       defaultValue={defaultValue}
       placeholder="Search"
       options={options}
       filterOption={false}
       notFoundContent={loading ? <Spin size="small" /> : null}
-      mode={mode}
-      onChange={onChange}
+      style={readOnly ? { pointerEvents: "none" } : undefined}
+      open={readOnly ? false : undefined}
+      allowClear={readOnly ? false : undefined}
+      onChange={!readOnly ? onChange : undefined}
       onSearch={(value) => {
         setLoading(true);
         onSearch(value, setLoading);
