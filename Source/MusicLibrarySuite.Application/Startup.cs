@@ -52,9 +52,9 @@ public class Startup
 
             options.SwaggerDoc("MusicLibrarySuite.Application", new OpenApiInfo()
             {
-                Title = "Music Library Suite - Application API v0.7.0-rc9",
+                Title = "Music Library Suite - Application API v0.7.0-rc10",
                 Description = "Initial pre-release (unstable) API version.",
-                Version = "v0.7.0-rc9",
+                Version = "v0.7.0-rc10",
                 Contact = contact,
                 License = license,
             });
