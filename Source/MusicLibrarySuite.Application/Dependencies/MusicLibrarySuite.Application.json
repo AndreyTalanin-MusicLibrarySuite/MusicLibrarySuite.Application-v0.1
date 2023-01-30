@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.7.0-rc9",
+    "title": "Music Library Suite - Application API v0.7.0-rc10",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.7.0-rc9"
+    "version": "v0.7.0-rc10"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -3360,6 +3360,7 @@
           "releaseTrackArtists",
           "releaseTrackComposers",
           "releaseTrackFeaturedArtists",
+          "releaseTrackGenres",
           "releaseTrackPerformers",
           "title",
           "trackNumber"
@@ -3424,6 +3425,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReleaseTrackComposer"
+            }
+          },
+          "releaseTrackGenres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackGenre"
             }
           }
         },
@@ -3527,6 +3534,40 @@
           },
           "artist": {
             "$ref": "#/components/schemas/Artist"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseTrackGenre": {
+        "required": [
+          "genreId",
+          "mediaNumber",
+          "releaseId",
+          "trackNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "trackNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mediaNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "genreId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "releaseTrack": {
+            "$ref": "#/components/schemas/ReleaseTrack"
+          },
+          "genre": {
+            "$ref": "#/components/schemas/Genre"
           }
         },
         "additionalProperties": false

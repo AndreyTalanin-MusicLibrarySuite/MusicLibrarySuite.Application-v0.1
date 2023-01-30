@@ -4392,6 +4392,7 @@ export class ReleaseTrack implements IReleaseTrack {
   releaseTrackFeaturedArtists!: ReleaseTrackFeaturedArtist[];
   releaseTrackPerformers!: ReleaseTrackPerformer[];
   releaseTrackComposers!: ReleaseTrackComposer[];
+  releaseTrackGenres!: ReleaseTrackGenre[];
 
   constructor(data?: IReleaseTrack) {
     if (data) {
@@ -4404,6 +4405,7 @@ export class ReleaseTrack implements IReleaseTrack {
       this.releaseTrackFeaturedArtists = [];
       this.releaseTrackPerformers = [];
       this.releaseTrackComposers = [];
+      this.releaseTrackGenres = [];
     }
   }
 
@@ -4433,6 +4435,10 @@ export class ReleaseTrack implements IReleaseTrack {
       if (Array.isArray(_data["releaseTrackComposers"])) {
         this.releaseTrackComposers = [] as any;
         for (let item of _data["releaseTrackComposers"]) this.releaseTrackComposers!.push(ReleaseTrackComposer.fromJS(item));
+      }
+      if (Array.isArray(_data["releaseTrackGenres"])) {
+        this.releaseTrackGenres = [] as any;
+        for (let item of _data["releaseTrackGenres"]) this.releaseTrackGenres!.push(ReleaseTrackGenre.fromJS(item));
       }
     }
   }
@@ -4471,6 +4477,10 @@ export class ReleaseTrack implements IReleaseTrack {
       data["releaseTrackComposers"] = [];
       for (let item of this.releaseTrackComposers) data["releaseTrackComposers"].push(item.toJSON());
     }
+    if (Array.isArray(this.releaseTrackGenres)) {
+      data["releaseTrackGenres"] = [];
+      for (let item of this.releaseTrackGenres) data["releaseTrackGenres"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -4489,6 +4499,7 @@ export interface IReleaseTrack {
   releaseTrackFeaturedArtists: ReleaseTrackFeaturedArtist[];
   releaseTrackPerformers: ReleaseTrackPerformer[];
   releaseTrackComposers: ReleaseTrackComposer[];
+  releaseTrackGenres: ReleaseTrackGenre[];
 }
 
 export class ReleaseTrackArtist implements IReleaseTrackArtist {
@@ -4654,6 +4665,61 @@ export interface IReleaseTrackFeaturedArtist {
   artistId: string;
   releaseTrack?: ReleaseTrack;
   artist?: Artist;
+}
+
+export class ReleaseTrackGenre implements IReleaseTrackGenre {
+  trackNumber!: number;
+  mediaNumber!: number;
+  releaseId!: string;
+  genreId!: string;
+  releaseTrack?: ReleaseTrack;
+  genre?: Genre;
+
+  constructor(data?: IReleaseTrackGenre) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.trackNumber = _data["trackNumber"];
+      this.mediaNumber = _data["mediaNumber"];
+      this.releaseId = _data["releaseId"];
+      this.genreId = _data["genreId"];
+      this.releaseTrack = _data["releaseTrack"] ? ReleaseTrack.fromJS(_data["releaseTrack"]) : <any>undefined;
+      this.genre = _data["genre"] ? Genre.fromJS(_data["genre"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseTrackGenre {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseTrackGenre();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["trackNumber"] = this.trackNumber;
+    data["mediaNumber"] = this.mediaNumber;
+    data["releaseId"] = this.releaseId;
+    data["genreId"] = this.genreId;
+    data["releaseTrack"] = this.releaseTrack ? this.releaseTrack.toJSON() : <any>undefined;
+    data["genre"] = this.genre ? this.genre.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseTrackGenre {
+  trackNumber: number;
+  mediaNumber: number;
+  releaseId: string;
+  genreId: string;
+  releaseTrack?: ReleaseTrack;
+  genre?: Genre;
 }
 
 export class ReleaseTrackPerformer implements IReleaseTrackPerformer {
