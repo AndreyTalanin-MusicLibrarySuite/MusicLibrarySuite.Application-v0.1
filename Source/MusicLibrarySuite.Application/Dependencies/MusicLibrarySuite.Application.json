@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.7.0-rc8",
+    "title": "Music Library Suite - Application API v0.7.0-rc9",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.7.0-rc8"
+    "version": "v0.7.0-rc9"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -3357,6 +3357,10 @@
         "required": [
           "mediaNumber",
           "releaseId",
+          "releaseTrackArtists",
+          "releaseTrackComposers",
+          "releaseTrackFeaturedArtists",
+          "releaseTrackPerformers",
           "title",
           "trackNumber"
         ],
@@ -3397,6 +3401,166 @@
           "internationalStandardRecordingCode": {
             "type": "string",
             "nullable": true
+          },
+          "releaseTrackArtists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackArtist"
+            }
+          },
+          "releaseTrackFeaturedArtists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackFeaturedArtist"
+            }
+          },
+          "releaseTrackPerformers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackPerformer"
+            }
+          },
+          "releaseTrackComposers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackComposer"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseTrackArtist": {
+        "required": [
+          "artistId",
+          "mediaNumber",
+          "releaseId",
+          "trackNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "trackNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mediaNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "releaseTrack": {
+            "$ref": "#/components/schemas/ReleaseTrack"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseTrackComposer": {
+        "required": [
+          "artistId",
+          "mediaNumber",
+          "releaseId",
+          "trackNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "trackNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mediaNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "releaseTrack": {
+            "$ref": "#/components/schemas/ReleaseTrack"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseTrackFeaturedArtist": {
+        "required": [
+          "artistId",
+          "mediaNumber",
+          "releaseId",
+          "trackNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "trackNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mediaNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "releaseTrack": {
+            "$ref": "#/components/schemas/ReleaseTrack"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseTrackPerformer": {
+        "required": [
+          "artistId",
+          "mediaNumber",
+          "releaseId",
+          "trackNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "trackNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mediaNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "releaseTrack": {
+            "$ref": "#/components/schemas/ReleaseTrack"
+          },
+          "artist": {
+            "$ref": "#/components/schemas/Artist"
           }
         },
         "additionalProperties": false

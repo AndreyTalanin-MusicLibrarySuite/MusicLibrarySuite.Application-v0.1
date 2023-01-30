@@ -4388,12 +4388,22 @@ export class ReleaseTrack implements IReleaseTrack {
   description?: string | undefined;
   disambiguationText?: string | undefined;
   internationalStandardRecordingCode?: string | undefined;
+  releaseTrackArtists!: ReleaseTrackArtist[];
+  releaseTrackFeaturedArtists!: ReleaseTrackFeaturedArtist[];
+  releaseTrackPerformers!: ReleaseTrackPerformer[];
+  releaseTrackComposers!: ReleaseTrackComposer[];
 
   constructor(data?: IReleaseTrack) {
     if (data) {
       for (var property in data) {
         if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
       }
+    }
+    if (!data) {
+      this.releaseTrackArtists = [];
+      this.releaseTrackFeaturedArtists = [];
+      this.releaseTrackPerformers = [];
+      this.releaseTrackComposers = [];
     }
   }
 
@@ -4408,6 +4418,22 @@ export class ReleaseTrack implements IReleaseTrack {
       this.description = _data["description"];
       this.disambiguationText = _data["disambiguationText"];
       this.internationalStandardRecordingCode = _data["internationalStandardRecordingCode"];
+      if (Array.isArray(_data["releaseTrackArtists"])) {
+        this.releaseTrackArtists = [] as any;
+        for (let item of _data["releaseTrackArtists"]) this.releaseTrackArtists!.push(ReleaseTrackArtist.fromJS(item));
+      }
+      if (Array.isArray(_data["releaseTrackFeaturedArtists"])) {
+        this.releaseTrackFeaturedArtists = [] as any;
+        for (let item of _data["releaseTrackFeaturedArtists"]) this.releaseTrackFeaturedArtists!.push(ReleaseTrackFeaturedArtist.fromJS(item));
+      }
+      if (Array.isArray(_data["releaseTrackPerformers"])) {
+        this.releaseTrackPerformers = [] as any;
+        for (let item of _data["releaseTrackPerformers"]) this.releaseTrackPerformers!.push(ReleaseTrackPerformer.fromJS(item));
+      }
+      if (Array.isArray(_data["releaseTrackComposers"])) {
+        this.releaseTrackComposers = [] as any;
+        for (let item of _data["releaseTrackComposers"]) this.releaseTrackComposers!.push(ReleaseTrackComposer.fromJS(item));
+      }
     }
   }
 
@@ -4429,6 +4455,22 @@ export class ReleaseTrack implements IReleaseTrack {
     data["description"] = this.description;
     data["disambiguationText"] = this.disambiguationText;
     data["internationalStandardRecordingCode"] = this.internationalStandardRecordingCode;
+    if (Array.isArray(this.releaseTrackArtists)) {
+      data["releaseTrackArtists"] = [];
+      for (let item of this.releaseTrackArtists) data["releaseTrackArtists"].push(item.toJSON());
+    }
+    if (Array.isArray(this.releaseTrackFeaturedArtists)) {
+      data["releaseTrackFeaturedArtists"] = [];
+      for (let item of this.releaseTrackFeaturedArtists) data["releaseTrackFeaturedArtists"].push(item.toJSON());
+    }
+    if (Array.isArray(this.releaseTrackPerformers)) {
+      data["releaseTrackPerformers"] = [];
+      for (let item of this.releaseTrackPerformers) data["releaseTrackPerformers"].push(item.toJSON());
+    }
+    if (Array.isArray(this.releaseTrackComposers)) {
+      data["releaseTrackComposers"] = [];
+      for (let item of this.releaseTrackComposers) data["releaseTrackComposers"].push(item.toJSON());
+    }
     return data;
   }
 }
@@ -4443,6 +4485,230 @@ export interface IReleaseTrack {
   description?: string | undefined;
   disambiguationText?: string | undefined;
   internationalStandardRecordingCode?: string | undefined;
+  releaseTrackArtists: ReleaseTrackArtist[];
+  releaseTrackFeaturedArtists: ReleaseTrackFeaturedArtist[];
+  releaseTrackPerformers: ReleaseTrackPerformer[];
+  releaseTrackComposers: ReleaseTrackComposer[];
+}
+
+export class ReleaseTrackArtist implements IReleaseTrackArtist {
+  trackNumber!: number;
+  mediaNumber!: number;
+  releaseId!: string;
+  artistId!: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
+
+  constructor(data?: IReleaseTrackArtist) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.trackNumber = _data["trackNumber"];
+      this.mediaNumber = _data["mediaNumber"];
+      this.releaseId = _data["releaseId"];
+      this.artistId = _data["artistId"];
+      this.releaseTrack = _data["releaseTrack"] ? ReleaseTrack.fromJS(_data["releaseTrack"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseTrackArtist {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseTrackArtist();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["trackNumber"] = this.trackNumber;
+    data["mediaNumber"] = this.mediaNumber;
+    data["releaseId"] = this.releaseId;
+    data["artistId"] = this.artistId;
+    data["releaseTrack"] = this.releaseTrack ? this.releaseTrack.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseTrackArtist {
+  trackNumber: number;
+  mediaNumber: number;
+  releaseId: string;
+  artistId: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
+}
+
+export class ReleaseTrackComposer implements IReleaseTrackComposer {
+  trackNumber!: number;
+  mediaNumber!: number;
+  releaseId!: string;
+  artistId!: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
+
+  constructor(data?: IReleaseTrackComposer) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.trackNumber = _data["trackNumber"];
+      this.mediaNumber = _data["mediaNumber"];
+      this.releaseId = _data["releaseId"];
+      this.artistId = _data["artistId"];
+      this.releaseTrack = _data["releaseTrack"] ? ReleaseTrack.fromJS(_data["releaseTrack"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseTrackComposer {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseTrackComposer();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["trackNumber"] = this.trackNumber;
+    data["mediaNumber"] = this.mediaNumber;
+    data["releaseId"] = this.releaseId;
+    data["artistId"] = this.artistId;
+    data["releaseTrack"] = this.releaseTrack ? this.releaseTrack.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseTrackComposer {
+  trackNumber: number;
+  mediaNumber: number;
+  releaseId: string;
+  artistId: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
+}
+
+export class ReleaseTrackFeaturedArtist implements IReleaseTrackFeaturedArtist {
+  trackNumber!: number;
+  mediaNumber!: number;
+  releaseId!: string;
+  artistId!: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
+
+  constructor(data?: IReleaseTrackFeaturedArtist) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.trackNumber = _data["trackNumber"];
+      this.mediaNumber = _data["mediaNumber"];
+      this.releaseId = _data["releaseId"];
+      this.artistId = _data["artistId"];
+      this.releaseTrack = _data["releaseTrack"] ? ReleaseTrack.fromJS(_data["releaseTrack"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseTrackFeaturedArtist {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseTrackFeaturedArtist();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["trackNumber"] = this.trackNumber;
+    data["mediaNumber"] = this.mediaNumber;
+    data["releaseId"] = this.releaseId;
+    data["artistId"] = this.artistId;
+    data["releaseTrack"] = this.releaseTrack ? this.releaseTrack.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseTrackFeaturedArtist {
+  trackNumber: number;
+  mediaNumber: number;
+  releaseId: string;
+  artistId: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
+}
+
+export class ReleaseTrackPerformer implements IReleaseTrackPerformer {
+  trackNumber!: number;
+  mediaNumber!: number;
+  releaseId!: string;
+  artistId!: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
+
+  constructor(data?: IReleaseTrackPerformer) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.trackNumber = _data["trackNumber"];
+      this.mediaNumber = _data["mediaNumber"];
+      this.releaseId = _data["releaseId"];
+      this.artistId = _data["artistId"];
+      this.releaseTrack = _data["releaseTrack"] ? ReleaseTrack.fromJS(_data["releaseTrack"]) : <any>undefined;
+      this.artist = _data["artist"] ? Artist.fromJS(_data["artist"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseTrackPerformer {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseTrackPerformer();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["trackNumber"] = this.trackNumber;
+    data["mediaNumber"] = this.mediaNumber;
+    data["releaseId"] = this.releaseId;
+    data["artistId"] = this.artistId;
+    data["releaseTrack"] = this.releaseTrack ? this.releaseTrack.toJSON() : <any>undefined;
+    data["artist"] = this.artist ? this.artist.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseTrackPerformer {
+  trackNumber: number;
+  mediaNumber: number;
+  releaseId: string;
+  artistId: string;
+  releaseTrack?: ReleaseTrack;
+  artist?: Artist;
 }
 
 export class Work implements IWork {
