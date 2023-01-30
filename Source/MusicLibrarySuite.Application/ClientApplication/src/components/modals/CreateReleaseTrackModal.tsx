@@ -3,11 +3,13 @@ import { Store } from "antd/lib/form/interface";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Artist,
+  Genre,
   IReleaseTrack,
   ReleaseTrack,
   ReleaseTrackArtist,
   ReleaseTrackComposer,
   ReleaseTrackFeaturedArtist,
+  ReleaseTrackGenre,
   ReleaseTrackPerformer,
 } from "../../api/ApplicationClient";
 import useApplicationClient from "../../hooks/useApplicationClient";
@@ -28,6 +30,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
   const [releaseTrackFeaturedArtistOptions, setReleaseTrackFeaturedArtistOptions] = useState<Artist[]>([]);
   const [releaseTrackPerformerOptions, setReleaseTrackPerformerOptions] = useState<Artist[]>([]);
   const [releaseTrackComposerOptions, setReleaseTrackComposerOptions] = useState<Artist[]>([]);
+  const [releaseTrackGenreOptions, setReleaseTrackGenreOptions] = useState<Genre[]>([]);
 
   const applicationClient = useApplicationClient();
 
@@ -40,6 +43,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
       releaseTrackFeaturedArtists: releaseTrack?.releaseTrackFeaturedArtists.map((releaseTrackFeaturedArtist) => releaseTrackFeaturedArtist.artistId) ?? [],
       releaseTrackPerformers: releaseTrack?.releaseTrackPerformers.map((releaseTrackPerformer) => releaseTrackPerformer.artistId) ?? [],
       releaseTrackComposers: releaseTrack?.releaseTrackComposers.map((releaseTrackComposer) => releaseTrackComposer.artistId) ?? [],
+      releaseTrackGenres: releaseTrack?.releaseTrackGenres.map((releaseTrackGenre) => releaseTrackGenre.genreId) ?? [],
     });
 
     applicationClient
@@ -74,6 +78,14 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
       .catch((error) => {
         alert(error);
       });
+    applicationClient
+      .getGenres(releaseTrack?.releaseTrackGenres?.map((releaseTrackGenre) => releaseTrackGenre.genreId) ?? [])
+      .then((releaseTrackGenres) => {
+        setReleaseTrackGenreOptions(releaseTrackGenres);
+      })
+      .catch((error) => {
+        alert(error);
+      });
   }, [releaseTrack, applicationClient]);
 
   useEffect(() => {
@@ -100,6 +112,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
       const releaseTrackFeaturedArtistIds = releaseTrackFormValues.releaseTrackFeaturedArtists as string[];
       const releaseTrackPerformerIds = releaseTrackFormValues.releaseTrackPerformers as string[];
       const releaseTrackComposerIds = releaseTrackFormValues.releaseTrackComposers as string[];
+      const releaseTrackGenreIds = releaseTrackFormValues.releaseTrackGenres as string[];
       if (releaseTrack) {
         releaseTrackFormValues.releaseTrackArtists = releaseTrackArtistIds.map(
           (artistId) =>
@@ -137,11 +150,21 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
               artistId: artistId,
             })
         );
+        releaseTrackFormValues.releaseTrackGenres = releaseTrackGenreIds.map(
+          (genreId) =>
+            new ReleaseTrackGenre({
+              trackNumber: releaseTrack?.trackNumber,
+              mediaNumber: releaseTrack.mediaNumber,
+              releaseId: releaseTrack.releaseId,
+              genreId: genreId,
+            })
+        );
       } else {
         releaseTrackFormValues.releaseTrackArtists = [];
         releaseTrackFormValues.releaseTrackFeaturedArtists = [];
         releaseTrackFormValues.releaseTrackPerformers = [];
         releaseTrackFormValues.releaseTrackComposers = [];
+        releaseTrackFormValues.releaseTrackGenres = [];
       }
 
       const releaseTrackModel = new ReleaseTrack({ ...releaseTrack, ...(releaseTrackFormValues as IReleaseTrack) });
@@ -240,6 +263,24 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
 
   useEffect(() => fetchReleaseTrackComposerOptions(undefined, () => void 0), [fetchReleaseTrackComposerOptions]);
 
+  const fetchReleaseTrackGenreOptions = useCallback(
+    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+      applicationClient
+        .getPagedGenres(20, 0, nameFilter, undefined)
+        .then((genreResponse) => {
+          setLoading(false);
+          setReleaseTrackGenreOptions(genreResponse.items);
+        })
+        .catch((error) => {
+          setLoading(false);
+          alert(error);
+        });
+    },
+    [applicationClient]
+  );
+
+  useEffect(() => fetchReleaseTrackGenreOptions(undefined, () => void 0), [fetchReleaseTrackGenreOptions]);
+
   const title = useMemo(() => {
     return `${edit ? (releaseTrack ? "Edit" : "Create") : "View"} Release Track`;
   }, [edit, releaseTrack]);
@@ -316,6 +357,14 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
             readOnly={!edit}
             options={releaseTrackComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
             onSearch={fetchReleaseTrackComposerOptions}
+          />
+        </Form.Item>
+        <Form.Item label="Genres" name="releaseTrackGenres">
+          <EntitySelect
+            mode="multiple"
+            readOnly={!edit}
+            options={releaseTrackGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
+            onSearch={fetchReleaseTrackGenreOptions}
           />
         </Form.Item>
       </Form>
