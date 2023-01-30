@@ -29,13 +29,13 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
   };
 
   const onFinish = useCallback(
-    (releaseMediaValues: Store) => {
-      const mediaNumber = releaseMediaValues.mediaNumber as string;
-      releaseMediaValues.mediaNumber = parseInt(mediaNumber);
+    (releaseMediaFormValues: Store) => {
+      const mediaNumber = releaseMediaFormValues.mediaNumber as string;
+      releaseMediaFormValues.mediaNumber = parseInt(mediaNumber);
 
-      releaseMediaValues.releaseTrackCollection = [];
+      releaseMediaFormValues.releaseTrackCollection = [];
 
-      const releaseMediaModel = new ReleaseMedia({ ...releaseMedia, ...(releaseMediaValues as IReleaseMedia) });
+      const releaseMediaModel = new ReleaseMedia({ ...releaseMedia, ...(releaseMediaFormValues as IReleaseMedia) });
       releaseMediaModel.title = releaseMediaModel.title?.trim();
       releaseMediaModel.description = releaseMediaModel.description?.trim();
       releaseMediaModel.disambiguationText = releaseMediaModel.disambiguationText?.trim();
