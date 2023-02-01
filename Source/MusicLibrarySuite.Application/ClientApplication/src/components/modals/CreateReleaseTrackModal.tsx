@@ -182,6 +182,8 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
         releaseTrackModel.internationalStandardRecordingCode = undefined;
       }
 
+      releaseTrackModel.releaseTrackToProductRelationships = [];
+
       onModalOk(releaseTrackModel, () => form.resetFields());
     },
     [releaseTrack, onModalOk, form]
