@@ -30,6 +30,7 @@ import {
   ReleaseToProductRelationship,
   ReleaseToReleaseGroupRelationship,
   ReleaseTrack,
+  ReleaseTrackToProductRelationship,
 } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
@@ -37,12 +38,13 @@ import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMed
 import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
-import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
+import { formatReleaseTrackNumber, getReleaseTrackKey, getReleaseTrackKeyByComponents } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseEditPageReleaseRelationshipsTab from "./ReleaseEditPageReleaseRelationshipsTab";
 import ReleaseEditPageReleaseToProductRelationshipsTab from "./ReleaseEditPageReleaseToProductRelationshipsTab";
 import ReleaseEditPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseEditPageReleaseToReleaseGroupRelationshipsTab";
+import ReleaseEditPageReleaseTrackToProductRelationshipsTab from "./ReleaseEditPageReleaseTrackToProductRelationshipsTab";
 import styles from "./ReleaseEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -97,6 +99,13 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           release.releaseToReleaseGroupRelationships = release.releaseToReleaseGroupRelationships.map(
             (releaseToReleaseGroupRelationship) => new ReleaseToReleaseGroupRelationship({ ...releaseToReleaseGroupRelationship, release: release })
           );
+          release.releaseMediaCollection.forEach((releaseMedia) => {
+            releaseMedia.releaseTrackCollection.forEach((releaseTrack) => {
+              releaseTrack.releaseTrackToProductRelationships.forEach(
+                (releaseTrackToProductRelationship) => (releaseTrackToProductRelationship.releaseTrack = releaseTrack)
+              );
+            });
+          });
 
           release.releaseArtists = release.releaseArtists.map((releaseArtist) => new ReleaseArtist({ ...releaseArtist, release: release }));
           release.releaseFeaturedArtists = release.releaseFeaturedArtists.map(
@@ -186,6 +195,46 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     (releaseToReleaseGroupRelationships: ReleaseToReleaseGroupRelationship[]) => {
       if (release) {
         setRelease(new Release({ ...release, releaseToReleaseGroupRelationships: releaseToReleaseGroupRelationships }));
+      }
+    },
+    [release]
+  );
+
+  const onReleaseTrackToProductRelationshipsChange = useCallback(
+    (releaseTrackToProductRelationships: ReleaseTrackToProductRelationship[]) => {
+      if (release) {
+        const releaseTrackRelationshipMap = new Map<string, ReleaseTrackToProductRelationship[]>();
+        for (const releaseTrackRelationship of releaseTrackToProductRelationships) {
+          const releaseTrackKey = getReleaseTrackKeyByComponents(releaseTrackRelationship.trackNumber, releaseTrackRelationship.mediaNumber, release.id);
+          if (releaseTrackRelationshipMap.has(releaseTrackKey)) {
+            releaseTrackRelationshipMap.set(releaseTrackKey, [...(releaseTrackRelationshipMap.get(releaseTrackKey) ?? []), releaseTrackRelationship]);
+          } else {
+            releaseTrackRelationshipMap.set(releaseTrackKey, [releaseTrackRelationship]);
+          }
+        }
+
+        setRelease(
+          new Release({
+            ...release,
+            releaseMediaCollection: release.releaseMediaCollection.map((releaseMedia) => {
+              const newReleaseMedia = new ReleaseMedia({
+                ...releaseMedia,
+                releaseTrackCollection: releaseMedia.releaseTrackCollection.map((releaseTrack) => {
+                  const newReleaseTrack = new ReleaseTrack({
+                    ...releaseTrack,
+                    releaseTrackToProductRelationships:
+                      releaseTrackRelationshipMap.get(getReleaseTrackKeyByComponents(releaseTrack.trackNumber, releaseMedia.mediaNumber, release.id)) ?? [],
+                  });
+                  newReleaseTrack.releaseTrackToProductRelationships.forEach(
+                    (releaseTrackRelationship) => (releaseTrackRelationship.releaseTrack = newReleaseTrack)
+                  );
+                  return newReleaseTrack;
+                }),
+              });
+              return newReleaseMedia;
+            }),
+          })
+        );
       }
     },
     [release]
@@ -377,6 +426,14 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           (releaseToReleaseGroupRelationship) =>
             new ReleaseToReleaseGroupRelationship({ ...releaseToReleaseGroupRelationship, release: undefined, releaseGroup: undefined })
         ) ?? [];
+      releaseModel.releaseMediaCollection.forEach((releaseMedia) => {
+        releaseMedia.releaseTrackCollection.forEach((releaseTrack) => {
+          releaseTrack.releaseTrackToProductRelationships = releaseTrack.releaseTrackToProductRelationships.map(
+            (releaseTrackToProductRelationship) =>
+              new ReleaseTrackToProductRelationship({ ...releaseTrackToProductRelationship, releaseTrack: undefined, product: undefined })
+          );
+        });
+      });
 
       if (mode === ReleaseEditPageMode.Create) {
         setLoading(true);
@@ -686,6 +743,21 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     return undefined;
   }, [release]);
 
+  const releaseTrackToProductRelationships = useMemo(() => {
+    if (release) {
+      return release.releaseMediaCollection
+        .map((releaseMedia) => {
+          return releaseMedia.releaseTrackCollection
+            .map((releaseTrack) => {
+              return releaseTrack.releaseTrackToProductRelationships;
+            })
+            .flat();
+        })
+        .flat();
+    }
+    return [];
+  }, [release]);
+
   const tabs = useMemo(
     () => [
       {
@@ -724,8 +796,28 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           />
         ),
       },
+      {
+        key: "releaseTrackToProductRelationshipsTab",
+        label: "Release-Track-to-Product Relationships",
+        children: release && (
+          <ReleaseEditPageReleaseTrackToProductRelationshipsTab
+            release={release}
+            releaseTrackToProductRelationships={releaseTrackToProductRelationships}
+            releaseTrackToProductRelationshipsLoading={loading}
+            setReleaseTrackToProductRelationships={onReleaseTrackToProductRelationshipsChange}
+          />
+        ),
+      },
     ],
-    [release, loading, onReleaseRelationshipsChange, onReleaseToProductRelationshipsChange, onReleaseToReleaseGroupRelationshipsChange]
+    [
+      release,
+      loading,
+      releaseTrackToProductRelationships,
+      onReleaseRelationshipsChange,
+      onReleaseToProductRelationshipsChange,
+      onReleaseToReleaseGroupRelationshipsChange,
+      onReleaseTrackToProductRelationshipsChange,
+    ]
   );
 
   return (
