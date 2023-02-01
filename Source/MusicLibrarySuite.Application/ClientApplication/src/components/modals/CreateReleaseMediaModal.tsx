@@ -33,8 +33,6 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
       const mediaNumber = releaseMediaFormValues.mediaNumber as string;
       releaseMediaFormValues.mediaNumber = parseInt(mediaNumber);
 
-      releaseMediaFormValues.releaseTrackCollection = [];
-
       const releaseMediaModel = new ReleaseMedia({ ...releaseMedia, ...(releaseMediaFormValues as IReleaseMedia) });
       releaseMediaModel.title = releaseMediaModel.title?.trim();
       releaseMediaModel.description = releaseMediaModel.description?.trim();
@@ -61,6 +59,8 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
       if (releaseMediaModel.tableOfContentsChecksumLong !== undefined && releaseMediaModel.tableOfContentsChecksumLong.length === 0) {
         releaseMediaModel.tableOfContentsChecksumLong = undefined;
       }
+
+      releaseMediaModel.releaseTrackCollection = [];
 
       onModalOk(releaseMediaModel, () => form.resetFields());
     },
