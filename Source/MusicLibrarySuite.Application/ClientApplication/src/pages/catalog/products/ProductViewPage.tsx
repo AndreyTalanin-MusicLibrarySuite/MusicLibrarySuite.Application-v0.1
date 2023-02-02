@@ -7,6 +7,7 @@ import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductViewPageProductRelationshipsTab from "./ProductViewPageProductRelationshipsTab";
 import ProductViewPageReleaseToProductRelationshipsTab from "./ProductViewPageReleaseToProductRelationshipsTab";
+import ProductViewPageReleaseTrackToProductRelationshipsTab from "./ProductViewPageReleaseTrackToProductRelationshipsTab";
 import ProductViewPageWorkToProductRelationshipsTab from "./ProductViewPageWorkToProductRelationshipsTab";
 import styles from "./ProductViewPage.module.css";
 import "antd/dist/antd.min.css";
@@ -57,6 +58,11 @@ const ProductViewPage = () => {
         key: "releaseToProductRelationshipsTab",
         label: "Release-to-Product Relationships",
         children: id && <ProductViewPageReleaseToProductRelationshipsTab id={id} />,
+      },
+      {
+        key: "releaseTrackToProductRelationshipsTab",
+        label: "Release-Track-to-Product Relationships",
+        children: id && <ProductViewPageReleaseTrackToProductRelationshipsTab id={id} />,
       },
       {
         key: "workToProductRelationshipsTab",

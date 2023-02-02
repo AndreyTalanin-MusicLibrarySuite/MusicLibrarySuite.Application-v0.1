@@ -12,6 +12,7 @@ import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseViewPageReleaseRelationshipsTab from "./ReleaseViewPageReleaseRelationshipsTab";
 import ReleaseViewPageReleaseToProductRelationshipsTab from "./ReleaseViewPageReleaseToProductRelationshipsTab";
 import ReleaseViewPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseViewPageReleaseToReleaseGroupRelationshipsTab";
+import ReleaseViewPageReleaseTrackToProductRelationshipsTab from "./ReleaseViewPageReleaseTrackToProductRelationshipsTab";
 import styles from "./ReleaseViewPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -121,6 +122,11 @@ const ReleaseViewPage = () => {
         key: "releaseToReleaseGroupRelationshipsTab",
         label: "Release-to-Release-Group Relationships",
         children: id && <ReleaseViewPageReleaseToReleaseGroupRelationshipsTab id={id} />,
+      },
+      {
+        key: "releaseTrackToProductRelationshipsTab",
+        label: "Release-Track-to-Product Relationships",
+        children: id && <ReleaseViewPageReleaseTrackToProductRelationshipsTab id={id} />,
       },
     ],
     [id]
