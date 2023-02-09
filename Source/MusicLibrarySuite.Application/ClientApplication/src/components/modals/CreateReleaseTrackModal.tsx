@@ -183,6 +183,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
       }
 
       releaseTrackModel.releaseTrackToProductRelationships = [];
+      releaseTrackModel.releaseTrackToWorkRelationships = [];
 
       onModalOk(releaseTrackModel, () => form.resetFields());
     },
