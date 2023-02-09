@@ -228,6 +228,23 @@ public class ReleaseController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all release-track-to-work relationships by a release's unique identifier.
+    /// </summary>
+    /// <param name="releaseId">The release's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-track-to-work relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseTrackToWorkRelationship[]>> GetReleaseTrackToWorkRelationshipsAsync([Required][FromQuery] Guid releaseId)
+    {
+        ReleaseTrackToWorkRelationship[] releaseTrackToWorkRelationshipArray = (await m_catalogServiceClient.GetReleaseTrackToWorkRelationshipsAsync(releaseId)).ToArray();
+        return Ok(releaseTrackToWorkRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously creates a new release.
     /// </summary>
     /// <param name="release">The release to create.</param>
