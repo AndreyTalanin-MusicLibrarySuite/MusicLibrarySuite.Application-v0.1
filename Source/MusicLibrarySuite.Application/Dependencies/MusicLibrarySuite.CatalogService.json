@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Catalog Service API v0.8.0-rc11",
+    "title": "Music Library Suite - Catalog Service API v0.8.0-rc12",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
     },
-    "version": "v0.8.0-rc11"
+    "version": "v0.8.0-rc12"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -1391,6 +1391,72 @@
         }
       }
     },
+    "/api/Release/GetReleaseTrackToWorkRelationships": {
+      "get": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "releaseId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Release/GetReleaseTrackToWorkRelationshipsByWork": {
+      "get": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "workId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Release/CreateRelease": {
       "post": {
         "tags": [
@@ -1659,6 +1725,76 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/ReleaseTrackToProductRelationship"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Release/UpdateReleaseTrackToWorkRelationshipsOrder": {
+      "put": {
+        "tags": [
+          "Release"
+        ],
+        "parameters": [
+          {
+            "name": "useReferenceOrder",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
                 }
               }
             }
@@ -3499,6 +3635,7 @@
           "releaseTrackGenres",
           "releaseTrackPerformers",
           "releaseTrackToProductRelationships",
+          "releaseTrackToWorkRelationships",
           "title",
           "trackNumber"
         ],
@@ -3574,6 +3711,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReleaseTrackToProductRelationship"
+            }
+          },
+          "releaseTrackToWorkRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
             }
           }
         },
@@ -3788,6 +3931,49 @@
           },
           "product": {
             "$ref": "#/components/schemas/Product"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReleaseTrackToWorkRelationship": {
+        "required": [
+          "mediaNumber",
+          "name",
+          "releaseId",
+          "trackNumber",
+          "workId"
+        ],
+        "type": "object",
+        "properties": {
+          "trackNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mediaNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "releaseTrack": {
+            "$ref": "#/components/schemas/ReleaseTrack"
+          },
+          "work": {
+            "$ref": "#/components/schemas/Work"
           }
         },
         "additionalProperties": false

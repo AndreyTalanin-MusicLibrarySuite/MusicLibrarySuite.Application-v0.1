@@ -31,6 +31,7 @@ import {
   ReleaseToReleaseGroupRelationship,
   ReleaseTrack,
   ReleaseTrackToProductRelationship,
+  ReleaseTrackToWorkRelationship,
 } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
@@ -45,6 +46,7 @@ import ReleaseEditPageReleaseRelationshipsTab from "./ReleaseEditPageReleaseRela
 import ReleaseEditPageReleaseToProductRelationshipsTab from "./ReleaseEditPageReleaseToProductRelationshipsTab";
 import ReleaseEditPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseEditPageReleaseToReleaseGroupRelationshipsTab";
 import ReleaseEditPageReleaseTrackToProductRelationshipsTab from "./ReleaseEditPageReleaseTrackToProductRelationshipsTab";
+import ReleaseEditPageReleaseTrackToWorkRelationshipsTab from "./ReleaseEditPageReleaseTrackToWorkRelationshipsTab";
 import styles from "./ReleaseEditPage.module.css";
 import "antd/dist/antd.min.css";
 
@@ -103,6 +105,9 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
             releaseMedia.releaseTrackCollection.forEach((releaseTrack) => {
               releaseTrack.releaseTrackToProductRelationships.forEach(
                 (releaseTrackToProductRelationship) => (releaseTrackToProductRelationship.releaseTrack = releaseTrack)
+              );
+              releaseTrack.releaseTrackToWorkRelationships.forEach(
+                (releaseTrackToWorkRelationship) => (releaseTrackToWorkRelationship.releaseTrack = releaseTrack)
               );
             });
           });
@@ -226,6 +231,46 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                       releaseTrackRelationshipMap.get(getReleaseTrackKeyByComponents(releaseTrack.trackNumber, releaseMedia.mediaNumber, release.id)) ?? [],
                   });
                   newReleaseTrack.releaseTrackToProductRelationships.forEach(
+                    (releaseTrackRelationship) => (releaseTrackRelationship.releaseTrack = newReleaseTrack)
+                  );
+                  return newReleaseTrack;
+                }),
+              });
+              return newReleaseMedia;
+            }),
+          })
+        );
+      }
+    },
+    [release]
+  );
+
+  const onReleaseTrackToWorkRelationshipsChange = useCallback(
+    (releaseTrackToWorkRelationships: ReleaseTrackToWorkRelationship[]) => {
+      if (release) {
+        const releaseTrackRelationshipMap = new Map<string, ReleaseTrackToWorkRelationship[]>();
+        for (const releaseTrackRelationship of releaseTrackToWorkRelationships) {
+          const releaseTrackKey = getReleaseTrackKeyByComponents(releaseTrackRelationship.trackNumber, releaseTrackRelationship.mediaNumber, release.id);
+          if (releaseTrackRelationshipMap.has(releaseTrackKey)) {
+            releaseTrackRelationshipMap.set(releaseTrackKey, [...(releaseTrackRelationshipMap.get(releaseTrackKey) ?? []), releaseTrackRelationship]);
+          } else {
+            releaseTrackRelationshipMap.set(releaseTrackKey, [releaseTrackRelationship]);
+          }
+        }
+
+        setRelease(
+          new Release({
+            ...release,
+            releaseMediaCollection: release.releaseMediaCollection.map((releaseMedia) => {
+              const newReleaseMedia = new ReleaseMedia({
+                ...releaseMedia,
+                releaseTrackCollection: releaseMedia.releaseTrackCollection.map((releaseTrack) => {
+                  const newReleaseTrack = new ReleaseTrack({
+                    ...releaseTrack,
+                    releaseTrackToWorkRelationships:
+                      releaseTrackRelationshipMap.get(getReleaseTrackKeyByComponents(releaseTrack.trackNumber, releaseMedia.mediaNumber, release.id)) ?? [],
+                  });
+                  newReleaseTrack.releaseTrackToWorkRelationships.forEach(
                     (releaseTrackRelationship) => (releaseTrackRelationship.releaseTrack = newReleaseTrack)
                   );
                   return newReleaseTrack;
@@ -431,6 +476,10 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           releaseTrack.releaseTrackToProductRelationships = releaseTrack.releaseTrackToProductRelationships.map(
             (releaseTrackToProductRelationship) =>
               new ReleaseTrackToProductRelationship({ ...releaseTrackToProductRelationship, releaseTrack: undefined, product: undefined })
+          );
+          releaseTrack.releaseTrackToWorkRelationships = releaseTrack.releaseTrackToWorkRelationships.map(
+            (releaseTrackToWorkRelationship) =>
+              new ReleaseTrackToWorkRelationship({ ...releaseTrackToWorkRelationship, releaseTrack: undefined, work: undefined })
           );
         });
       });
@@ -758,6 +807,21 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     return [];
   }, [release]);
 
+  const releaseTrackToWorkRelationships = useMemo(() => {
+    if (release) {
+      return release.releaseMediaCollection
+        .map((releaseMedia) => {
+          return releaseMedia.releaseTrackCollection
+            .map((releaseTrack) => {
+              return releaseTrack.releaseTrackToWorkRelationships;
+            })
+            .flat();
+        })
+        .flat();
+    }
+    return [];
+  }, [release]);
+
   const tabs = useMemo(
     () => [
       {
@@ -808,15 +872,29 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           />
         ),
       },
+      {
+        key: "releaseTrackToWorkRelationshipsTab",
+        label: "Release-Track-to-Work Relationships",
+        children: release && (
+          <ReleaseEditPageReleaseTrackToWorkRelationshipsTab
+            release={release}
+            releaseTrackToWorkRelationships={releaseTrackToWorkRelationships}
+            releaseTrackToWorkRelationshipsLoading={loading}
+            setReleaseTrackToWorkRelationships={onReleaseTrackToWorkRelationshipsChange}
+          />
+        ),
+      },
     ],
     [
       release,
       loading,
       releaseTrackToProductRelationships,
+      releaseTrackToWorkRelationships,
       onReleaseRelationshipsChange,
       onReleaseToProductRelationshipsChange,
       onReleaseToReleaseGroupRelationshipsChange,
       onReleaseTrackToProductRelationshipsChange,
+      onReleaseTrackToWorkRelationshipsChange,
     ]
   );
 

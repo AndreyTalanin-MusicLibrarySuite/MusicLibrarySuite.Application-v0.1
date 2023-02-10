@@ -48,9 +48,14 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
           setReleaseGroup(releaseGroup);
           setReleaseGroupFormValues(releaseGroup);
 
-          applicationClient.getReleaseToReleaseGroupRelationshipsByReleaseGroup(id).then((releaseToReleaseGroupRelationships) => {
-            setReleaseToReleaseGroupRelationships(releaseToReleaseGroupRelationships);
-          });
+          applicationClient
+            .getReleaseToReleaseGroupRelationshipsByReleaseGroup(id)
+            .then((releaseToReleaseGroupRelationships) => {
+              setReleaseToReleaseGroupRelationships(releaseToReleaseGroupRelationships);
+            })
+            .catch((error) => {
+              alert(error);
+            });
         })
         .catch((error) => {
           alert(error);

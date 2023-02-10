@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { Work } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import WorkViewPageReleaseTrackToWorkRelationshipsTab from "./WorkViewPageReleaseTrackToWorkRelationshipsTab";
 import WorkViewPageWorkRelationshipsTab from "./WorkViewPageWorkRelationshipsTab";
 import WorkViewPageWorkToProductRelationshipsTab from "./WorkViewPageWorkToProductRelationshipsTab";
 import styles from "./WorkViewPage.module.css";
@@ -56,6 +57,11 @@ const WorkViewPage = () => {
         key: "workToProductRelationshipsTab",
         label: "Work-to-Product Relationships",
         children: id && <WorkViewPageWorkToProductRelationshipsTab id={id} />,
+      },
+      {
+        key: "releaseTrackToWorkRelationshipsTab",
+        label: "Release-Track-to-Work Relationships",
+        children: id && <WorkViewPageReleaseTrackToWorkRelationshipsTab id={id} />,
       },
     ],
     [id]

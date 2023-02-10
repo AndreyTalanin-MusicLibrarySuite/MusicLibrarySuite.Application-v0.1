@@ -65,15 +65,30 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           setProduct(product);
           setProductFormValues({ ...product, releasedOn: dayjs(product.releasedOn) });
 
-          applicationClient.getReleaseToProductRelationshipsByProduct(id).then((releaseToProductRelationships) => {
-            setReleaseToProductRelationships(releaseToProductRelationships);
-          });
-          applicationClient.getWorkToProductRelationshipsByProduct(id).then((workToProductRelationships) => {
-            setWorkToProductRelationships(workToProductRelationships);
-          });
-          applicationClient.getReleaseTrackToProductRelationshipsByProduct(id).then((releaseTrackToProductRelationships) => {
-            setReleaseTrackToProductRelationships(releaseTrackToProductRelationships);
-          });
+          applicationClient
+            .getReleaseToProductRelationshipsByProduct(id)
+            .then((releaseToProductRelationships) => {
+              setReleaseToProductRelationships(releaseToProductRelationships);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getWorkToProductRelationshipsByProduct(id)
+            .then((workToProductRelationships) => {
+              setWorkToProductRelationships(workToProductRelationships);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getReleaseTrackToProductRelationshipsByProduct(id)
+            .then((releaseTrackToProductRelationships) => {
+              setReleaseTrackToProductRelationships(releaseTrackToProductRelationships);
+            })
+            .catch((error) => {
+              alert(error);
+            });
         })
         .catch((error) => {
           alert(error);

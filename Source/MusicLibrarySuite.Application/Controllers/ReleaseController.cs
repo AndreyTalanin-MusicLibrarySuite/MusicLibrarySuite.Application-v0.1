@@ -228,6 +228,40 @@ public class ReleaseController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all release-track-to-work relationships by a release's unique identifier.
+    /// </summary>
+    /// <param name="releaseId">The release's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-track-to-work relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseTrackToWorkRelationship[]>> GetReleaseTrackToWorkRelationshipsAsync([Required][FromQuery] Guid releaseId)
+    {
+        ReleaseTrackToWorkRelationship[] releaseTrackToWorkRelationshipArray = (await m_catalogServiceClient.GetReleaseTrackToWorkRelationshipsAsync(releaseId)).ToArray();
+        return Ok(releaseTrackToWorkRelationshipArray);
+    }
+
+    /// <summary>
+    /// Asynchronously gets all release-track-to-work relationships by a work's unique identifier.
+    /// </summary>
+    /// <param name="workId">The work's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-track-to-work relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseTrackToWorkRelationship[]>> GetReleaseTrackToWorkRelationshipsByWorkAsync([Required][FromQuery] Guid workId)
+    {
+        ReleaseTrackToWorkRelationship[] releaseTrackToWorkRelationshipArray = (await m_catalogServiceClient.GetReleaseTrackToWorkRelationshipsByWorkAsync(workId)).ToArray();
+        return Ok(releaseTrackToWorkRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously creates a new release.
     /// </summary>
     /// <param name="release">The release to create.</param>
@@ -323,6 +357,28 @@ public class ReleaseController : ControllerBase
         try
         {
             await m_catalogServiceClient.UpdateReleaseTrackToProductRelationshipsOrderAsync(useReferenceOrder, releaseTrackToProductRelationships);
+            return Ok();
+        }
+        catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously updates order of existing release-track-to-work relationships.
+    /// </summary>
+    /// <param name="releaseTrackToWorkRelationships">A collection of release-track-to-work relationships to reorder.</param>
+    /// <param name="useReferenceOrder">A value indicating whether the reference order should be used.</param>
+    /// <returns>The task object representing the asynchronous operation.</returns>
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateReleaseTrackToWorkRelationshipsOrderAsync([Required][FromBody] ReleaseTrackToWorkRelationship[] releaseTrackToWorkRelationships, [FromQuery] bool? useReferenceOrder)
+    {
+        try
+        {
+            await m_catalogServiceClient.UpdateReleaseTrackToWorkRelationshipsOrderAsync(useReferenceOrder, releaseTrackToWorkRelationships);
             return Ok();
         }
         catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)

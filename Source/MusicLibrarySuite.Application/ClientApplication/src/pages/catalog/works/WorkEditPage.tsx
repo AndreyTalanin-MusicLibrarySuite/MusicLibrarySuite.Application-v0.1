@@ -10,6 +10,7 @@ import {
   Artist,
   Genre,
   IWork,
+  ReleaseTrackToWorkRelationship,
   Work,
   WorkArtist,
   WorkComposer,
@@ -24,6 +25,7 @@ import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import WorkEditPageReleaseTrackToWorkRelationshipsTab from "./WorkEditPageReleaseTrackToWorkRelationshipsTab";
 import WorkEditPageWorkRelationshipsTab from "./WorkEditPageWorkRelationshipsTab";
 import WorkEditPageWorkToProductRelationshipsTab from "./WorkEditPageWorkToProductRelationshipsTab";
 import styles from "./WorkEditPage.module.css";
@@ -51,6 +53,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const [workPerformerOptions, setWorkPerformerOptions] = useState<Artist[]>([]);
   const [workComposerOptions, setWorkComposerOptions] = useState<Artist[]>([]);
   const [workGenreOptions, setWorkGenreOptions] = useState<Genre[]>([]);
+  const [releaseTrackToWorkRelationships, setReleaseTrackToWorkRelationships] = useState<ReleaseTrackToWorkRelationship[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
@@ -123,6 +126,15 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
             .getGenres(work.workGenres?.map((workGenre) => workGenre.genreId) ?? [])
             .then((workGenres) => {
               setWorkGenreOptions(workGenres);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+
+          applicationClient
+            .getReleaseTrackToWorkRelationshipsByWork(id)
+            .then((releaseTrackToWorkRelationships) => {
+              setReleaseTrackToWorkRelationships(releaseTrackToWorkRelationships);
             })
             .catch((error) => {
               alert(error);
@@ -267,8 +279,15 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
         applicationClient
           .updateWork(workModel)
           .then(() => {
-            setLoading(false);
-            fetchWork();
+            Promise.all([applicationClient.updateReleaseTrackToWorkRelationshipsOrder(true, releaseTrackToWorkRelationships)])
+              .then(() => {
+                setLoading(false);
+                fetchWork();
+              })
+              .catch((error) => {
+                setLoading(false);
+                alert(error);
+              });
           })
           .catch((error) => {
             setLoading(false);
@@ -276,7 +295,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
           });
       }
     },
-    [mode, navigate, work, applicationClient, fetchWork]
+    [mode, navigate, work, releaseTrackToWorkRelationships, applicationClient, fetchWork]
   );
 
   const onFinishFailed = () => {
@@ -399,8 +418,19 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
           />
         ),
       },
+      {
+        key: "releaseTrackToWorkRelationshipsTab",
+        label: "Release-Track-to-Work Relationships",
+        children: work && (
+          <WorkEditPageReleaseTrackToWorkRelationshipsTab
+            releaseTrackToWorkRelationships={releaseTrackToWorkRelationships}
+            releaseTrackToWorkRelationshipsLoading={loading}
+            setReleaseTrackToWorkRelationships={setReleaseTrackToWorkRelationships}
+          />
+        ),
+      },
     ],
-    [work, loading, onWorkRelationshipsChange, onWorkToProductRelationshipsChange]
+    [work, loading, onWorkRelationshipsChange, releaseTrackToWorkRelationships, onWorkToProductRelationshipsChange]
   );
 
   return (
