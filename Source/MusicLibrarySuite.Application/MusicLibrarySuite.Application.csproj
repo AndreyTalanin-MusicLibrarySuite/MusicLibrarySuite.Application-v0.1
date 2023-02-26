@@ -21,9 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <OpenApiReference Include="Dependencies\MusicLibrarySuite.Application.json" CodeGenerator="NSwagTypeScript" ClassName="ApplicationClient" Namespace="MusicLibrarySuite.Application.Client" OutputPath="TypeScript\ApplicationClient.ts">
+    <OpenApiReference Include="OpenApiReferences\MusicLibrarySuite.Application.json" CodeGenerator="NSwagTypeScript" ClassName="ApplicationClient" Namespace="MusicLibrarySuite.Application.Client" OutputPath="TypeScript\ApplicationClient.ts">
     </OpenApiReference>
-    <OpenApiReference Include="Dependencies\MusicLibrarySuite.CatalogService.json" CodeGenerator="NSwagCSharp" ClassName="CatalogServiceClient" Namespace="MusicLibrarySuite.CatalogService.Client">
+    <OpenApiReference Include="OpenApiReferences\MusicLibrarySuite.CatalogService.json" CodeGenerator="NSwagCSharp" ClassName="CatalogServiceClient" Namespace="MusicLibrarySuite.CatalogService.Client">
       <Options>/GenerateClientInterfaces:true /GenerateDtoTypes:false /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /AdditionalNamespaceUsages:Microsoft.AspNetCore.Mvc,MusicLibrarySuite.CatalogService.Interfaces.Entities,MusicLibrarySuite.CatalogService.Interfaces.Entities.Base /UseBaseUrl:false</Options>
     </OpenApiReference>
   </ItemGroup>
