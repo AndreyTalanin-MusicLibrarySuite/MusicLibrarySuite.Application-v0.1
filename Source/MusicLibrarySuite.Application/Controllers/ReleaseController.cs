@@ -211,6 +211,23 @@ public class ReleaseController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all release-media-to-product relationships by a product's unique identifier.
+    /// </summary>
+    /// <param name="productId">The product's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-media-to-product relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseMediaToProductRelationship[]>> GetReleaseMediaToProductRelationshipsByProductAsync([Required][FromQuery] Guid productId)
+    {
+        ReleaseMediaToProductRelationship[] releaseMediaToProductRelationshipArray = (await m_catalogServiceClient.GetReleaseMediaToProductRelationshipsByProductAsync(productId)).ToArray();
+        return Ok(releaseMediaToProductRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously gets all release-track-to-product relationships by a release's unique identifier.
     /// </summary>
     /// <param name="releaseId">The release's unique identifier.</param>
