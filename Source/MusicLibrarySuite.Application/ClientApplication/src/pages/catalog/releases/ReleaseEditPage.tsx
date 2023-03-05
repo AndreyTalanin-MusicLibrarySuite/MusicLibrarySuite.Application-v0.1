@@ -516,21 +516,21 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         releaseModel.releaseMediaCollection?.map((releaseMedia) => {
           releaseMedia.releaseMediaToProductRelationships =
             releaseMedia.releaseMediaToProductRelationships?.map(
-          (releaseMediaToProductRelationship) =>
-            new ReleaseMediaToProductRelationship({ ...releaseMediaToProductRelationship, releaseMedia: undefined, product: undefined })
+              (releaseMediaToProductRelationship) =>
+                new ReleaseMediaToProductRelationship({ ...releaseMediaToProductRelationship, releaseMedia: undefined, product: undefined })
             ) ?? [];
 
           releaseMedia.releaseTrackCollection =
             releaseMedia.releaseTrackCollection?.map((releaseTrack) => {
               releaseTrack.releaseTrackToProductRelationships =
                 releaseTrack.releaseTrackToProductRelationships?.map(
-            (releaseTrackToProductRelationship) =>
-              new ReleaseTrackToProductRelationship({ ...releaseTrackToProductRelationship, releaseTrack: undefined, product: undefined })
+                  (releaseTrackToProductRelationship) =>
+                    new ReleaseTrackToProductRelationship({ ...releaseTrackToProductRelationship, releaseTrack: undefined, product: undefined })
                 ) ?? [];
               releaseTrack.releaseTrackToWorkRelationships =
                 releaseTrack.releaseTrackToWorkRelationships?.map(
-            (releaseTrackToWorkRelationship) =>
-              new ReleaseTrackToWorkRelationship({ ...releaseTrackToWorkRelationship, releaseTrack: undefined, work: undefined })
+                  (releaseTrackToWorkRelationship) =>
+                    new ReleaseTrackToWorkRelationship({ ...releaseTrackToWorkRelationship, releaseTrack: undefined, work: undefined })
                 ) ?? [];
 
               return releaseTrack;
@@ -978,6 +978,20 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     ]
   );
 
+  const checkIfReleaseMediaHasDetails = (releaseMedia: ReleaseMedia) => {
+    return (
+      releaseMedia.description ||
+      releaseMedia.catalogNumber ||
+      releaseMedia.mediaFormat ||
+      releaseMedia.tableOfContentsChecksum ||
+      releaseMedia.tableOfContentsChecksumLong
+    );
+  };
+
+  const checkIfReleaseMediaIsEmpty = (releaseMedia: ReleaseMedia) => {
+    return releaseMedia.releaseTrackCollection.length === 0;
+  };
+
   return (
     <>
       <Space className={styles.pageHeader} direction="horizontal" align="baseline">
@@ -1164,11 +1178,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               }
             >
               <Space direction="vertical" style={{ display: "flex" }}>
-                {(releaseMedia.description ||
-                  releaseMedia.catalogNumber ||
-                  releaseMedia.mediaFormat ||
-                  releaseMedia.tableOfContentsChecksum ||
-                  releaseMedia.tableOfContentsChecksumLong) && (
+                {checkIfReleaseMediaHasDetails(releaseMedia) && (
                   <Collapse>
                     <Collapse.Panel key="release-media-details" header="Release Media Details">
                       {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
@@ -1200,7 +1210,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                     </Collapse.Panel>
                   </Collapse>
                 )}
-                {releaseMedia.releaseTrackCollection.length > 0 && (
+                {!checkIfReleaseMediaIsEmpty(releaseMedia) && (
                   <Table
                     size="small"
                     columns={releaseTrackTableColumns}
@@ -1209,6 +1219,9 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                     loading={loading}
                     pagination={false}
                   />
+                )}
+                {!checkIfReleaseMediaHasDetails(releaseMedia) && checkIfReleaseMediaIsEmpty(releaseMedia) && (
+                  <Paragraph>This release media is empty.</Paragraph>
                 )}
               </Space>
             </Card>
