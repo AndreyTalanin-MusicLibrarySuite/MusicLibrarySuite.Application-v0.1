@@ -503,32 +503,41 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         ) ?? [];
 
       releaseModel.releaseToProductRelationships =
-        releaseModel.releaseToProductRelationships.map(
+        releaseModel.releaseToProductRelationships?.map(
           (releaseToProductRelationship) => new ReleaseToProductRelationship({ ...releaseToProductRelationship, release: undefined, product: undefined })
         ) ?? [];
       releaseModel.releaseToReleaseGroupRelationships =
-        releaseModel.releaseToReleaseGroupRelationships.map(
+        releaseModel.releaseToReleaseGroupRelationships?.map(
           (releaseToReleaseGroupRelationship) =>
             new ReleaseToReleaseGroupRelationship({ ...releaseToReleaseGroupRelationship, release: undefined, releaseGroup: undefined })
         ) ?? [];
 
-      releaseModel.releaseMediaCollection.forEach((releaseMedia) => {
-        releaseMedia.releaseMediaToProductRelationships = releaseMedia.releaseMediaToProductRelationships.map(
+      releaseModel.releaseMediaCollection =
+        releaseModel.releaseMediaCollection?.map((releaseMedia) => {
+          releaseMedia.releaseMediaToProductRelationships =
+            releaseMedia.releaseMediaToProductRelationships?.map(
           (releaseMediaToProductRelationship) =>
             new ReleaseMediaToProductRelationship({ ...releaseMediaToProductRelationship, releaseMedia: undefined, product: undefined })
-        );
+            ) ?? [];
 
-        releaseMedia.releaseTrackCollection.forEach((releaseTrack) => {
-          releaseTrack.releaseTrackToProductRelationships = releaseTrack.releaseTrackToProductRelationships.map(
+          releaseMedia.releaseTrackCollection =
+            releaseMedia.releaseTrackCollection?.map((releaseTrack) => {
+              releaseTrack.releaseTrackToProductRelationships =
+                releaseTrack.releaseTrackToProductRelationships?.map(
             (releaseTrackToProductRelationship) =>
               new ReleaseTrackToProductRelationship({ ...releaseTrackToProductRelationship, releaseTrack: undefined, product: undefined })
-          );
-          releaseTrack.releaseTrackToWorkRelationships = releaseTrack.releaseTrackToWorkRelationships.map(
+                ) ?? [];
+              releaseTrack.releaseTrackToWorkRelationships =
+                releaseTrack.releaseTrackToWorkRelationships?.map(
             (releaseTrackToWorkRelationship) =>
               new ReleaseTrackToWorkRelationship({ ...releaseTrackToWorkRelationship, releaseTrack: undefined, work: undefined })
-          );
-        });
-      });
+                ) ?? [];
+
+              return releaseTrack;
+            }) ?? [];
+
+          return releaseMedia;
+        }) ?? [];
 
       if (mode === ReleaseEditPageMode.Create) {
         setLoading(true);
