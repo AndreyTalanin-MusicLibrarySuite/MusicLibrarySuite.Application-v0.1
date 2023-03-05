@@ -9,6 +9,7 @@ import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/R
 import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
+import ReleaseViewPageReleaseMediaToProductRelationshipsTab from "./ReleaseViewPageReleaseMediaToProductRelationshipsTab";
 import ReleaseViewPageReleaseRelationshipsTab from "./ReleaseViewPageReleaseRelationshipsTab";
 import ReleaseViewPageReleaseToProductRelationshipsTab from "./ReleaseViewPageReleaseToProductRelationshipsTab";
 import ReleaseViewPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseViewPageReleaseToReleaseGroupRelationshipsTab";
@@ -123,6 +124,11 @@ const ReleaseViewPage = () => {
         key: "releaseToReleaseGroupRelationshipsTab",
         label: "Release-to-Release-Group Relationships",
         children: id && <ReleaseViewPageReleaseToReleaseGroupRelationshipsTab id={id} />,
+      },
+      {
+        key: "releaseMediaToProductRelationshipsTab",
+        label: "Release-Media-to-Product Relationships",
+        children: id && <ReleaseViewPageReleaseMediaToProductRelationshipsTab id={id} />,
       },
       {
         key: "releaseTrackToProductRelationshipsTab",

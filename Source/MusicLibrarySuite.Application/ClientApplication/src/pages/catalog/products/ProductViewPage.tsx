@@ -6,6 +6,7 @@ import { Product } from "../../../api/ApplicationClient";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductViewPageProductRelationshipsTab from "./ProductViewPageProductRelationshipsTab";
+import ProductViewPageReleaseMediaToProductRelationshipsTab from "./ProductViewPageReleaseMediaToProductRelationshipsTab";
 import ProductViewPageReleaseToProductRelationshipsTab from "./ProductViewPageReleaseToProductRelationshipsTab";
 import ProductViewPageReleaseTrackToProductRelationshipsTab from "./ProductViewPageReleaseTrackToProductRelationshipsTab";
 import ProductViewPageWorkToProductRelationshipsTab from "./ProductViewPageWorkToProductRelationshipsTab";
@@ -58,6 +59,11 @@ const ProductViewPage = () => {
         key: "releaseToProductRelationshipsTab",
         label: "Release-to-Product Relationships",
         children: id && <ProductViewPageReleaseToProductRelationshipsTab id={id} />,
+      },
+      {
+        key: "releaseMediaToProductRelationshipsTab",
+        label: "Release-Media-to-Product Relationships",
+        children: id && <ProductViewPageReleaseMediaToProductRelationshipsTab id={id} />,
       },
       {
         key: "releaseTrackToProductRelationshipsTab",

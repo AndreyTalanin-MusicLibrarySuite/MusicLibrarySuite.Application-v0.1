@@ -10,6 +10,7 @@ import {
   IProduct,
   Product,
   ProductRelationship,
+  ReleaseMediaToProductRelationship,
   ReleaseToProductRelationship,
   ReleaseTrackToProductRelationship,
   WorkToProductRelationship,
@@ -19,6 +20,7 @@ import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductEditPageProductRelationshipsTab from "./ProductEditPageProductRelationshipsTab";
+import ProductEditPageReleaseMediaToProductRelationshipsTab from "./ProductEditPageReleaseMediaToProductRelationshipsTab";
 import ProductEditPageReleaseToProductRelationshipsTab from "./ProductEditPageReleaseToProductRelationshipsTab";
 import ProductEditPageReleaseTrackToProductRelationshipsTab from "./ProductEditPageReleaseTrackToProductRelationshipsTab";
 import ProductEditPageWorkToProductRelationshipsTab from "./ProductEditPageWorkToProductRelationshipsTab";
@@ -43,6 +45,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
   const [product, setProduct] = useState<Product>();
   const [productFormValues, setProductFormValues] = useState<Store>({});
   const [releaseToProductRelationships, setReleaseToProductRelationships] = useState<ReleaseToProductRelationship[]>([]);
+  const [releaseMediaToProductRelationships, setReleaseMediaToProductRelationships] = useState<ReleaseMediaToProductRelationship[]>([]);
   const [releaseTrackToProductRelationships, setReleaseTrackToProductRelationships] = useState<ReleaseTrackToProductRelationship[]>([]);
   const [workToProductRelationships, setWorkToProductRelationships] = useState<WorkToProductRelationship[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -74,9 +77,9 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
               alert(error);
             });
           applicationClient
-            .getWorkToProductRelationshipsByProduct(id)
-            .then((workToProductRelationships) => {
-              setWorkToProductRelationships(workToProductRelationships);
+            .getReleaseMediaToProductRelationshipsByProduct(id)
+            .then((releaseMediaToProductRelationships) => {
+              setReleaseMediaToProductRelationships(releaseMediaToProductRelationships);
             })
             .catch((error) => {
               alert(error);
@@ -85,6 +88,14 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
             .getReleaseTrackToProductRelationshipsByProduct(id)
             .then((releaseTrackToProductRelationships) => {
               setReleaseTrackToProductRelationships(releaseTrackToProductRelationships);
+            })
+            .catch((error) => {
+              alert(error);
+            });
+          applicationClient
+            .getWorkToProductRelationshipsByProduct(id)
+            .then((workToProductRelationships) => {
+              setWorkToProductRelationships(workToProductRelationships);
             })
             .catch((error) => {
               alert(error);
@@ -196,6 +207,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           .then(() => {
             Promise.all([
               applicationClient.updateReleaseToProductRelationshipsOrder(true, releaseToProductRelationships),
+              applicationClient.updateReleaseMediaToProductRelationshipsOrder(true, releaseMediaToProductRelationships),
               applicationClient.updateReleaseTrackToProductRelationshipsOrder(true, releaseTrackToProductRelationships),
               applicationClient.updateWorkToProductRelationshipsOrder(true, workToProductRelationships),
             ])
@@ -214,7 +226,17 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           });
       }
     },
-    [mode, navigate, product, releaseToProductRelationships, releaseTrackToProductRelationships, workToProductRelationships, applicationClient, fetchProduct]
+    [
+      mode,
+      navigate,
+      product,
+      releaseToProductRelationships,
+      releaseMediaToProductRelationships,
+      releaseTrackToProductRelationships,
+      workToProductRelationships,
+      applicationClient,
+      fetchProduct,
+    ]
   );
 
   const onFinishFailed = () => {
@@ -247,6 +269,17 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         ),
       },
       {
+        key: "releaseMediaToProductRelationshipsTab",
+        label: "Release-Media-to-Product Relationships",
+        children: product && (
+          <ProductEditPageReleaseMediaToProductRelationshipsTab
+            releaseMediaToProductRelationships={releaseMediaToProductRelationships}
+            releaseMediaToProductRelationshipsLoading={loading}
+            setReleaseMediaToProductRelationships={setReleaseMediaToProductRelationships}
+          />
+        ),
+      },
+      {
         key: "releaseTrackToProductRelationshipsTab",
         label: "Release-Track-to-Product Relationships",
         children: product && (
@@ -269,7 +302,15 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         ),
       },
     ],
-    [product, loading, releaseToProductRelationships, releaseTrackToProductRelationships, workToProductRelationships, onProductRelationshipsChange]
+    [
+      product,
+      loading,
+      releaseToProductRelationships,
+      releaseMediaToProductRelationships,
+      releaseTrackToProductRelationships,
+      workToProductRelationships,
+      onProductRelationshipsChange,
+    ]
   );
 
   return (

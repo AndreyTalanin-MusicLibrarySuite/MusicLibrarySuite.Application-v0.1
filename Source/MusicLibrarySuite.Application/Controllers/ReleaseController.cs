@@ -194,6 +194,40 @@ public class ReleaseController : ControllerBase
     }
 
     /// <summary>
+    /// Asynchronously gets all release-media-to-product relationships by a release's unique identifier.
+    /// </summary>
+    /// <param name="releaseId">The release's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-media-to-product relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseMediaToProductRelationship[]>> GetReleaseMediaToProductRelationshipsAsync([Required][FromQuery] Guid releaseId)
+    {
+        ReleaseMediaToProductRelationship[] releaseMediaToProductRelationshipArray = (await m_catalogServiceClient.GetReleaseMediaToProductRelationshipsAsync(releaseId)).ToArray();
+        return Ok(releaseMediaToProductRelationshipArray);
+    }
+
+    /// <summary>
+    /// Asynchronously gets all release-media-to-product relationships by a product's unique identifier.
+    /// </summary>
+    /// <param name="productId">The product's unique identifier.</param>
+    /// <returns>
+    /// The task object representing the asynchronous operation.
+    /// The task's result will be an array containing all release-media-to-product relationships.
+    /// </returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ReleaseMediaToProductRelationship[]>> GetReleaseMediaToProductRelationshipsByProductAsync([Required][FromQuery] Guid productId)
+    {
+        ReleaseMediaToProductRelationship[] releaseMediaToProductRelationshipArray = (await m_catalogServiceClient.GetReleaseMediaToProductRelationshipsByProductAsync(productId)).ToArray();
+        return Ok(releaseMediaToProductRelationshipArray);
+    }
+
+    /// <summary>
     /// Asynchronously gets all release-track-to-product relationships by a release's unique identifier.
     /// </summary>
     /// <param name="releaseId">The release's unique identifier.</param>
@@ -335,6 +369,28 @@ public class ReleaseController : ControllerBase
         try
         {
             await m_catalogServiceClient.UpdateReleaseToReleaseGroupRelationshipsOrderAsync(useReferenceOrder, releaseToReleaseGroupRelationships);
+            return Ok();
+        }
+        catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously updates order of existing release-media-to-product relationships.
+    /// </summary>
+    /// <param name="releaseMediaToProductRelationships">A collection of release-media-to-product relationships to reorder.</param>
+    /// <param name="useReferenceOrder">A value indicating whether the reference order should be used.</param>
+    /// <returns>The task object representing the asynchronous operation.</returns>
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateReleaseMediaToProductRelationshipsOrderAsync([Required][FromBody] ReleaseMediaToProductRelationship[] releaseMediaToProductRelationships, [FromQuery] bool? useReferenceOrder)
+    {
+        try
+        {
+            await m_catalogServiceClient.UpdateReleaseMediaToProductRelationshipsOrderAsync(useReferenceOrder, releaseMediaToProductRelationships);
             return Ok();
         }
         catch (ApiException apiException) when (apiException.StatusCode == StatusCodes.Status404NotFound)

@@ -60,6 +60,8 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
         releaseMediaModel.tableOfContentsChecksumLong = undefined;
       }
 
+      releaseMediaModel.releaseMediaToProductRelationships = [];
+
       releaseMediaModel.releaseTrackCollection = [];
 
       onModalOk(releaseMediaModel, () => form.resetFields());
