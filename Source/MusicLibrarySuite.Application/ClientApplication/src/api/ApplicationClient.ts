@@ -1629,6 +1629,100 @@ export class ApplicationClient {
   /**
    * @return Success
    */
+  getReleaseMediaToProductRelationships(releaseId: string): Promise<ReleaseMediaToProductRelationship[]> {
+    let url_ = this.baseUrl + "/api/Release/GetReleaseMediaToProductRelationships?";
+    if (releaseId === undefined || releaseId === null) throw new Error("The parameter 'releaseId' must be defined and cannot be null.");
+    else url_ += "releaseId=" + encodeURIComponent("" + releaseId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetReleaseMediaToProductRelationships(_response);
+    });
+  }
+
+  protected processGetReleaseMediaToProductRelationships(response: Response): Promise<ReleaseMediaToProductRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ReleaseMediaToProductRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseMediaToProductRelationship[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
+  getReleaseMediaToProductRelationshipsByProduct(productId: string): Promise<ReleaseMediaToProductRelationship[]> {
+    let url_ = this.baseUrl + "/api/Release/GetReleaseMediaToProductRelationshipsByProduct?";
+    if (productId === undefined || productId === null) throw new Error("The parameter 'productId' must be defined and cannot be null.");
+    else url_ += "productId=" + encodeURIComponent("" + productId) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: RequestInit = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processGetReleaseMediaToProductRelationshipsByProduct(_response);
+    });
+  }
+
+  protected processGetReleaseMediaToProductRelationshipsByProduct(response: Response): Promise<ReleaseMediaToProductRelationship[]> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        if (Array.isArray(resultData200)) {
+          result200 = [] as any;
+          for (let item of resultData200) result200!.push(ReleaseMediaToProductRelationship.fromJS(item));
+        } else {
+          result200 = <any>null;
+        }
+        return result200;
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ReleaseMediaToProductRelationship[]>(null as any);
+  }
+
+  /**
+   * @return Success
+   */
   getReleaseTrackToProductRelationships(releaseId: string): Promise<ReleaseTrackToProductRelationship[]> {
     let url_ = this.baseUrl + "/api/Release/GetReleaseTrackToProductRelationships?";
     if (releaseId === undefined || releaseId === null) throw new Error("The parameter 'releaseId' must be defined and cannot be null.");
@@ -1981,6 +2075,56 @@ export class ApplicationClient {
   }
 
   protected processUpdateReleaseToReleaseGroupRelationshipsOrder(response: Response): Promise<void> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        return;
+      });
+    } else if (status === 404) {
+      return response.text().then((_responseText) => {
+        let result404: any = null;
+        let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result404 = ProblemDetails.fromJS(resultData404);
+        return throwException("Not Found", status, _responseText, _headers, result404);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<void>(null as any);
+  }
+
+  /**
+   * @param useReferenceOrder (optional)
+   * @return Success
+   */
+  updateReleaseMediaToProductRelationshipsOrder(useReferenceOrder: boolean | undefined, body: ReleaseMediaToProductRelationship[]): Promise<void> {
+    let url_ = this.baseUrl + "/api/Release/UpdateReleaseMediaToProductRelationshipsOrder?";
+    if (useReferenceOrder === null) throw new Error("The parameter 'useReferenceOrder' cannot be null.");
+    else if (useReferenceOrder !== undefined) url_ += "useReferenceOrder=" + encodeURIComponent("" + useReferenceOrder) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    return this.http.fetch(url_, options_).then((_response: Response) => {
+      return this.processUpdateReleaseMediaToProductRelationshipsOrder(_response);
+    });
+  }
+
+  protected processUpdateReleaseMediaToProductRelationshipsOrder(response: Response): Promise<void> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && response.headers.forEach) {
@@ -4321,6 +4465,7 @@ export class ReleaseMedia implements IReleaseMedia {
   mediaFormat?: string | undefined;
   tableOfContentsChecksum?: string | undefined;
   tableOfContentsChecksumLong?: string | undefined;
+  releaseMediaToProductRelationships!: ReleaseMediaToProductRelationship[];
   releaseTrackCollection!: ReleaseTrack[];
 
   constructor(data?: IReleaseMedia) {
@@ -4330,6 +4475,7 @@ export class ReleaseMedia implements IReleaseMedia {
       }
     }
     if (!data) {
+      this.releaseMediaToProductRelationships = [];
       this.releaseTrackCollection = [];
     }
   }
@@ -4346,6 +4492,11 @@ export class ReleaseMedia implements IReleaseMedia {
       this.mediaFormat = _data["mediaFormat"];
       this.tableOfContentsChecksum = _data["tableOfContentsChecksum"];
       this.tableOfContentsChecksumLong = _data["tableOfContentsChecksumLong"];
+      if (Array.isArray(_data["releaseMediaToProductRelationships"])) {
+        this.releaseMediaToProductRelationships = [] as any;
+        for (let item of _data["releaseMediaToProductRelationships"])
+          this.releaseMediaToProductRelationships!.push(ReleaseMediaToProductRelationship.fromJS(item));
+      }
       if (Array.isArray(_data["releaseTrackCollection"])) {
         this.releaseTrackCollection = [] as any;
         for (let item of _data["releaseTrackCollection"]) this.releaseTrackCollection!.push(ReleaseTrack.fromJS(item));
@@ -4372,6 +4523,10 @@ export class ReleaseMedia implements IReleaseMedia {
     data["mediaFormat"] = this.mediaFormat;
     data["tableOfContentsChecksum"] = this.tableOfContentsChecksum;
     data["tableOfContentsChecksumLong"] = this.tableOfContentsChecksumLong;
+    if (Array.isArray(this.releaseMediaToProductRelationships)) {
+      data["releaseMediaToProductRelationships"] = [];
+      for (let item of this.releaseMediaToProductRelationships) data["releaseMediaToProductRelationships"].push(item.toJSON());
+    }
     if (Array.isArray(this.releaseTrackCollection)) {
       data["releaseTrackCollection"] = [];
       for (let item of this.releaseTrackCollection) data["releaseTrackCollection"].push(item.toJSON());
@@ -4391,7 +4546,67 @@ export interface IReleaseMedia {
   mediaFormat?: string | undefined;
   tableOfContentsChecksum?: string | undefined;
   tableOfContentsChecksumLong?: string | undefined;
+  releaseMediaToProductRelationships: ReleaseMediaToProductRelationship[];
   releaseTrackCollection: ReleaseTrack[];
+}
+
+export class ReleaseMediaToProductRelationship implements IReleaseMediaToProductRelationship {
+  mediaNumber!: number;
+  releaseId!: string;
+  productId!: string;
+  name!: string;
+  description?: string | undefined;
+  releaseMedia?: ReleaseMedia;
+  product?: Product;
+
+  constructor(data?: IReleaseMediaToProductRelationship) {
+    if (data) {
+      for (var property in data) {
+        if (data.hasOwnProperty(property)) (<any>this)[property] = (<any>data)[property];
+      }
+    }
+  }
+
+  init(_data?: any) {
+    if (_data) {
+      this.mediaNumber = _data["mediaNumber"];
+      this.releaseId = _data["releaseId"];
+      this.productId = _data["productId"];
+      this.name = _data["name"];
+      this.description = _data["description"];
+      this.releaseMedia = _data["releaseMedia"] ? ReleaseMedia.fromJS(_data["releaseMedia"]) : <any>undefined;
+      this.product = _data["product"] ? Product.fromJS(_data["product"]) : <any>undefined;
+    }
+  }
+
+  static fromJS(data: any): ReleaseMediaToProductRelationship {
+    data = typeof data === "object" ? data : {};
+    let result = new ReleaseMediaToProductRelationship();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    data["mediaNumber"] = this.mediaNumber;
+    data["releaseId"] = this.releaseId;
+    data["productId"] = this.productId;
+    data["name"] = this.name;
+    data["description"] = this.description;
+    data["releaseMedia"] = this.releaseMedia ? this.releaseMedia.toJSON() : <any>undefined;
+    data["product"] = this.product ? this.product.toJSON() : <any>undefined;
+    return data;
+  }
+}
+
+export interface IReleaseMediaToProductRelationship {
+  mediaNumber: number;
+  releaseId: string;
+  productId: string;
+  name: string;
+  description?: string | undefined;
+  releaseMedia?: ReleaseMedia;
+  product?: Product;
 }
 
 export class ReleasePageResponse implements IReleasePageResponse {
