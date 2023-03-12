@@ -1,18 +1,9 @@
 import { Form, Input, Modal } from "antd";
-import { Store } from "antd/lib/form/interface";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Artist,
-  Genre,
-  IReleaseTrack,
-  ReleaseTrack,
-  ReleaseTrackArtist,
-  ReleaseTrackComposer,
-  ReleaseTrackFeaturedArtist,
-  ReleaseTrackGenre,
-  ReleaseTrackPerformer,
-} from "../../api/ApplicationClient";
+import { Artist, Genre, ReleaseTrack } from "../../api/ApplicationClient";
+import { mapReleaseTrackModalFormInitialValues, mergeReleaseTrackModalFormValues } from "../../entities/forms/ReleaseTrackModalFormValues";
 import useApplicationClient from "../../hooks/useApplicationClient";
+import useEntityForm from "../../hooks/useEntityForm";
 import EntitySelect from "../inputs/EntitySelect";
 import "antd/dist/antd.min.css";
 
@@ -25,7 +16,6 @@ export interface CreateReleaseTrackModalProps {
 }
 
 const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCancel: onModalCancel }: CreateReleaseTrackModalProps) => {
-  const [releaseTrackFormValues, setReleaseTrackFormValues] = useState<Store>({});
   const [releaseTrackArtistOptions, setReleaseTrackArtistOptions] = useState<Artist[]>([]);
   const [releaseTrackFeaturedArtistOptions, setReleaseTrackFeaturedArtistOptions] = useState<Artist[]>([]);
   const [releaseTrackPerformerOptions, setReleaseTrackPerformerOptions] = useState<Artist[]>([]);
@@ -34,18 +24,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
 
   const applicationClient = useApplicationClient();
 
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    setReleaseTrackFormValues({
-      ...releaseTrack,
-      releaseTrackArtists: releaseTrack?.releaseTrackArtists.map((releaseTrackArtist) => releaseTrackArtist.artistId) ?? [],
-      releaseTrackFeaturedArtists: releaseTrack?.releaseTrackFeaturedArtists.map((releaseTrackFeaturedArtist) => releaseTrackFeaturedArtist.artistId) ?? [],
-      releaseTrackPerformers: releaseTrack?.releaseTrackPerformers.map((releaseTrackPerformer) => releaseTrackPerformer.artistId) ?? [],
-      releaseTrackComposers: releaseTrack?.releaseTrackComposers.map((releaseTrackComposer) => releaseTrackComposer.artistId) ?? [],
-      releaseTrackGenres: releaseTrack?.releaseTrackGenres.map((releaseTrackGenre) => releaseTrackGenre.genreId) ?? [],
-    });
-
+  const fetchInitialOptions = useCallback(() => {
     applicationClient
       .getArtists(releaseTrack?.releaseTrackArtists?.map((releaseTrackArtist) => releaseTrackArtist.artistId) ?? [])
       .then((releaseTrackArtists) => {
@@ -88,116 +67,38 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
       });
   }, [releaseTrack, applicationClient]);
 
-  useEffect(() => {
-    form.resetFields();
-  }, [releaseTrackFormValues, form]);
-
-  const onOk = () => {
-    form.submit();
-  };
-
-  const onCancel = () => {
-    onModalCancel();
-    form.resetFields();
-  };
-
-  const onFinish = useCallback(
-    (releaseTrackFormValues: Store) => {
-      const trackNumber = releaseTrackFormValues.trackNumber as string;
-      releaseTrackFormValues.trackNumber = parseInt(trackNumber);
-      const mediaNumber = releaseTrackFormValues.mediaNumber as string;
-      releaseTrackFormValues.mediaNumber = parseInt(mediaNumber);
-
-      const releaseTrackArtistIds = releaseTrackFormValues.releaseTrackArtists as string[];
-      const releaseTrackFeaturedArtistIds = releaseTrackFormValues.releaseTrackFeaturedArtists as string[];
-      const releaseTrackPerformerIds = releaseTrackFormValues.releaseTrackPerformers as string[];
-      const releaseTrackComposerIds = releaseTrackFormValues.releaseTrackComposers as string[];
-      const releaseTrackGenreIds = releaseTrackFormValues.releaseTrackGenres as string[];
-      if (releaseTrack) {
-        releaseTrackFormValues.releaseTrackArtists = releaseTrackArtistIds.map(
-          (artistId) =>
-            new ReleaseTrackArtist({
-              trackNumber: releaseTrack?.trackNumber,
-              mediaNumber: releaseTrack.mediaNumber,
-              releaseId: releaseTrack.releaseId,
-              artistId: artistId,
-            })
-        );
-        releaseTrackFormValues.releaseTrackFeaturedArtists = releaseTrackFeaturedArtistIds.map(
-          (artistId) =>
-            new ReleaseTrackFeaturedArtist({
-              trackNumber: releaseTrack?.trackNumber,
-              mediaNumber: releaseTrack.mediaNumber,
-              releaseId: releaseTrack.releaseId,
-              artistId: artistId,
-            })
-        );
-        releaseTrackFormValues.releaseTrackPerformers = releaseTrackPerformerIds.map(
-          (artistId) =>
-            new ReleaseTrackPerformer({
-              trackNumber: releaseTrack?.trackNumber,
-              mediaNumber: releaseTrack.mediaNumber,
-              releaseId: releaseTrack.releaseId,
-              artistId: artistId,
-            })
-        );
-        releaseTrackFormValues.releaseTrackComposers = releaseTrackComposerIds.map(
-          (artistId) =>
-            new ReleaseTrackComposer({
-              trackNumber: releaseTrack?.trackNumber,
-              mediaNumber: releaseTrack.mediaNumber,
-              releaseId: releaseTrack.releaseId,
-              artistId: artistId,
-            })
-        );
-        releaseTrackFormValues.releaseTrackGenres = releaseTrackGenreIds.map(
-          (genreId) =>
-            new ReleaseTrackGenre({
-              trackNumber: releaseTrack?.trackNumber,
-              mediaNumber: releaseTrack.mediaNumber,
-              releaseId: releaseTrack.releaseId,
-              genreId: genreId,
-            })
-        );
-      } else {
-        releaseTrackFormValues.releaseTrackArtists = [];
-        releaseTrackFormValues.releaseTrackFeaturedArtists = [];
-        releaseTrackFormValues.releaseTrackPerformers = [];
-        releaseTrackFormValues.releaseTrackComposers = [];
-        releaseTrackFormValues.releaseTrackGenres = [];
-      }
-
-      const releaseTrackModel = new ReleaseTrack({ ...releaseTrack, ...(releaseTrackFormValues as IReleaseTrack) });
-      releaseTrackModel.title = releaseTrackModel.title?.trim();
-      releaseTrackModel.description = releaseTrackModel.description?.trim();
-      releaseTrackModel.disambiguationText = releaseTrackModel.disambiguationText?.trim();
-      releaseTrackModel.internationalStandardRecordingCode = releaseTrackModel.internationalStandardRecordingCode?.trim();
-      if (releaseTrackModel.description !== undefined && releaseTrackModel.description.length === 0) {
-        releaseTrackModel.description = undefined;
-      }
-      if (releaseTrackModel.disambiguationText !== undefined && releaseTrackModel.disambiguationText.length === 0) {
-        releaseTrackModel.disambiguationText = undefined;
-      }
-      if (releaseTrackModel.internationalStandardRecordingCode !== undefined && releaseTrackModel.internationalStandardRecordingCode.length === 0) {
-        releaseTrackModel.internationalStandardRecordingCode = undefined;
-      }
-
-      releaseTrackModel.releaseTrackToProductRelationships = [];
-      releaseTrackModel.releaseTrackToWorkRelationships = [];
-
-      onModalOk(releaseTrackModel, () => form.resetFields());
+  const mapReleaseTrackModalFormInitialValuesProxy = useCallback(
+    (initialValues?: ReleaseTrack) => {
+      fetchInitialOptions();
+      return mapReleaseTrackModalFormInitialValues(initialValues);
     },
-    [releaseTrack, onModalOk, form]
+    [fetchInitialOptions]
   );
 
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
-  };
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(releaseTrack, mapReleaseTrackModalFormInitialValuesProxy, mergeReleaseTrackModalFormValues, onModalOk),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
+
+  useEffect(() => {
+    form.resetFields();
+  }, [releaseTrack, form]);
+
+  const onOk = useCallback(() => {
+    form.submit();
+  }, [form]);
+
+  const onCancel = useCallback(() => {
+    onModalCancel();
+    form.resetFields();
+  }, [onModalCancel, form]);
 
   const fetchReleaseTrackArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(10, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackArtistOptions(artistResponse.items);
         })
@@ -213,7 +114,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
   const fetchReleaseTrackFeaturedArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(10, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackFeaturedArtistOptions(artistResponse.items);
         })
@@ -229,7 +130,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
   const fetchReleaseTrackPerformerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(10, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackPerformerOptions(artistResponse.items);
         })
@@ -245,7 +146,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
   const fetchReleaseTrackComposerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(10, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackComposerOptions(artistResponse.items);
         })
@@ -261,7 +162,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
   const fetchReleaseTrackGenreOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedGenres(20, 0, nameFilter, undefined)
+        .getPagedGenres(10, 0, nameFilter, undefined)
         .then((genreResponse) => {
           setReleaseTrackGenreOptions(genreResponse.items);
         })
@@ -282,9 +183,9 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
     <Modal forceRender open={open} title={title} onOk={onOk} onCancel={onCancel}>
       <Form
         form={form}
-        initialValues={releaseTrackFormValues}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
+        initialValues={initialFormValues}
+        onFinish={onFormFinish}
+        onFinishFailed={onFormFinishFailed}
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
       >
@@ -293,7 +194,7 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
           name="trackNumber"
           rules={[
             { required: true, message: "The 'Track Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]+$/), message: "The 'Track Number' property must be a number." },
+            { pattern: new RegExp(/^[0-9]{1,3}$/), message: "The 'Track Number' property must be a number in range [0 - 255]." },
           ]}
         >
           <Input readOnly={!edit} />
@@ -303,60 +204,75 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
           name="mediaNumber"
           rules={[
             { required: true, message: "The 'Media Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]+$/), message: "The 'Media Number' property must be a number." },
+            { pattern: new RegExp(/^[0-9]{1,3}$/), message: "The 'Media Number' property must be a number in range [0 - 255]." },
           ]}
         >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Title" name="title" rules={[{ required: true, message: "The 'Title' property must not be empty." }]}>
+        <Form.Item
+          label="Title"
+          name="title"
+          rules={[
+            { required: true, message: "The 'Title' property must not be empty." },
+            { max: 256, message: "The 'Title' property must be shorter than 256 characters." },
+          ]}
+        >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Description" name="description">
+        <Form.Item label="Description" name="description" rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}>
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Disambiguation Text" name="disambiguationText">
+        <Form.Item
+          label="Disambiguation Text"
+          name="disambiguationText"
+          rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+        >
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="ISRC" name="internationalStandardRecordingCode">
+        <Form.Item
+          label="ISRC"
+          name="internationalStandardRecordingCode"
+          rules={[{ max: 64, message: "The 'ISRC' property must be shorter than 32 characters." }]}
+        >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Artists" name="releaseTrackArtists">
+        <Form.Item label="Artists" name="releaseTrackArtistIds">
           <EntitySelect
             mode="multiple"
             readOnly={!edit}
-            options={releaseTrackArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
+            options={releaseTrackArtistOptions.map((artist) => ({ value: artist.id, label: artist.name }))}
             onSearch={fetchReleaseTrackArtistOptions}
           />
         </Form.Item>
-        <Form.Item label="Featured Artists" name="releaseTrackFeaturedArtists">
+        <Form.Item label="Featured Artists" name="releaseTrackFeaturedArtistIds">
           <EntitySelect
             mode="multiple"
             readOnly={!edit}
-            options={releaseTrackFeaturedArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
+            options={releaseTrackFeaturedArtistOptions.map((artist) => ({ value: artist.id, label: artist.name }))}
             onSearch={fetchReleaseTrackFeaturedArtistOptions}
           />
         </Form.Item>
-        <Form.Item label="Performers" name="releaseTrackPerformers">
+        <Form.Item label="Performers" name="releaseTrackPerformerIds">
           <EntitySelect
             mode="multiple"
             readOnly={!edit}
-            options={releaseTrackPerformerOptions.map((option) => ({ value: option.id, label: option.name }))}
+            options={releaseTrackPerformerOptions.map((artist) => ({ value: artist.id, label: artist.name }))}
             onSearch={fetchReleaseTrackPerformerOptions}
           />
         </Form.Item>
-        <Form.Item label="Composers" name="releaseTrackComposers">
+        <Form.Item label="Composers" name="releaseTrackComposerIds">
           <EntitySelect
             mode="multiple"
             readOnly={!edit}
-            options={releaseTrackComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
+            options={releaseTrackComposerOptions.map((artist) => ({ value: artist.id, label: artist.name }))}
             onSearch={fetchReleaseTrackComposerOptions}
           />
         </Form.Item>
-        <Form.Item label="Genres" name="releaseTrackGenres">
+        <Form.Item label="Genres" name="releaseTrackGenreIds">
           <EntitySelect
             mode="multiple"
             readOnly={!edit}
-            options={releaseTrackGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
+            options={releaseTrackGenreOptions.map((genre) => ({ value: genre.id, label: genre.name }))}
             onSearch={fetchReleaseTrackGenreOptions}
           />
         </Form.Item>
