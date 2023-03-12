@@ -2,10 +2,10 @@ import React, { Dispatch, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { EmptyGuidString } from "../helpers/ApplicationConstants";
 
-const useQueryStringId = (required: boolean): [string | undefined, Dispatch<React.SetStateAction<string | undefined>>] => {
+export default function useQueryStringId(required: boolean): [string | undefined, Dispatch<React.SetStateAction<string | undefined>>] {
   const [searchParams] = useSearchParams();
 
-  const [id, setId] = useState<string | undefined>(undefined);
+  const [id, setId] = useState<string>();
 
   useEffect(() => {
     if (required) {
@@ -19,6 +19,4 @@ const useQueryStringId = (required: boolean): [string | undefined, Dispatch<Reac
   }, [required, searchParams]);
 
   return [id, setId];
-};
-
-export default useQueryStringId;
+}
