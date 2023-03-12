@@ -1,7 +1,8 @@
 import { Form, Input, Modal } from "antd";
-import { Store } from "antd/lib/form/interface";
 import { useCallback, useEffect, useMemo } from "react";
-import { IReleaseMedia, ReleaseMedia } from "../../api/ApplicationClient";
+import { ReleaseMedia } from "../../api/ApplicationClient";
+import { mapReleaseMediaModalFormInitialValues, mergeReleaseMediaModalFormValues } from "../../entities/forms/ReleaseMediaModalFormValues";
+import useEntityForm from "../../hooks/useEntityForm";
 import "antd/dist/antd.min.css";
 
 export interface CreateReleaseMediaModalProps {
@@ -13,65 +14,25 @@ export interface CreateReleaseMediaModalProps {
 }
 
 const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCancel: onModalCancel }: CreateReleaseMediaModalProps) => {
-  const [form] = Form.useForm();
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(releaseMedia, mapReleaseMediaModalFormInitialValues, mergeReleaseMediaModalFormValues, onModalOk),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
 
   useEffect(() => {
     form.resetFields();
   }, [releaseMedia, form]);
 
-  const onOk = () => {
+  const onOk = useCallback(() => {
     form.submit();
-  };
+  }, [form]);
 
-  const onCancel = () => {
+  const onCancel = useCallback(() => {
     onModalCancel();
     form.resetFields();
-  };
-
-  const onFinish = useCallback(
-    (releaseMediaFormValues: Store) => {
-      const mediaNumber = releaseMediaFormValues.mediaNumber as string;
-      releaseMediaFormValues.mediaNumber = parseInt(mediaNumber);
-
-      const releaseMediaModel = new ReleaseMedia({ ...releaseMedia, ...(releaseMediaFormValues as IReleaseMedia) });
-      releaseMediaModel.title = releaseMediaModel.title?.trim();
-      releaseMediaModel.description = releaseMediaModel.description?.trim();
-      releaseMediaModel.disambiguationText = releaseMediaModel.disambiguationText?.trim();
-      releaseMediaModel.catalogNumber = releaseMediaModel.catalogNumber?.trim();
-      releaseMediaModel.mediaFormat = releaseMediaModel.mediaFormat?.trim();
-      releaseMediaModel.tableOfContentsChecksum = releaseMediaModel.tableOfContentsChecksum?.trim();
-      releaseMediaModel.tableOfContentsChecksumLong = releaseMediaModel.tableOfContentsChecksumLong?.trim();
-      if (releaseMediaModel.description !== undefined && releaseMediaModel.description.length === 0) {
-        releaseMediaModel.description = undefined;
-      }
-      if (releaseMediaModel.disambiguationText !== undefined && releaseMediaModel.disambiguationText.length === 0) {
-        releaseMediaModel.disambiguationText = undefined;
-      }
-      if (releaseMediaModel.catalogNumber !== undefined && releaseMediaModel.catalogNumber.length === 0) {
-        releaseMediaModel.catalogNumber = undefined;
-      }
-      if (releaseMediaModel.mediaFormat !== undefined && releaseMediaModel.mediaFormat.length === 0) {
-        releaseMediaModel.mediaFormat = undefined;
-      }
-      if (releaseMediaModel.tableOfContentsChecksum !== undefined && releaseMediaModel.tableOfContentsChecksum.length === 0) {
-        releaseMediaModel.tableOfContentsChecksum = undefined;
-      }
-      if (releaseMediaModel.tableOfContentsChecksumLong !== undefined && releaseMediaModel.tableOfContentsChecksumLong.length === 0) {
-        releaseMediaModel.tableOfContentsChecksumLong = undefined;
-      }
-
-      releaseMediaModel.releaseMediaToProductRelationships = [];
-
-      releaseMediaModel.releaseTrackCollection = [];
-
-      onModalOk(releaseMediaModel, () => form.resetFields());
-    },
-    [releaseMedia, onModalOk, form]
-  );
-
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
-  };
+  }, [onModalCancel, form]);
 
   const title = useMemo(() => {
     return `${edit ? (releaseMedia ? "Edit" : "Create") : "View"} Release Media`;
@@ -79,24 +40,42 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
 
   return (
     <Modal forceRender open={open} title={title} onOk={onOk} onCancel={onCancel}>
-      <Form form={form} initialValues={releaseMedia} onFinish={onFinish} onFinishFailed={onFinishFailed} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
+      <Form
+        form={form}
+        initialValues={initialFormValues}
+        onFinish={onFormFinish}
+        onFinishFailed={onFormFinishFailed}
+        labelCol={{ span: 8 }}
+        wrapperCol={{ span: 16 }}
+      >
         <Form.Item
           label="Media Number"
           name="mediaNumber"
           rules={[
             { required: true, message: "The 'Media Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]+$/), message: "The 'Media Number' property must be a number." },
+            { pattern: new RegExp(/^[0-9]{1,3}$/), message: "The 'Media Number' property must be a number in range [0 - 255]." },
           ]}
         >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Title" name="title" rules={[{ required: true, message: "The 'Title' property must not be empty." }]}>
+        <Form.Item
+          label="Title"
+          name="title"
+          rules={[
+            { required: true, message: "The 'Title' property must not be empty." },
+            { max: 256, message: "The 'Title' property must be shorter than 256 characters." },
+          ]}
+        >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Description" name="description">
+        <Form.Item label="Description" name="description" rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}>
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Disambiguation Text" name="disambiguationText">
+        <Form.Item
+          label="Disambiguation Text"
+          name="disambiguationText"
+          rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+        >
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
         <Form.Item
@@ -119,7 +98,7 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
         <Form.Item
           label="MusicBrainz Checksum"
           name="tableOfContentsChecksumLong"
-          rules={[{ max: 256, message: "The 'MusicBrainz Checksum' property must be shorter than 64 characters." }]}
+          rules={[{ max: 64, message: "The 'MusicBrainz Checksum' property must be shorter than 64 characters." }]}
         >
           <Input readOnly={!edit} />
         </Form.Item>
