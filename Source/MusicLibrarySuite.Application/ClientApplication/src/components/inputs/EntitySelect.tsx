@@ -1,5 +1,4 @@
-import { Select, Spin } from "antd";
-import { useState } from "react";
+import { Select } from "antd";
 import "antd/dist/antd.min.css";
 
 export interface EntitySelectProps {
@@ -9,12 +8,10 @@ export interface EntitySelectProps {
   options: { value: string; label: string }[];
   readOnly?: boolean;
   onChange?: (value: string[]) => void;
-  onSearch: (value: string | undefined, setLoading: (value: boolean) => void) => void;
+  onSearch?: (value: string | undefined) => void;
 }
 
 const EntitySelect = ({ mode, value, defaultValue, options, readOnly, onChange, onSearch }: EntitySelectProps) => {
-  const [loading, setLoading] = useState(false);
-
   return (
     <Select
       showSearch
@@ -23,16 +20,12 @@ const EntitySelect = ({ mode, value, defaultValue, options, readOnly, onChange, 
       defaultValue={defaultValue}
       placeholder="Search"
       options={options}
-      filterOption={false}
-      notFoundContent={loading ? <Spin size="small" /> : null}
+      optionFilterProp="label"
       style={readOnly ? { pointerEvents: "none" } : undefined}
       open={readOnly ? false : undefined}
       allowClear={readOnly ? false : undefined}
       onChange={!readOnly ? onChange : undefined}
-      onSearch={(value) => {
-        setLoading(true);
-        onSearch(value, setLoading);
-      }}
+      onSearch={!readOnly ? onSearch : undefined}
     />
   );
 };

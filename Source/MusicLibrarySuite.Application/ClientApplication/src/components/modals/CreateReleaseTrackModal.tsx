@@ -195,94 +195,84 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
   };
 
   const fetchReleaseTrackArtistOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleaseTrackArtistOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseTrackArtistOptions(undefined, () => void 0), [fetchReleaseTrackArtistOptions]);
+  useEffect(() => fetchReleaseTrackArtistOptions(undefined), [fetchReleaseTrackArtistOptions]);
 
   const fetchReleaseTrackFeaturedArtistOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleaseTrackFeaturedArtistOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseTrackFeaturedArtistOptions(undefined, () => void 0), [fetchReleaseTrackFeaturedArtistOptions]);
+  useEffect(() => fetchReleaseTrackFeaturedArtistOptions(undefined), [fetchReleaseTrackFeaturedArtistOptions]);
 
   const fetchReleaseTrackPerformerOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleaseTrackPerformerOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseTrackPerformerOptions(undefined, () => void 0), [fetchReleaseTrackPerformerOptions]);
+  useEffect(() => fetchReleaseTrackPerformerOptions(undefined), [fetchReleaseTrackPerformerOptions]);
 
   const fetchReleaseTrackComposerOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleaseTrackComposerOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseTrackComposerOptions(undefined, () => void 0), [fetchReleaseTrackComposerOptions]);
+  useEffect(() => fetchReleaseTrackComposerOptions(undefined), [fetchReleaseTrackComposerOptions]);
 
   const fetchReleaseTrackGenreOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedGenres(20, 0, nameFilter, undefined)
         .then((genreResponse) => {
-          setLoading(false);
           setReleaseTrackGenreOptions(genreResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseTrackGenreOptions(undefined, () => void 0), [fetchReleaseTrackGenreOptions]);
+  useEffect(() => fetchReleaseTrackGenreOptions(undefined), [fetchReleaseTrackGenreOptions]);
 
   const title = useMemo(() => {
     return `${edit ? (releaseTrack ? "Edit" : "Create") : "View"} Release Track`;
