@@ -46,6 +46,15 @@ const ArtistEditPageArtistRelationshipsTab = ({
     );
   }, [artistRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getArtists([modalEntityRelationship.dependentEntityId])
+        .then((artists) => setModalDependentArtists(artists))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
+
   const fetchModalDependentArtists = useCallback(() => {
     applicationClient
       .getPagedArtists(20, 0, modalNameFilter, undefined)
@@ -155,12 +164,12 @@ const ArtistEditPageArtistRelationshipsTab = ({
       <CreateEntityRelationshipModal
         title="Create Artist Relationship"
         dependentEntityName="Dependent Artist"
-        dependentEntities={modalDependentArtists.map(({ id, name }) => ({ id, name }))}
+        dependentEntityOptions={modalDependentArtists.map(({ id, name }) => ({ id, displayName: name }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

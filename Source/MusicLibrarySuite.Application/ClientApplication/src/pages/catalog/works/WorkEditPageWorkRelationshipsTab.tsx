@@ -46,6 +46,15 @@ const WorkEditPageWorkRelationshipsTab = ({
     );
   }, [workRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getWorks([modalEntityRelationship.dependentEntityId])
+        .then((works) => setModalDependentWorks(works))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
+
   const fetchModalDependentWorks = useCallback(() => {
     applicationClient
       .getPagedWorks(20, 0, modalTitleFilter, undefined)
@@ -153,12 +162,12 @@ const WorkEditPageWorkRelationshipsTab = ({
       <CreateEntityRelationshipModal
         title="Create Work Relationship"
         dependentEntityName="Dependent Work"
-        dependentEntities={modalDependentWorks.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalDependentWorks.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

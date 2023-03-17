@@ -46,6 +46,15 @@ const WorkEditPageWorkToProductRelationshipsTab = ({
     );
   }, [workToProductRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getProducts([modalEntityRelationship.dependentEntityId])
+        .then((products) => setModalProducts(products))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
+
   const fetchModalProducts = useCallback(() => {
     applicationClient
       .getPagedProducts(20, 0, modalTitleFilter, undefined)
@@ -162,12 +171,12 @@ const WorkEditPageWorkToProductRelationshipsTab = ({
       <CreateEntityRelationshipModal
         title="Create Work-to-Product Relationship"
         dependentEntityName="Product"
-        dependentEntities={modalProducts.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalProducts.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

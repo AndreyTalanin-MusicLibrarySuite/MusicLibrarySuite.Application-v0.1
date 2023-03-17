@@ -46,6 +46,15 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
     );
   }, [releaseRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getReleases([modalEntityRelationship.dependentEntityId])
+        .then((releases) => setModalDependentReleases(releases))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
+
   const fetchModalDependentReleases = useCallback(() => {
     applicationClient
       .getPagedReleases(20, 0, modalTitleFilter, undefined)
@@ -157,12 +166,12 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
       <CreateEntityRelationshipModal
         title="Create Release Relationship"
         dependentEntityName="Dependent Release"
-        dependentEntities={modalDependentReleases.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalDependentReleases.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

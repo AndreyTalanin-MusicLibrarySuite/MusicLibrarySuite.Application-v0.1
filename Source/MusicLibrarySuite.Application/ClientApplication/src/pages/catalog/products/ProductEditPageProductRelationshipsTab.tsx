@@ -46,6 +46,15 @@ const ProductEditPageProductRelationshipsTab = ({
     );
   }, [productRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getProducts([modalEntityRelationship.dependentEntityId])
+        .then((products) => setModalDependentProducts(products))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
+
   const fetchModalDependentProducts = useCallback(() => {
     applicationClient
       .getPagedProducts(20, 0, modalTitleFilter, undefined)
@@ -157,12 +166,12 @@ const ProductEditPageProductRelationshipsTab = ({
       <CreateEntityRelationshipModal
         title="Create Product Relationship"
         dependentEntityName="Dependent Product"
-        dependentEntities={modalDependentProducts.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalDependentProducts.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

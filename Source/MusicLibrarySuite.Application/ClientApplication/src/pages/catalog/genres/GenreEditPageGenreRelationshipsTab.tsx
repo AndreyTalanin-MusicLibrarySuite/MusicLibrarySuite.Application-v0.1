@@ -46,6 +46,15 @@ const GenreEditPageGenreRelationshipsTab = ({
     );
   }, [genreRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getGenres([modalEntityRelationship.dependentEntityId])
+        .then((genres) => setModalDependentGenres(genres))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
+
   const fetchModalDependentGenres = useCallback(() => {
     applicationClient
       .getPagedGenres(20, 0, modalNameFilter, undefined)
@@ -155,12 +164,12 @@ const GenreEditPageGenreRelationshipsTab = ({
       <CreateEntityRelationshipModal
         title="Create Genre Relationship"
         dependentEntityName="Dependent Genre"
-        dependentEntities={modalDependentGenres.map(({ id, name }) => ({ id, name }))}
+        dependentEntityOptions={modalDependentGenres.map(({ id, name }) => ({ id, displayName: name }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );
