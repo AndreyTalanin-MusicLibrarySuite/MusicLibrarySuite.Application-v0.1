@@ -52,6 +52,15 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
     );
   }, [releaseMediaToProductRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalReleaseMediaRelationship) {
+      applicationClient
+        .getProducts([modalReleaseMediaRelationship.dependentEntityId])
+        .then((products) => setModalProducts(products))
+        .catch((error) => alert(error));
+    }
+  }, [modalReleaseMediaRelationship, applicationClient]);
+
   const fetchModalProducts = useCallback(() => {
     applicationClient
       .getPagedProducts(20, 0, modalTitleFilter, undefined)
@@ -181,12 +190,12 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
       <CreateReleaseMediaRelationshipModal
         title="Create Release-Media-to-Product Relationship"
         dependentEntityName="Product"
-        dependentEntities={modalProducts.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalProducts.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         releaseMediaRelationship={modalReleaseMediaRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

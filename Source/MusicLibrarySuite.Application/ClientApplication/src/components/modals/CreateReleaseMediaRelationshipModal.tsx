@@ -1,11 +1,16 @@
-import { Form, Input, Modal, Select } from "antd";
-import { Store } from "antd/lib/form/interface";
-import { useEffect, useState } from "react";
-import { EmptyGuidString } from "../../helpers/ApplicationConstants";
+import { Form, Input, Modal } from "antd";
+import { useCallback, useEffect } from "react";
+import {
+  mapReleaseMediaRelationshipModalFormInitialValues,
+  mergeReleaseMediaRelationshipModalFormValues,
+} from "../../entities/forms/ReleaseMediaRelationshipModalFormValues";
+import useEntityForm from "../../hooks/useEntityForm";
+import EntitySelect from "../inputs/EntitySelect";
+import "antd/dist/antd.min.css";
 
 export interface DependentEntity {
   id: string;
-  name: string;
+  displayName: string;
 }
 
 export interface ReleaseMediaRelationship {
@@ -18,83 +23,51 @@ export interface ReleaseMediaRelationship {
 export interface CreateReleaseMediaRelationshipModalProps {
   title: string;
   dependentEntityName: string;
-  dependentEntities: DependentEntity[];
+  dependentEntityOptions: DependentEntity[];
   open?: boolean;
   releaseMediaRelationship?: ReleaseMediaRelationship;
   onOk: (releaseMediaRelationship: ReleaseMediaRelationship, resetFormFields: () => void) => void;
   onCancel: () => void;
-  onSearchDependentEntities: (name?: string) => void;
+  onSearchDependentEntityOptions: (displayNameFilter?: string) => void;
 }
 
 const CreateReleaseMediaRelationshipModal = ({
   title,
   dependentEntityName,
-  dependentEntities,
+  dependentEntityOptions,
   open,
   releaseMediaRelationship,
   onOk: onModalOk,
   onCancel: onModalCancel,
-  onSearchDependentEntities,
+  onSearchDependentEntityOptions,
 }: CreateReleaseMediaRelationshipModalProps) => {
-  const [dependentEntityId, setDependentEntityId] = useState<string>(EmptyGuidString);
-
-  const [form] = Form.useForm();
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(releaseMediaRelationship, mapReleaseMediaRelationshipModalFormInitialValues, mergeReleaseMediaRelationshipModalFormValues, onModalOk),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
 
   useEffect(() => {
     form.resetFields();
-    setDependentEntityId(releaseMediaRelationship?.dependentEntityId ?? EmptyGuidString);
   }, [releaseMediaRelationship, form]);
 
-  const onOk = () => {
+  const onOk = useCallback(() => {
     form.submit();
-  };
+  }, [form]);
 
-  const onCancel = () => {
+  const onCancel = useCallback(() => {
     onModalCancel();
     form.resetFields();
-  };
-
-  const onFinish = (releaseMediaRelationship: Store) => {
-    const mediaNumber = releaseMediaRelationship.mediaNumber as string;
-    releaseMediaRelationship.mediaNumber = parseInt(mediaNumber);
-
-    const releaseMediaRelationshipModel = { ...(releaseMediaRelationship as ReleaseMediaRelationship), dependentEntityId };
-    releaseMediaRelationshipModel.name = releaseMediaRelationshipModel.name?.trim();
-    releaseMediaRelationshipModel.description = releaseMediaRelationshipModel.description?.trim();
-    if (releaseMediaRelationshipModel.description !== undefined && releaseMediaRelationshipModel.description.length === 0) {
-      releaseMediaRelationshipModel.description = undefined;
-    }
-    onModalOk(releaseMediaRelationshipModel, () => form.resetFields());
-  };
-
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
-  };
-
-  const dependentEntityFilterSort = (option: { value: string; label: string }, optionToCompare: { value: string; label: string }) => {
-    return (option?.label ?? "").toUpperCase().localeCompare((optionToCompare?.label ?? "").toUpperCase());
-  };
-
-  const dependentEntityFilterOption = (name: string, option: { value: string; label: string } | undefined) => {
-    return (option?.label ?? "").toUpperCase().includes(name.toUpperCase());
-  };
-
-  const onDependentEntitySearch = (name: string) => {
-    onSearchDependentEntities(name);
-  };
-
-  const onDependentEntityChange = (id: string) => {
-    onSearchDependentEntities();
-    setDependentEntityId(id);
-  };
+  }, [onModalCancel, form]);
 
   return (
     <Modal forceRender open={open} title={title} onOk={onOk} onCancel={onCancel}>
       <Form
         form={form}
-        initialValues={releaseMediaRelationship}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
+        initialValues={initialFormValues}
+        onFinish={onFormFinish}
+        onFinishFailed={onFormFinishFailed}
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
       >
@@ -108,10 +81,17 @@ const CreateReleaseMediaRelationshipModal = ({
         >
           <Input />
         </Form.Item>
-        <Form.Item label="Name" name="name" rules={[{ required: true, message: "The 'Name' property must not be empty." }]}>
+        <Form.Item
+          label="Name"
+          name="name"
+          rules={[
+            { required: true, message: "The 'Name' property must not be empty." },
+            { max: 256, message: "The 'Name' property must be shorter than 256 characters." },
+          ]}
+        >
           <Input />
         </Form.Item>
-        <Form.Item label="Description" name="description">
+        <Form.Item label="Description" name="description" rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}>
           <Input.TextArea />
         </Form.Item>
         <Form.Item
@@ -119,16 +99,9 @@ const CreateReleaseMediaRelationshipModal = ({
           name="dependentEntityId"
           rules={[{ required: true, message: `The '${dependentEntityName}' property must not be empty.` }]}
         >
-          <Select
-            showSearch
-            placeholder="Search"
-            filterSort={dependentEntityFilterSort}
-            filterOption={dependentEntityFilterOption}
-            value={dependentEntityId}
-            options={dependentEntities.map(({ id, name }) => ({ value: id, label: name }))}
-            optionFilterProp="label"
-            onSearch={onDependentEntitySearch}
-            onChange={onDependentEntityChange}
+          <EntitySelect
+            options={dependentEntityOptions.map((dependentEntity) => ({ value: dependentEntity.id, label: dependentEntity.displayName }))}
+            onSearch={onSearchDependentEntityOptions}
           />
         </Form.Item>
       </Form>
