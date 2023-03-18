@@ -53,6 +53,15 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
     );
   }, [releaseTrackToWorkRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalReleaseTrackRelationship) {
+      applicationClient
+        .getWorks([modalReleaseTrackRelationship.dependentEntityId])
+        .then((works) => setModalWorks(works))
+        .catch((error) => alert(error));
+    }
+  }, [modalReleaseTrackRelationship, applicationClient]);
+
   const fetchModalWorks = useCallback(() => {
     applicationClient
       .getPagedWorks(20, 0, modalTitleFilter, undefined)
@@ -183,12 +192,12 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
       <CreateReleaseTrackRelationshipModal
         title="Create Release-Track-to-Work Relationship"
         dependentEntityName="Work"
-        dependentEntities={modalWorks.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalWorks.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         releaseTrackRelationship={modalReleaseTrackRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

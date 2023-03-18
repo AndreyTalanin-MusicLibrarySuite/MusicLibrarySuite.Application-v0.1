@@ -53,6 +53,15 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
     );
   }, [releaseTrackToProductRelationships, navigate]);
 
+  useEffect(() => {
+    if (modalReleaseTrackRelationship) {
+      applicationClient
+        .getProducts([modalReleaseTrackRelationship.dependentEntityId])
+        .then((products) => setModalProducts(products))
+        .catch((error) => alert(error));
+    }
+  }, [modalReleaseTrackRelationship, applicationClient]);
+
   const fetchModalProducts = useCallback(() => {
     applicationClient
       .getPagedProducts(20, 0, modalTitleFilter, undefined)
@@ -186,12 +195,12 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
       <CreateReleaseTrackRelationshipModal
         title="Create Release-Track-to-Product Relationship"
         dependentEntityName="Product"
-        dependentEntities={modalProducts.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalProducts.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         releaseTrackRelationship={modalReleaseTrackRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );
