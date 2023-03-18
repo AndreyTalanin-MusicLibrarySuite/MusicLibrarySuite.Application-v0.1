@@ -1,4 +1,4 @@
-import { EntityRelationship } from "../../components/modals/CreateEntityRelationshipModal";
+import { EntityRelationship } from "../../components/modals/EditEntityRelationshipModal";
 
 export default interface EntityRelationshipModalFormValues {
   name: string;

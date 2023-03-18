@@ -5,7 +5,7 @@ import { mapReleaseMediaModalFormInitialValues, mergeReleaseMediaModalFormValues
 import useEntityForm from "../../hooks/useEntityForm";
 import "antd/dist/antd.min.css";
 
-export interface CreateReleaseMediaModalProps {
+export interface EditReleaseMediaModalProps {
   edit?: boolean;
   open?: boolean;
   releaseMedia?: ReleaseMedia;
@@ -13,7 +13,7 @@ export interface CreateReleaseMediaModalProps {
   onCancel: () => void;
 }
 
-const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCancel: onModalCancel }: CreateReleaseMediaModalProps) => {
+const EditReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCancel: onModalCancel }: EditReleaseMediaModalProps) => {
   const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
     ...useEntityForm(releaseMedia, mapReleaseMediaModalFormInitialValues, mergeReleaseMediaModalFormValues, onModalOk),
     () => {
@@ -107,4 +107,4 @@ const CreateReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, on
   );
 };
 
-export default CreateReleaseMediaModal;
+export default EditReleaseMediaModal;

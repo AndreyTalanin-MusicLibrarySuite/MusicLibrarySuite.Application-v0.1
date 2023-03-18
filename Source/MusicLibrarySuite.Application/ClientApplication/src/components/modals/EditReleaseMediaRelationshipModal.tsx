@@ -20,7 +20,7 @@ export interface ReleaseMediaRelationship {
   dependentEntityId: string;
 }
 
-export interface CreateReleaseMediaRelationshipModalProps {
+export interface EditReleaseMediaRelationshipModalProps {
   title: string;
   dependentEntityName: string;
   dependentEntityOptions: DependentEntity[];
@@ -31,7 +31,7 @@ export interface CreateReleaseMediaRelationshipModalProps {
   onSearchDependentEntityOptions: (displayNameFilter?: string) => void;
 }
 
-const CreateReleaseMediaRelationshipModal = ({
+const EditReleaseMediaRelationshipModal = ({
   title,
   dependentEntityName,
   dependentEntityOptions,
@@ -40,7 +40,7 @@ const CreateReleaseMediaRelationshipModal = ({
   onOk: onModalOk,
   onCancel: onModalCancel,
   onSearchDependentEntityOptions,
-}: CreateReleaseMediaRelationshipModalProps) => {
+}: EditReleaseMediaRelationshipModalProps) => {
   const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
     ...useEntityForm(releaseMediaRelationship, mapReleaseMediaRelationshipModalFormInitialValues, mergeReleaseMediaRelationshipModalFormValues, onModalOk),
     () => {
@@ -109,4 +109,4 @@ const CreateReleaseMediaRelationshipModal = ({
   );
 };
 
-export default CreateReleaseMediaRelationshipModal;
+export default EditReleaseMediaRelationshipModal;

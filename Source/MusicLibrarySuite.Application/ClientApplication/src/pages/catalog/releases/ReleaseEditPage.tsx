@@ -36,8 +36,8 @@ import {
 } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
-import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
-import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
+import EditReleaseMediaModal from "../../../components/modals/EditReleaseMediaModal";
+import EditReleaseTrackModal from "../../../components/modals/EditReleaseTrackModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import { formatReleaseMediaNumber, getReleaseMediaKey, getReleaseMediaKeyByComponents } from "../../../helpers/ReleaseMediaHelpers";
 import { formatReleaseTrackNumber, getReleaseTrackKey, getReleaseTrackKeyByComponents } from "../../../helpers/ReleaseTrackHelpers";
@@ -1229,7 +1229,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         />
       )}
       {release && (
-        <CreateReleaseMediaModal
+        <EditReleaseMediaModal
           edit
           open={createReleaseMediaModalOpen}
           releaseMedia={releaseMediaToEdit}
@@ -1238,7 +1238,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         />
       )}
       {release && (
-        <CreateReleaseTrackModal
+        <EditReleaseTrackModal
           edit
           open={createReleaseTrackModalOpen}
           releaseTrack={releaseTrackToEdit}

@@ -7,7 +7,7 @@ import useEntityForm from "../../hooks/useEntityForm";
 import EntitySelect from "../inputs/EntitySelect";
 import "antd/dist/antd.min.css";
 
-export interface CreateReleaseTrackModalProps {
+export interface EditReleaseTrackModalProps {
   edit?: boolean;
   open?: boolean;
   releaseTrack?: ReleaseTrack;
@@ -15,7 +15,7 @@ export interface CreateReleaseTrackModalProps {
   onCancel: () => void;
 }
 
-const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCancel: onModalCancel }: CreateReleaseTrackModalProps) => {
+const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCancel: onModalCancel }: EditReleaseTrackModalProps) => {
   const [releaseTrackArtistOptions, setReleaseTrackArtistOptions] = useState<Artist[]>([]);
   const [releaseTrackFeaturedArtistOptions, setReleaseTrackFeaturedArtistOptions] = useState<Artist[]>([]);
   const [releaseTrackPerformerOptions, setReleaseTrackPerformerOptions] = useState<Artist[]>([]);
@@ -281,4 +281,4 @@ const CreateReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, on
   );
 };
 
-export default CreateReleaseTrackModal;
+export default EditReleaseTrackModal;

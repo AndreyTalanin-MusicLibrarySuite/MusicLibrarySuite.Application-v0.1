@@ -1,9 +1,6 @@
 import { Form, Input, Modal } from "antd";
 import { useCallback, useEffect } from "react";
-import {
-  mapReleaseTrackRelationshipModalFormInitialValues,
-  mergeReleaseTrackRelationshipModalFormValues,
-} from "../../entities/forms/ReleaseTrackRelationshipModalFormValues";
+import { mapEntityRelationshipModalFormInitialValues, mergeEntityRelationshipModalFormValues } from "../../entities/forms/EntityRelationshipModalFormValues";
 import useEntityForm from "../../hooks/useEntityForm";
 import EntitySelect from "../inputs/EntitySelect";
 import "antd/dist/antd.min.css";
@@ -13,37 +10,35 @@ export interface DependentEntity {
   displayName: string;
 }
 
-export interface ReleaseTrackRelationship {
-  trackNumber: number;
-  mediaNumber: number;
+export interface EntityRelationship {
   name: string;
   description?: string;
   dependentEntityId: string;
 }
 
-export interface CreateReleaseTrackRelationshipModalProps {
+export interface EditEntityRelationshipModalProps {
   title: string;
   dependentEntityName: string;
   dependentEntityOptions: DependentEntity[];
   open?: boolean;
-  releaseTrackRelationship?: ReleaseTrackRelationship;
-  onOk: (releaseTrackRelationship: ReleaseTrackRelationship, resetFormFields: () => void) => void;
+  entityRelationship?: EntityRelationship;
+  onOk: (entityRelationship: EntityRelationship, resetFormFields: () => void) => void;
   onCancel: () => void;
   onSearchDependentEntityOptions: (displayNameFilter?: string) => void;
 }
 
-const CreateReleaseTrackRelationshipModal = ({
+const EditEntityRelationshipModal = ({
   title,
   dependentEntityName,
   dependentEntityOptions,
   open,
-  releaseTrackRelationship,
+  entityRelationship,
   onOk: onModalOk,
   onCancel: onModalCancel,
   onSearchDependentEntityOptions,
-}: CreateReleaseTrackRelationshipModalProps) => {
+}: EditEntityRelationshipModalProps) => {
   const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
-    ...useEntityForm(releaseTrackRelationship, mapReleaseTrackRelationshipModalFormInitialValues, mergeReleaseTrackRelationshipModalFormValues, onModalOk),
+    ...useEntityForm(entityRelationship, mapEntityRelationshipModalFormInitialValues, mergeEntityRelationshipModalFormValues, onModalOk),
     () => {
       alert("Form validation failed. Please ensure that you have filled all the required fields.");
     },
@@ -51,7 +46,7 @@ const CreateReleaseTrackRelationshipModal = ({
 
   useEffect(() => {
     form.resetFields();
-  }, [releaseTrackRelationship, form]);
+  }, [entityRelationship, form]);
 
   const onOk = useCallback(() => {
     form.submit();
@@ -72,26 +67,6 @@ const CreateReleaseTrackRelationshipModal = ({
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
       >
-        <Form.Item
-          label="Track Number"
-          name="trackNumber"
-          rules={[
-            { required: true, message: "The 'Track Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]+$/), message: "The 'Track Number' property must be a number." },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Media Number"
-          name="mediaNumber"
-          rules={[
-            { required: true, message: "The 'Media Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]+$/), message: "The 'Media Number' property must be a number." },
-          ]}
-        >
-          <Input />
-        </Form.Item>
         <Form.Item
           label="Name"
           name="name"
@@ -120,4 +95,4 @@ const CreateReleaseTrackRelationshipModal = ({
   );
 };
 
-export default CreateReleaseTrackRelationshipModal;
+export default EditEntityRelationshipModal;

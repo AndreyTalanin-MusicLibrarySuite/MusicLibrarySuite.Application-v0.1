@@ -2,9 +2,9 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Product, Release, ReleaseMediaToProductRelationship } from "../../../api/ApplicationClient";
-import CreateReleaseMediaRelationshipModal, {
+import EditReleaseMediaRelationshipModal, {
   ReleaseMediaRelationship as ModalReleaseMediaRelationship,
-} from "../../../components/modals/CreateReleaseMediaRelationshipModal";
+} from "../../../components/modals/EditReleaseMediaRelationshipModal";
 import ReleaseMediaRelationshipTable, {
   ReleaseMediaRelationship as TableReleaseMediaRelationship,
 } from "../../../components/tables/ReleaseMediaRelationshipTable";
@@ -187,7 +187,7 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
         onReleaseMediaRelationshipDelete={onReleaseMediaToProductRelationshipDelete}
         onReleaseMediaRelationshipsChange={onReleaseMediaRelationshipsChange}
       />
-      <CreateReleaseMediaRelationshipModal
+      <EditReleaseMediaRelationshipModal
         title="Create Release-Media-to-Product Relationship"
         dependentEntityName="Product"
         dependentEntityOptions={modalProducts.map(({ id, title }) => ({ id, displayName: title }))}

@@ -2,9 +2,9 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Release, ReleaseTrackToWorkRelationship, Work } from "../../../api/ApplicationClient";
-import CreateReleaseTrackRelationshipModal, {
+import EditReleaseTrackRelationshipModal, {
   ReleaseTrackRelationship as ModalReleaseTrackRelationship,
-} from "../../../components/modals/CreateReleaseTrackRelationshipModal";
+} from "../../../components/modals/EditReleaseTrackRelationshipModal";
 import ReleaseTrackRelationshipTable, {
   ReleaseTrackRelationship as TableReleaseTrackRelationship,
 } from "../../../components/tables/ReleaseTrackRelationshipTable";
@@ -189,7 +189,7 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
         onReleaseTrackRelationshipDelete={onReleaseTrackToWorkRelationshipDelete}
         onReleaseTrackRelationshipsChange={onReleaseTrackRelationshipsChange}
       />
-      <CreateReleaseTrackRelationshipModal
+      <EditReleaseTrackRelationshipModal
         title="Create Release-Track-to-Work Relationship"
         dependentEntityName="Work"
         dependentEntityOptions={modalWorks.map(({ id, title }) => ({ id, displayName: title }))}

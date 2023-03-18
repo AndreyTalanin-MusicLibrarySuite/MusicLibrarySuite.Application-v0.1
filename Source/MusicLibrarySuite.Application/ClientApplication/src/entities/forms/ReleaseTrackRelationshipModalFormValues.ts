@@ -1,4 +1,4 @@
-import { ReleaseTrackRelationship } from "../../components/modals/CreateReleaseTrackRelationshipModal";
+import { ReleaseTrackRelationship } from "../../components/modals/EditReleaseTrackRelationshipModal";
 
 export default interface ReleaseTrackRelationshipModalFormValues {
   trackNumber: string;

@@ -1,4 +1,4 @@
-import { ReleaseMediaRelationship } from "../../components/modals/CreateReleaseMediaRelationshipModal";
+import { ReleaseMediaRelationship } from "../../components/modals/EditReleaseMediaRelationshipModal";
 
 export default interface ReleaseMediaRelationshipModalFormValues {
   mediaNumber: string;

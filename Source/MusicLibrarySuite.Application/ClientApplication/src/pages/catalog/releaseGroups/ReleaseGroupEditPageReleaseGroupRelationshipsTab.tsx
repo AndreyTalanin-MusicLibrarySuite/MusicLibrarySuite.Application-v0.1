@@ -2,7 +2,7 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ReleaseGroup, ReleaseGroupRelationship } from "../../../api/ApplicationClient";
-import CreateEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/CreateEntityRelationshipModal";
+import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./ReleaseGroupEditPageReleaseGroupRelationshipsTab.module.css";
@@ -168,7 +168,7 @@ const ReleaseGroupEditPageReleaseGroupRelationshipsTab = ({
         onEntityRelationshipDelete={onReleaseGroupRelationshipDelete}
         onEntityRelationshipsChange={onEntityRelationshipsChange}
       />
-      <CreateEntityRelationshipModal
+      <EditEntityRelationshipModal
         title="Create Release Group Relationship"
         dependentEntityName="Dependent Release Group"
         dependentEntityOptions={modalDependentReleaseGroups.map(({ id, title }) => ({ id, displayName: title }))}

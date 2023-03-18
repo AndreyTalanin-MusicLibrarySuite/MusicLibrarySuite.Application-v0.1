@@ -2,9 +2,9 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Product, Release, ReleaseTrackToProductRelationship } from "../../../api/ApplicationClient";
-import CreateReleaseTrackRelationshipModal, {
+import EditReleaseTrackRelationshipModal, {
   ReleaseTrackRelationship as ModalReleaseTrackRelationship,
-} from "../../../components/modals/CreateReleaseTrackRelationshipModal";
+} from "../../../components/modals/EditReleaseTrackRelationshipModal";
 import ReleaseTrackRelationshipTable, {
   ReleaseTrackRelationship as TableReleaseTrackRelationship,
 } from "../../../components/tables/ReleaseTrackRelationshipTable";
@@ -192,7 +192,7 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
         onReleaseTrackRelationshipDelete={onReleaseTrackToProductRelationshipDelete}
         onReleaseTrackRelationshipsChange={onReleaseTrackRelationshipsChange}
       />
-      <CreateReleaseTrackRelationshipModal
+      <EditReleaseTrackRelationshipModal
         title="Create Release-Track-to-Product Relationship"
         dependentEntityName="Product"
         dependentEntityOptions={modalProducts.map(({ id, title }) => ({ id, displayName: title }))}
