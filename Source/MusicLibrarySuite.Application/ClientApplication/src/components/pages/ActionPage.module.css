@@ -1,0 +1,11 @@
+.page {
+  width: 100%;
+}
+
+.pageHeader {
+  width: 100%;
+}
+
+.pageHeader *:last-child {
+  margin-left: auto;
+}
