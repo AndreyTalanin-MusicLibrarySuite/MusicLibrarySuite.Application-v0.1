@@ -3,10 +3,10 @@ import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-des
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Artist } from "../../../api/ApplicationClient";
+import ActionPage from "../../../components/pages/ActionPage";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ArtistViewPageArtistRelationshipsTab from "./ArtistViewPageArtistRelationshipsTab";
-import styles from "./ArtistViewPage.module.css";
 import "antd/dist/antd.min.css";
 
 const { Paragraph, Text, Title } = Typography;
@@ -19,7 +19,7 @@ const ArtistViewPage = () => {
   const [id] = useQueryStringId(true);
   const applicationClient = useApplicationClient();
 
-  const fetchArtist = useCallback(() => {
+  useEffect(() => {
     if (id) {
       applicationClient
         .getArtist(id)
@@ -32,17 +32,31 @@ const ArtistViewPage = () => {
     }
   }, [id, applicationClient]);
 
-  useEffect(() => {
-    fetchArtist();
-  }, [fetchArtist]);
-
-  const onEditButtonClick = () => {
+  const onEditButtonClick = useCallback(() => {
     navigate(`/catalog/artists/edit?id=${id}`);
-  };
+  }, [navigate, id]);
 
-  const onCancelButtonClick = () => {
+  const onCancelButtonClick = useCallback(() => {
     navigate("/catalog/artists/list");
-  };
+  }, [navigate]);
+
+  const title = <Title level={4}>View Artist</Title>;
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" onClick={onEditButtonClick}>
+          <EditOutlined />
+          Edit
+        </Button>
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Back to Artist List
+        </Button>
+      </>
+    ),
+    [onEditButtonClick, onCancelButtonClick]
+  );
 
   const tabs = useMemo(
     () => [
@@ -56,18 +70,7 @@ const ArtistViewPage = () => {
   );
 
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Title level={4}>View Artist</Title>
-        <Button type="primary" onClick={onEditButtonClick}>
-          <EditOutlined />
-          Edit
-        </Button>
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Back to Artist List
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons}>
       {artist && (
         <Card
           title={
@@ -86,7 +89,7 @@ const ArtistViewPage = () => {
           {artist.description && <Paragraph>{artist.description}</Paragraph>}
           {artist.artistGenres && artist.artistGenres.length > 0 && (
             <Paragraph>
-              Artist Genres:{" "}
+              Genres:{" "}
               {artist.artistGenres.map((artistGenre, index, array) => (
                 <>
                   <Typography.Link key={artistGenre.genreId} href={`/catalog/genres/view?id=${artistGenre.genreId}`}>
@@ -110,8 +113,8 @@ const ArtistViewPage = () => {
           )}
         </Card>
       )}
-      {artist && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 

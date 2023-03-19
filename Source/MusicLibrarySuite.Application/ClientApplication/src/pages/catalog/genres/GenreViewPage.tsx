@@ -3,10 +3,10 @@ import { EditOutlined, RollbackOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Genre } from "../../../api/ApplicationClient";
+import ActionPage from "../../../components/pages/ActionPage";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import GenreViewPageGenreRelationshipsTab from "./GenreViewPageGenreRelationshipsTab";
-import styles from "./GenreViewPage.module.css";
 import "antd/dist/antd.min.css";
 
 const { Paragraph, Text, Title } = Typography;
@@ -19,7 +19,7 @@ const GenreViewPage = () => {
   const [id] = useQueryStringId(true);
   const applicationClient = useApplicationClient();
 
-  const fetchGenre = useCallback(() => {
+  useEffect(() => {
     if (id) {
       applicationClient
         .getGenre(id)
@@ -32,17 +32,31 @@ const GenreViewPage = () => {
     }
   }, [id, applicationClient]);
 
-  useEffect(() => {
-    fetchGenre();
-  }, [fetchGenre]);
-
-  const onEditButtonClick = () => {
+  const onEditButtonClick = useCallback(() => {
     navigate(`/catalog/genres/edit?id=${id}`);
-  };
+  }, [navigate, id]);
 
-  const onCancelButtonClick = () => {
+  const onCancelButtonClick = useCallback(() => {
     navigate("/catalog/genres/list");
-  };
+  }, [navigate]);
+
+  const title = <Title level={4}>View Genre</Title>;
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" onClick={onEditButtonClick}>
+          <EditOutlined />
+          Edit
+        </Button>
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Back to Genre List
+        </Button>
+      </>
+    ),
+    [onEditButtonClick, onCancelButtonClick]
+  );
 
   const tabs = useMemo(
     () => [
@@ -56,18 +70,7 @@ const GenreViewPage = () => {
   );
 
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Title level={4}>View Genre</Title>
-        <Button type="primary" onClick={onEditButtonClick}>
-          <EditOutlined />
-          Edit
-        </Button>
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Back to Genre List
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons}>
       {genre && (
         <Card
           title={
@@ -96,8 +99,8 @@ const GenreViewPage = () => {
           )}
         </Card>
       )}
-      {genre && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 
