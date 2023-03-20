@@ -3,8 +3,8 @@ import { EditOutlined, MonitorOutlined, QuestionCircleOutlined, RollbackOutlined
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Release, ReleaseMedia, ReleaseTrack } from "../../../api/ApplicationClient";
-import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
-import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
+import EditReleaseMediaModal from "../../../components/modals/EditReleaseMediaModal";
+import EditReleaseTrackModal from "../../../components/modals/EditReleaseTrackModal";
 import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
 import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -345,7 +345,7 @@ const ReleaseViewPage = () => {
         {release && <Tabs items={tabs} />}
       </Space>
       {release && (
-        <CreateReleaseMediaModal
+        <EditReleaseMediaModal
           open={viewReleaseMediaModalOpen}
           releaseMedia={releaseMediaToView}
           onOk={() => setViewReleaseMediaModalOpen(false)}
@@ -353,7 +353,7 @@ const ReleaseViewPage = () => {
         />
       )}
       {release && (
-        <CreateReleaseTrackModal
+        <EditReleaseTrackModal
           open={viewReleaseTrackModalOpen}
           releaseTrack={releaseTrackToView}
           onOk={() => setViewReleaseTrackModalOpen(false)}

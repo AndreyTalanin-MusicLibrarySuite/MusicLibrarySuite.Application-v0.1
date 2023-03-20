@@ -184,22 +184,20 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
   };
 
   const fetchArtistGenreOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedGenres(20, 0, nameFilter, undefined)
         .then((genreResponse) => {
-          setLoading(false);
           setArtistGenreOptions(genreResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchArtistGenreOptions(undefined, () => void 0), [fetchArtistGenreOptions]);
+  useEffect(() => fetchArtistGenreOptions(undefined), [fetchArtistGenreOptions]);
 
   const tabs = useMemo(
     () => [

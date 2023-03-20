@@ -36,8 +36,8 @@ import {
 } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
-import CreateReleaseMediaModal from "../../../components/modals/CreateReleaseMediaModal";
-import CreateReleaseTrackModal from "../../../components/modals/CreateReleaseTrackModal";
+import EditReleaseMediaModal from "../../../components/modals/EditReleaseMediaModal";
+import EditReleaseTrackModal from "../../../components/modals/EditReleaseTrackModal";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
 import { formatReleaseMediaNumber, getReleaseMediaKey, getReleaseMediaKeyByComponents } from "../../../helpers/ReleaseMediaHelpers";
 import { formatReleaseTrackNumber, getReleaseTrackKey, getReleaseTrackKeyByComponents } from "../../../helpers/ReleaseTrackHelpers";
@@ -701,94 +701,84 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   };
 
   const fetchReleaseArtistOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleaseArtistOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseArtistOptions(undefined, () => void 0), [fetchReleaseArtistOptions]);
+  useEffect(() => fetchReleaseArtistOptions(undefined), [fetchReleaseArtistOptions]);
 
   const fetchReleaseFeaturedArtistOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleaseFeaturedArtistOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseFeaturedArtistOptions(undefined, () => void 0), [fetchReleaseFeaturedArtistOptions]);
+  useEffect(() => fetchReleaseFeaturedArtistOptions(undefined), [fetchReleaseFeaturedArtistOptions]);
 
   const fetchReleasePerformerOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleasePerformerOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleasePerformerOptions(undefined, () => void 0), [fetchReleasePerformerOptions]);
+  useEffect(() => fetchReleasePerformerOptions(undefined), [fetchReleasePerformerOptions]);
 
   const fetchReleaseComposerOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setReleaseComposerOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseComposerOptions(undefined, () => void 0), [fetchReleaseComposerOptions]);
+  useEffect(() => fetchReleaseComposerOptions(undefined), [fetchReleaseComposerOptions]);
 
   const fetchReleaseGenreOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedGenres(20, 0, nameFilter, undefined)
         .then((genreResponse) => {
-          setLoading(false);
           setReleaseGenreOptions(genreResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchReleaseGenreOptions(undefined, () => void 0), [fetchReleaseGenreOptions]);
+  useEffect(() => fetchReleaseGenreOptions(undefined), [fetchReleaseGenreOptions]);
 
   const releaseTrackTableColumns = [
     {
@@ -1239,7 +1229,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         />
       )}
       {release && (
-        <CreateReleaseMediaModal
+        <EditReleaseMediaModal
           edit
           open={createReleaseMediaModalOpen}
           releaseMedia={releaseMediaToEdit}
@@ -1248,7 +1238,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         />
       )}
       {release && (
-        <CreateReleaseTrackModal
+        <EditReleaseTrackModal
           edit
           open={createReleaseTrackModalOpen}
           releaseTrack={releaseTrackToEdit}

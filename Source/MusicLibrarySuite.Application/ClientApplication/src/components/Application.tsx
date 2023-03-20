@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { BrowserRouter } from "react-router-dom";
 import ApplicationLayout from "./ApplicationLayout";
-import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
-import ApplicationPageDescriptor from "../entities/ApplicationPageDescriptor";
+import ApplicationMenuItemDescriptor from "../entities/application/ApplicationMenuItemDescriptor";
+import ApplicationPageDescriptor from "../entities/application/ApplicationPageDescriptor";
 import ArtistEditPage, { ArtistEditPageMode } from "../pages/catalog/artists/ArtistEditPage";
 import ArtistListPage from "../pages/catalog/artists/ArtistListPage";
 import ArtistViewPage from "../pages/catalog/artists/ArtistViewPage";
@@ -81,41 +81,31 @@ const applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[] = [
 ];
 
 const Application = () => {
-  const [routes, setRoutes] = useState<React.ReactNode[]>();
-
-  useEffect(() => {
-    setRoutes(
-      applicationPageDescriptors
-        .filter((applicationPageDescriptor) => applicationPageDescriptor.componentFactory)
-        .map((applicationPageDescriptor, index) => {
-          const { path, componentFactory } = applicationPageDescriptor;
-          return (
-            <Route
-              key={index}
-              path={path}
-              element={
-                <ApplicationLayout
-                  currentApplicationPage={(componentFactory as () => React.ReactNode)()}
-                  applicationPageDescriptors={applicationPageDescriptors}
-                  applicationMenuItemDescriptors={applicationMenuItemDescriptors}
-                />
-              }
-            />
-          );
-        })
-    );
-  }, []);
-
   return (
     <>
-      {routes && (
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            {routes}
-          </Routes>
-        </BrowserRouter>
-      )}
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          {applicationPageDescriptors
+            .filter((applicationPageDescriptor) => applicationPageDescriptor.componentFactory)
+            .map((applicationPageDescriptor, index) => {
+              const { path, componentFactory } = applicationPageDescriptor;
+              return (
+                <Route
+                  key={index}
+                  path={path}
+                  element={
+                    <ApplicationLayout
+                      currentApplicationPage={(componentFactory as () => React.ReactNode)()}
+                      applicationPageDescriptors={applicationPageDescriptors}
+                      applicationMenuItemDescriptors={applicationMenuItemDescriptors}
+                    />
+                  }
+                />
+              );
+            })}
+        </Routes>
+      </BrowserRouter>
     </>
   );
 };

@@ -3908,15 +3908,15 @@ export class Release implements IRelease {
   enabled!: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseMediaCollection!: ReleaseMedia[];
   releaseRelationships!: ReleaseRelationship[];
+  releaseToProductRelationships!: ReleaseToProductRelationship[];
+  releaseToReleaseGroupRelationships!: ReleaseToReleaseGroupRelationship[];
   releaseArtists!: ReleaseArtist[];
   releaseFeaturedArtists!: ReleaseFeaturedArtist[];
   releasePerformers!: ReleasePerformer[];
   releaseComposers!: ReleaseComposer[];
   releaseGenres!: ReleaseGenre[];
-  releaseToProductRelationships!: ReleaseToProductRelationship[];
-  releaseToReleaseGroupRelationships!: ReleaseToReleaseGroupRelationship[];
-  releaseMediaCollection!: ReleaseMedia[];
 
   constructor(data?: IRelease) {
     if (data) {
@@ -3925,15 +3925,15 @@ export class Release implements IRelease {
       }
     }
     if (!data) {
+      this.releaseMediaCollection = [];
       this.releaseRelationships = [];
+      this.releaseToProductRelationships = [];
+      this.releaseToReleaseGroupRelationships = [];
       this.releaseArtists = [];
       this.releaseFeaturedArtists = [];
       this.releasePerformers = [];
       this.releaseComposers = [];
       this.releaseGenres = [];
-      this.releaseToProductRelationships = [];
-      this.releaseToReleaseGroupRelationships = [];
-      this.releaseMediaCollection = [];
     }
   }
 
@@ -3952,9 +3952,22 @@ export class Release implements IRelease {
       this.enabled = _data["enabled"];
       this.createdOn = _data["createdOn"] ? new Date(_data["createdOn"].toString()) : <any>undefined;
       this.updatedOn = _data["updatedOn"] ? new Date(_data["updatedOn"].toString()) : <any>undefined;
+      if (Array.isArray(_data["releaseMediaCollection"])) {
+        this.releaseMediaCollection = [] as any;
+        for (let item of _data["releaseMediaCollection"]) this.releaseMediaCollection!.push(ReleaseMedia.fromJS(item));
+      }
       if (Array.isArray(_data["releaseRelationships"])) {
         this.releaseRelationships = [] as any;
         for (let item of _data["releaseRelationships"]) this.releaseRelationships!.push(ReleaseRelationship.fromJS(item));
+      }
+      if (Array.isArray(_data["releaseToProductRelationships"])) {
+        this.releaseToProductRelationships = [] as any;
+        for (let item of _data["releaseToProductRelationships"]) this.releaseToProductRelationships!.push(ReleaseToProductRelationship.fromJS(item));
+      }
+      if (Array.isArray(_data["releaseToReleaseGroupRelationships"])) {
+        this.releaseToReleaseGroupRelationships = [] as any;
+        for (let item of _data["releaseToReleaseGroupRelationships"])
+          this.releaseToReleaseGroupRelationships!.push(ReleaseToReleaseGroupRelationship.fromJS(item));
       }
       if (Array.isArray(_data["releaseArtists"])) {
         this.releaseArtists = [] as any;
@@ -3975,19 +3988,6 @@ export class Release implements IRelease {
       if (Array.isArray(_data["releaseGenres"])) {
         this.releaseGenres = [] as any;
         for (let item of _data["releaseGenres"]) this.releaseGenres!.push(ReleaseGenre.fromJS(item));
-      }
-      if (Array.isArray(_data["releaseToProductRelationships"])) {
-        this.releaseToProductRelationships = [] as any;
-        for (let item of _data["releaseToProductRelationships"]) this.releaseToProductRelationships!.push(ReleaseToProductRelationship.fromJS(item));
-      }
-      if (Array.isArray(_data["releaseToReleaseGroupRelationships"])) {
-        this.releaseToReleaseGroupRelationships = [] as any;
-        for (let item of _data["releaseToReleaseGroupRelationships"])
-          this.releaseToReleaseGroupRelationships!.push(ReleaseToReleaseGroupRelationship.fromJS(item));
-      }
-      if (Array.isArray(_data["releaseMediaCollection"])) {
-        this.releaseMediaCollection = [] as any;
-        for (let item of _data["releaseMediaCollection"]) this.releaseMediaCollection!.push(ReleaseMedia.fromJS(item));
       }
     }
   }
@@ -4014,9 +4014,21 @@ export class Release implements IRelease {
     data["enabled"] = this.enabled;
     data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>undefined;
     data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>undefined;
+    if (Array.isArray(this.releaseMediaCollection)) {
+      data["releaseMediaCollection"] = [];
+      for (let item of this.releaseMediaCollection) data["releaseMediaCollection"].push(item.toJSON());
+    }
     if (Array.isArray(this.releaseRelationships)) {
       data["releaseRelationships"] = [];
       for (let item of this.releaseRelationships) data["releaseRelationships"].push(item.toJSON());
+    }
+    if (Array.isArray(this.releaseToProductRelationships)) {
+      data["releaseToProductRelationships"] = [];
+      for (let item of this.releaseToProductRelationships) data["releaseToProductRelationships"].push(item.toJSON());
+    }
+    if (Array.isArray(this.releaseToReleaseGroupRelationships)) {
+      data["releaseToReleaseGroupRelationships"] = [];
+      for (let item of this.releaseToReleaseGroupRelationships) data["releaseToReleaseGroupRelationships"].push(item.toJSON());
     }
     if (Array.isArray(this.releaseArtists)) {
       data["releaseArtists"] = [];
@@ -4038,18 +4050,6 @@ export class Release implements IRelease {
       data["releaseGenres"] = [];
       for (let item of this.releaseGenres) data["releaseGenres"].push(item.toJSON());
     }
-    if (Array.isArray(this.releaseToProductRelationships)) {
-      data["releaseToProductRelationships"] = [];
-      for (let item of this.releaseToProductRelationships) data["releaseToProductRelationships"].push(item.toJSON());
-    }
-    if (Array.isArray(this.releaseToReleaseGroupRelationships)) {
-      data["releaseToReleaseGroupRelationships"] = [];
-      for (let item of this.releaseToReleaseGroupRelationships) data["releaseToReleaseGroupRelationships"].push(item.toJSON());
-    }
-    if (Array.isArray(this.releaseMediaCollection)) {
-      data["releaseMediaCollection"] = [];
-      for (let item of this.releaseMediaCollection) data["releaseMediaCollection"].push(item.toJSON());
-    }
     return data;
   }
 }
@@ -4068,15 +4068,15 @@ export interface IRelease {
   enabled: boolean;
   createdOn?: Date;
   updatedOn?: Date;
+  releaseMediaCollection: ReleaseMedia[];
   releaseRelationships: ReleaseRelationship[];
+  releaseToProductRelationships: ReleaseToProductRelationship[];
+  releaseToReleaseGroupRelationships: ReleaseToReleaseGroupRelationship[];
   releaseArtists: ReleaseArtist[];
   releaseFeaturedArtists: ReleaseFeaturedArtist[];
   releasePerformers: ReleasePerformer[];
   releaseComposers: ReleaseComposer[];
   releaseGenres: ReleaseGenre[];
-  releaseToProductRelationships: ReleaseToProductRelationship[];
-  releaseToReleaseGroupRelationships: ReleaseToReleaseGroupRelationship[];
-  releaseMediaCollection: ReleaseMedia[];
 }
 
 export class ReleaseArtist implements IReleaseArtist {
@@ -4891,13 +4891,13 @@ export class ReleaseTrack implements IReleaseTrack {
   description?: string | undefined;
   disambiguationText?: string | undefined;
   internationalStandardRecordingCode?: string | undefined;
+  releaseTrackToProductRelationships!: ReleaseTrackToProductRelationship[];
+  releaseTrackToWorkRelationships!: ReleaseTrackToWorkRelationship[];
   releaseTrackArtists!: ReleaseTrackArtist[];
   releaseTrackFeaturedArtists!: ReleaseTrackFeaturedArtist[];
   releaseTrackPerformers!: ReleaseTrackPerformer[];
   releaseTrackComposers!: ReleaseTrackComposer[];
   releaseTrackGenres!: ReleaseTrackGenre[];
-  releaseTrackToProductRelationships!: ReleaseTrackToProductRelationship[];
-  releaseTrackToWorkRelationships!: ReleaseTrackToWorkRelationship[];
 
   constructor(data?: IReleaseTrack) {
     if (data) {
@@ -4906,13 +4906,13 @@ export class ReleaseTrack implements IReleaseTrack {
       }
     }
     if (!data) {
+      this.releaseTrackToProductRelationships = [];
+      this.releaseTrackToWorkRelationships = [];
       this.releaseTrackArtists = [];
       this.releaseTrackFeaturedArtists = [];
       this.releaseTrackPerformers = [];
       this.releaseTrackComposers = [];
       this.releaseTrackGenres = [];
-      this.releaseTrackToProductRelationships = [];
-      this.releaseTrackToWorkRelationships = [];
     }
   }
 
@@ -4927,6 +4927,15 @@ export class ReleaseTrack implements IReleaseTrack {
       this.description = _data["description"];
       this.disambiguationText = _data["disambiguationText"];
       this.internationalStandardRecordingCode = _data["internationalStandardRecordingCode"];
+      if (Array.isArray(_data["releaseTrackToProductRelationships"])) {
+        this.releaseTrackToProductRelationships = [] as any;
+        for (let item of _data["releaseTrackToProductRelationships"])
+          this.releaseTrackToProductRelationships!.push(ReleaseTrackToProductRelationship.fromJS(item));
+      }
+      if (Array.isArray(_data["releaseTrackToWorkRelationships"])) {
+        this.releaseTrackToWorkRelationships = [] as any;
+        for (let item of _data["releaseTrackToWorkRelationships"]) this.releaseTrackToWorkRelationships!.push(ReleaseTrackToWorkRelationship.fromJS(item));
+      }
       if (Array.isArray(_data["releaseTrackArtists"])) {
         this.releaseTrackArtists = [] as any;
         for (let item of _data["releaseTrackArtists"]) this.releaseTrackArtists!.push(ReleaseTrackArtist.fromJS(item));
@@ -4946,15 +4955,6 @@ export class ReleaseTrack implements IReleaseTrack {
       if (Array.isArray(_data["releaseTrackGenres"])) {
         this.releaseTrackGenres = [] as any;
         for (let item of _data["releaseTrackGenres"]) this.releaseTrackGenres!.push(ReleaseTrackGenre.fromJS(item));
-      }
-      if (Array.isArray(_data["releaseTrackToProductRelationships"])) {
-        this.releaseTrackToProductRelationships = [] as any;
-        for (let item of _data["releaseTrackToProductRelationships"])
-          this.releaseTrackToProductRelationships!.push(ReleaseTrackToProductRelationship.fromJS(item));
-      }
-      if (Array.isArray(_data["releaseTrackToWorkRelationships"])) {
-        this.releaseTrackToWorkRelationships = [] as any;
-        for (let item of _data["releaseTrackToWorkRelationships"]) this.releaseTrackToWorkRelationships!.push(ReleaseTrackToWorkRelationship.fromJS(item));
       }
     }
   }
@@ -4977,6 +4977,14 @@ export class ReleaseTrack implements IReleaseTrack {
     data["description"] = this.description;
     data["disambiguationText"] = this.disambiguationText;
     data["internationalStandardRecordingCode"] = this.internationalStandardRecordingCode;
+    if (Array.isArray(this.releaseTrackToProductRelationships)) {
+      data["releaseTrackToProductRelationships"] = [];
+      for (let item of this.releaseTrackToProductRelationships) data["releaseTrackToProductRelationships"].push(item.toJSON());
+    }
+    if (Array.isArray(this.releaseTrackToWorkRelationships)) {
+      data["releaseTrackToWorkRelationships"] = [];
+      for (let item of this.releaseTrackToWorkRelationships) data["releaseTrackToWorkRelationships"].push(item.toJSON());
+    }
     if (Array.isArray(this.releaseTrackArtists)) {
       data["releaseTrackArtists"] = [];
       for (let item of this.releaseTrackArtists) data["releaseTrackArtists"].push(item.toJSON());
@@ -4997,14 +5005,6 @@ export class ReleaseTrack implements IReleaseTrack {
       data["releaseTrackGenres"] = [];
       for (let item of this.releaseTrackGenres) data["releaseTrackGenres"].push(item.toJSON());
     }
-    if (Array.isArray(this.releaseTrackToProductRelationships)) {
-      data["releaseTrackToProductRelationships"] = [];
-      for (let item of this.releaseTrackToProductRelationships) data["releaseTrackToProductRelationships"].push(item.toJSON());
-    }
-    if (Array.isArray(this.releaseTrackToWorkRelationships)) {
-      data["releaseTrackToWorkRelationships"] = [];
-      for (let item of this.releaseTrackToWorkRelationships) data["releaseTrackToWorkRelationships"].push(item.toJSON());
-    }
     return data;
   }
 }
@@ -5019,13 +5019,13 @@ export interface IReleaseTrack {
   description?: string | undefined;
   disambiguationText?: string | undefined;
   internationalStandardRecordingCode?: string | undefined;
+  releaseTrackToProductRelationships: ReleaseTrackToProductRelationship[];
+  releaseTrackToWorkRelationships: ReleaseTrackToWorkRelationship[];
   releaseTrackArtists: ReleaseTrackArtist[];
   releaseTrackFeaturedArtists: ReleaseTrackFeaturedArtist[];
   releaseTrackPerformers: ReleaseTrackPerformer[];
   releaseTrackComposers: ReleaseTrackComposer[];
   releaseTrackGenres: ReleaseTrackGenre[];
-  releaseTrackToProductRelationships: ReleaseTrackToProductRelationship[];
-  releaseTrackToWorkRelationships: ReleaseTrackToWorkRelationship[];
 }
 
 export class ReleaseTrackArtist implements IReleaseTrackArtist {
@@ -5442,12 +5442,12 @@ export class Work implements IWork {
   createdOn?: Date;
   updatedOn?: Date;
   workRelationships!: WorkRelationship[];
+  workToProductRelationships!: WorkToProductRelationship[];
   workArtists!: WorkArtist[];
   workFeaturedArtists!: WorkFeaturedArtist[];
   workPerformers!: WorkPerformer[];
   workComposers!: WorkComposer[];
   workGenres!: WorkGenre[];
-  workToProductRelationships!: WorkToProductRelationship[];
 
   constructor(data?: IWork) {
     if (data) {
@@ -5457,12 +5457,12 @@ export class Work implements IWork {
     }
     if (!data) {
       this.workRelationships = [];
+      this.workToProductRelationships = [];
       this.workArtists = [];
       this.workFeaturedArtists = [];
       this.workPerformers = [];
       this.workComposers = [];
       this.workGenres = [];
-      this.workToProductRelationships = [];
     }
   }
 
@@ -5483,6 +5483,10 @@ export class Work implements IWork {
         this.workRelationships = [] as any;
         for (let item of _data["workRelationships"]) this.workRelationships!.push(WorkRelationship.fromJS(item));
       }
+      if (Array.isArray(_data["workToProductRelationships"])) {
+        this.workToProductRelationships = [] as any;
+        for (let item of _data["workToProductRelationships"]) this.workToProductRelationships!.push(WorkToProductRelationship.fromJS(item));
+      }
       if (Array.isArray(_data["workArtists"])) {
         this.workArtists = [] as any;
         for (let item of _data["workArtists"]) this.workArtists!.push(WorkArtist.fromJS(item));
@@ -5502,10 +5506,6 @@ export class Work implements IWork {
       if (Array.isArray(_data["workGenres"])) {
         this.workGenres = [] as any;
         for (let item of _data["workGenres"]) this.workGenres!.push(WorkGenre.fromJS(item));
-      }
-      if (Array.isArray(_data["workToProductRelationships"])) {
-        this.workToProductRelationships = [] as any;
-        for (let item of _data["workToProductRelationships"]) this.workToProductRelationships!.push(WorkToProductRelationship.fromJS(item));
       }
     }
   }
@@ -5534,6 +5534,10 @@ export class Work implements IWork {
       data["workRelationships"] = [];
       for (let item of this.workRelationships) data["workRelationships"].push(item.toJSON());
     }
+    if (Array.isArray(this.workToProductRelationships)) {
+      data["workToProductRelationships"] = [];
+      for (let item of this.workToProductRelationships) data["workToProductRelationships"].push(item.toJSON());
+    }
     if (Array.isArray(this.workArtists)) {
       data["workArtists"] = [];
       for (let item of this.workArtists) data["workArtists"].push(item.toJSON());
@@ -5554,10 +5558,6 @@ export class Work implements IWork {
       data["workGenres"] = [];
       for (let item of this.workGenres) data["workGenres"].push(item.toJSON());
     }
-    if (Array.isArray(this.workToProductRelationships)) {
-      data["workToProductRelationships"] = [];
-      for (let item of this.workToProductRelationships) data["workToProductRelationships"].push(item.toJSON());
-    }
     return data;
   }
 }
@@ -5575,12 +5575,12 @@ export interface IWork {
   createdOn?: Date;
   updatedOn?: Date;
   workRelationships: WorkRelationship[];
+  workToProductRelationships: WorkToProductRelationship[];
   workArtists: WorkArtist[];
   workFeaturedArtists: WorkFeaturedArtist[];
   workPerformers: WorkPerformer[];
   workComposers: WorkComposer[];
   workGenres: WorkGenre[];
-  workToProductRelationships: WorkToProductRelationship[];
 }
 
 export class WorkArtist implements IWorkArtist {

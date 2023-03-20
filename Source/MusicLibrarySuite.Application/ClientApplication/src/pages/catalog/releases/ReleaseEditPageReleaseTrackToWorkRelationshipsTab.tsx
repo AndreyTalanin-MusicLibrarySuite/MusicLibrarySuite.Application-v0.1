@@ -2,9 +2,9 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Release, ReleaseTrackToWorkRelationship, Work } from "../../../api/ApplicationClient";
-import CreateReleaseTrackRelationshipModal, {
+import EditReleaseTrackRelationshipModal, {
   ReleaseTrackRelationship as ModalReleaseTrackRelationship,
-} from "../../../components/modals/CreateReleaseTrackRelationshipModal";
+} from "../../../components/modals/EditReleaseTrackRelationshipModal";
 import ReleaseTrackRelationshipTable, {
   ReleaseTrackRelationship as TableReleaseTrackRelationship,
 } from "../../../components/tables/ReleaseTrackRelationshipTable";
@@ -52,6 +52,15 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
       }))
     );
   }, [releaseTrackToWorkRelationships, navigate]);
+
+  useEffect(() => {
+    if (modalReleaseTrackRelationship) {
+      applicationClient
+        .getWorks([modalReleaseTrackRelationship.dependentEntityId])
+        .then((works) => setModalWorks(works))
+        .catch((error) => alert(error));
+    }
+  }, [modalReleaseTrackRelationship, applicationClient]);
 
   const fetchModalWorks = useCallback(() => {
     applicationClient
@@ -180,15 +189,15 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
         onReleaseTrackRelationshipDelete={onReleaseTrackToWorkRelationshipDelete}
         onReleaseTrackRelationshipsChange={onReleaseTrackRelationshipsChange}
       />
-      <CreateReleaseTrackRelationshipModal
+      <EditReleaseTrackRelationshipModal
         title="Create Release-Track-to-Work Relationship"
         dependentEntityName="Work"
-        dependentEntities={modalWorks.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalWorks.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         releaseTrackRelationship={modalReleaseTrackRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

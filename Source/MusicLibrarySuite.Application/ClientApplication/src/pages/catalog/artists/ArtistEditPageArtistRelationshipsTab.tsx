@@ -2,7 +2,7 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Artist, ArtistRelationship } from "../../../api/ApplicationClient";
-import CreateEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/CreateEntityRelationshipModal";
+import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./ArtistEditPageArtistRelationshipsTab.module.css";
@@ -45,6 +45,15 @@ const ArtistEditPageArtistRelationshipsTab = ({
       }))
     );
   }, [artistRelationships, navigate]);
+
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getArtists([modalEntityRelationship.dependentEntityId])
+        .then((artists) => setModalDependentArtists(artists))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
 
   const fetchModalDependentArtists = useCallback(() => {
     applicationClient
@@ -152,15 +161,15 @@ const ArtistEditPageArtistRelationshipsTab = ({
         onEntityRelationshipDelete={onArtistRelationshipDelete}
         onEntityRelationshipsChange={onEntityRelationshipsChange}
       />
-      <CreateEntityRelationshipModal
+      <EditEntityRelationshipModal
         title="Create Artist Relationship"
         dependentEntityName="Dependent Artist"
-        dependentEntities={modalDependentArtists.map(({ id, name }) => ({ id, name }))}
+        dependentEntityOptions={modalDependentArtists.map(({ id, name }) => ({ id, displayName: name }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

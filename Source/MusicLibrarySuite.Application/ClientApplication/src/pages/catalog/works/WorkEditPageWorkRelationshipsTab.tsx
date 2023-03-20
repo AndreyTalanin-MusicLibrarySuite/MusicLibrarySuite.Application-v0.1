@@ -2,7 +2,7 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Work, WorkRelationship } from "../../../api/ApplicationClient";
-import CreateEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/CreateEntityRelationshipModal";
+import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./WorkEditPageWorkRelationshipsTab.module.css";
@@ -45,6 +45,15 @@ const WorkEditPageWorkRelationshipsTab = ({
       }))
     );
   }, [workRelationships, navigate]);
+
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getWorks([modalEntityRelationship.dependentEntityId])
+        .then((works) => setModalDependentWorks(works))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
 
   const fetchModalDependentWorks = useCallback(() => {
     applicationClient
@@ -150,15 +159,15 @@ const WorkEditPageWorkRelationshipsTab = ({
         onEntityRelationshipDelete={onWorkRelationshipDelete}
         onEntityRelationshipsChange={onEntityRelationshipsChange}
       />
-      <CreateEntityRelationshipModal
+      <EditEntityRelationshipModal
         title="Create Work Relationship"
         dependentEntityName="Dependent Work"
-        dependentEntities={modalDependentWorks.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalDependentWorks.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

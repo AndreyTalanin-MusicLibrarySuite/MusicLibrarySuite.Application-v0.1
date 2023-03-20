@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Catalog Service API v0.9.0-rc1",
+    "title": "Music Library Suite - Application API v0.8.0-rc2",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -10,9 +10,9 @@
     },
     "license": {
       "name": "The MIT License",
-      "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.CatalogService/blob/main/LICENSE.md"
+      "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.9.0-rc1"
+    "version": "v0.8.0-rc2"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -3279,10 +3279,28 @@
             "type": "string",
             "format": "date-time"
           },
+          "releaseMediaCollection": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseMedia"
+            }
+          },
           "releaseRelationships": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReleaseRelationship"
+            }
+          },
+          "releaseToProductRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseToProductRelationship"
+            }
+          },
+          "releaseToReleaseGroupRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
             }
           },
           "releaseArtists": {
@@ -3313,24 +3331,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReleaseGenre"
-            }
-          },
-          "releaseToProductRelationships": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReleaseToProductRelationship"
-            }
-          },
-          "releaseToReleaseGroupRelationships": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReleaseToReleaseGroupRelationship"
-            }
-          },
-          "releaseMediaCollection": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReleaseMedia"
             }
           }
         },
@@ -3858,6 +3858,18 @@
             "type": "string",
             "nullable": true
           },
+          "releaseTrackToProductRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackToProductRelationship"
+            }
+          },
+          "releaseTrackToWorkRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
+            }
+          },
           "releaseTrackArtists": {
             "type": "array",
             "items": {
@@ -3886,18 +3898,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReleaseTrackGenre"
-            }
-          },
-          "releaseTrackToProductRelationships": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReleaseTrackToProductRelationship"
-            }
-          },
-          "releaseTrackToWorkRelationships": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReleaseTrackToWorkRelationship"
             }
           }
         },
@@ -4224,6 +4224,12 @@
               "$ref": "#/components/schemas/WorkRelationship"
             }
           },
+          "workToProductRelationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkToProductRelationship"
+            }
+          },
           "workArtists": {
             "type": "array",
             "items": {
@@ -4252,12 +4258,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkGenre"
-            }
-          },
-          "workToProductRelationships": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkToProductRelationship"
             }
           }
         },

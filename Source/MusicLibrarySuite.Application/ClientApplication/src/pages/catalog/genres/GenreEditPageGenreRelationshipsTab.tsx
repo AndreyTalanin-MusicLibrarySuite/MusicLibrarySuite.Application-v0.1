@@ -2,7 +2,7 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
-import CreateEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/CreateEntityRelationshipModal";
+import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./GenreEditPageGenreRelationshipsTab.module.css";
@@ -45,6 +45,15 @@ const GenreEditPageGenreRelationshipsTab = ({
       }))
     );
   }, [genreRelationships, navigate]);
+
+  useEffect(() => {
+    if (modalEntityRelationship) {
+      applicationClient
+        .getGenres([modalEntityRelationship.dependentEntityId])
+        .then((genres) => setModalDependentGenres(genres))
+        .catch((error) => alert(error));
+    }
+  }, [modalEntityRelationship, applicationClient]);
 
   const fetchModalDependentGenres = useCallback(() => {
     applicationClient
@@ -152,15 +161,15 @@ const GenreEditPageGenreRelationshipsTab = ({
         onEntityRelationshipDelete={onGenreRelationshipDelete}
         onEntityRelationshipsChange={onEntityRelationshipsChange}
       />
-      <CreateEntityRelationshipModal
+      <EditEntityRelationshipModal
         title="Create Genre Relationship"
         dependentEntityName="Dependent Genre"
-        dependentEntities={modalDependentGenres.map(({ id, name }) => ({ id, name }))}
+        dependentEntityOptions={modalDependentGenres.map(({ id, name }) => ({ id, displayName: name }))}
         open={modalOpen}
         entityRelationship={modalEntityRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

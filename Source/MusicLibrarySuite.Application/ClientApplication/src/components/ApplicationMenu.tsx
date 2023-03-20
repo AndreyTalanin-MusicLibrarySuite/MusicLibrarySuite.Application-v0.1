@@ -1,8 +1,8 @@
 import { Menu } from "antd";
-import { useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router";
-import ApplicationMenuItemDescriptor from "../entities/ApplicationMenuItemDescriptor";
-import ApplicationPageDescriptor from "../entities/ApplicationPageDescriptor";
+import ApplicationMenuItemDescriptor from "../entities/application/ApplicationMenuItemDescriptor";
+import ApplicationPageDescriptor from "../entities/application/ApplicationPageDescriptor";
 import "antd/dist/antd.min.css";
 
 interface ApplicationMenuItem {
@@ -18,13 +18,9 @@ export interface ApplicationMenuProps {
 
 const ApplicationMenu = ({ applicationPageDescriptors, applicationMenuItemDescriptors }: ApplicationMenuProps) => {
   const location = useLocation();
-
   const navigate = useNavigate();
 
-  const [applicationMenuItems, setApplicationMenuItems] = useState<ApplicationMenuItem[]>([]);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-
-  useEffect(() => {
+  const applicationMenuItems = useMemo(() => {
     const createApplicationMenuItem = ({ key, type, label, items }: ApplicationMenuItemDescriptor) => {
       let applicationMenuItem: ApplicationMenuItem;
       switch (type) {
@@ -43,10 +39,10 @@ const ApplicationMenu = ({ applicationPageDescriptors, applicationMenuItemDescri
       return applicationMenuItem;
     };
 
-    setApplicationMenuItems(applicationMenuItemDescriptors.map((applicationMenuItemDescriptor) => createApplicationMenuItem(applicationMenuItemDescriptor)));
-  }, [applicationMenuItemDescriptors, location]);
+    return applicationMenuItemDescriptors.map((applicationMenuItemDescriptor) => createApplicationMenuItem(applicationMenuItemDescriptor));
+  }, [applicationMenuItemDescriptors]);
 
-  useEffect(() => {
+  const selectedKeys = useMemo(() => {
     let selectedKey: string | undefined = undefined;
 
     const checkApplicationMenuItem = ({ key, children }: ApplicationMenuItem) => {
@@ -77,15 +73,18 @@ const ApplicationMenu = ({ applicationPageDescriptors, applicationMenuItemDescri
       }
     }
 
-    setSelectedKeys(selectedKey ? [selectedKey] : []);
+    return selectedKey ? [selectedKey] : [];
   }, [applicationPageDescriptors, location, applicationMenuItems]);
 
-  const onSelect = (key: string) => {
-    const applicationPageDescriptor = applicationPageDescriptors.find((applicationPageDescriptor) => applicationPageDescriptor.key === key);
-    if (applicationPageDescriptor?.path) {
-      navigate(applicationPageDescriptor.path);
-    }
-  };
+  const onSelect = useCallback(
+    (key: string) => {
+      const applicationPageDescriptor = applicationPageDescriptors.find((applicationPageDescriptor) => applicationPageDescriptor.key === key);
+      if (applicationPageDescriptor?.path) {
+        navigate(applicationPageDescriptor.path);
+      }
+    },
+    [applicationPageDescriptors, navigate]
+  );
 
   return <Menu mode="horizontal" theme="dark" items={applicationMenuItems} selectedKeys={selectedKeys} onSelect={({ key }) => onSelect(key)} />;
 };

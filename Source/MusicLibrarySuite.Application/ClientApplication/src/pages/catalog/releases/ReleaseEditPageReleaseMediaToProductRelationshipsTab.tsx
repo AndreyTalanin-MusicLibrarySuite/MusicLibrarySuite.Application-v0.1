@@ -2,9 +2,9 @@ import { Button, Space, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Product, Release, ReleaseMediaToProductRelationship } from "../../../api/ApplicationClient";
-import CreateReleaseMediaRelationshipModal, {
+import EditReleaseMediaRelationshipModal, {
   ReleaseMediaRelationship as ModalReleaseMediaRelationship,
-} from "../../../components/modals/CreateReleaseMediaRelationshipModal";
+} from "../../../components/modals/EditReleaseMediaRelationshipModal";
 import ReleaseMediaRelationshipTable, {
   ReleaseMediaRelationship as TableReleaseMediaRelationship,
 } from "../../../components/tables/ReleaseMediaRelationshipTable";
@@ -51,6 +51,15 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
       }))
     );
   }, [releaseMediaToProductRelationships, navigate]);
+
+  useEffect(() => {
+    if (modalReleaseMediaRelationship) {
+      applicationClient
+        .getProducts([modalReleaseMediaRelationship.dependentEntityId])
+        .then((products) => setModalProducts(products))
+        .catch((error) => alert(error));
+    }
+  }, [modalReleaseMediaRelationship, applicationClient]);
 
   const fetchModalProducts = useCallback(() => {
     applicationClient
@@ -178,15 +187,15 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
         onReleaseMediaRelationshipDelete={onReleaseMediaToProductRelationshipDelete}
         onReleaseMediaRelationshipsChange={onReleaseMediaRelationshipsChange}
       />
-      <CreateReleaseMediaRelationshipModal
+      <EditReleaseMediaRelationshipModal
         title="Create Release-Media-to-Product Relationship"
         dependentEntityName="Product"
-        dependentEntities={modalProducts.map(({ id, title }) => ({ id, name: title }))}
+        dependentEntityOptions={modalProducts.map(({ id, title }) => ({ id, displayName: title }))}
         open={modalOpen}
         releaseMediaRelationship={modalReleaseMediaRelationship}
         onOk={onModalOk}
         onCancel={onModalCancel}
-        onSearchDependentEntities={onSearchDependentEntities}
+        onSearchDependentEntityOptions={onSearchDependentEntities}
       />
     </>
   );

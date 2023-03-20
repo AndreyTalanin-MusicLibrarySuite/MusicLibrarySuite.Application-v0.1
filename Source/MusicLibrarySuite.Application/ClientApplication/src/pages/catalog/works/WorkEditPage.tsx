@@ -303,94 +303,84 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   };
 
   const fetchWorkArtistOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setWorkArtistOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchWorkArtistOptions(undefined, () => void 0), [fetchWorkArtistOptions]);
+  useEffect(() => fetchWorkArtistOptions(undefined), [fetchWorkArtistOptions]);
 
   const fetchWorkFeaturedArtistOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setWorkFeaturedArtistOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchWorkFeaturedArtistOptions(undefined, () => void 0), [fetchWorkFeaturedArtistOptions]);
+  useEffect(() => fetchWorkFeaturedArtistOptions(undefined), [fetchWorkFeaturedArtistOptions]);
 
   const fetchWorkPerformerOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setWorkPerformerOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchWorkPerformerOptions(undefined, () => void 0), [fetchWorkPerformerOptions]);
+  useEffect(() => fetchWorkPerformerOptions(undefined), [fetchWorkPerformerOptions]);
 
   const fetchWorkComposerOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedArtists(20, 0, nameFilter, undefined)
         .then((artistResponse) => {
-          setLoading(false);
           setWorkComposerOptions(artistResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchWorkComposerOptions(undefined, () => void 0), [fetchWorkComposerOptions]);
+  useEffect(() => fetchWorkComposerOptions(undefined), [fetchWorkComposerOptions]);
 
   const fetchWorkGenreOptions = useCallback(
-    (nameFilter: string | undefined, setLoading: (value: boolean) => void) => {
+    (nameFilter: string | undefined) => {
       applicationClient
         .getPagedGenres(20, 0, nameFilter, undefined)
         .then((genreResponse) => {
-          setLoading(false);
           setWorkGenreOptions(genreResponse.items);
         })
         .catch((error) => {
-          setLoading(false);
           alert(error);
         });
     },
     [applicationClient]
   );
 
-  useEffect(() => fetchWorkGenreOptions(undefined, () => void 0), [fetchWorkGenreOptions]);
+  useEffect(() => fetchWorkGenreOptions(undefined), [fetchWorkGenreOptions]);
 
   const tabs = useMemo(
     () => [
