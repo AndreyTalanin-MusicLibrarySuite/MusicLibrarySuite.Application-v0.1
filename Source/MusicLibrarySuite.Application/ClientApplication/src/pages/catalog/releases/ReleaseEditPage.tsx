@@ -38,7 +38,9 @@ import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import EditReleaseMediaModal from "../../../components/modals/EditReleaseMediaModal";
 import EditReleaseTrackModal from "../../../components/modals/EditReleaseTrackModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import { formatReleaseMediaNumber, getReleaseMediaKey, getReleaseMediaKeyByComponents } from "../../../helpers/ReleaseMediaHelpers";
 import { formatReleaseTrackNumber, getReleaseTrackKey, getReleaseTrackKeyByComponents } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
@@ -333,9 +335,9 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     form.resetFields();
   }, [releaseFormValues, form]);
 
-  const onSaveButtonClick = () => {
+  const onSaveButtonClick = useCallback(() => {
     form.submit();
-  };
+  }, [form]);
 
   const onDeleteButtonClick = useCallback(() => {
     if (release) {
@@ -343,9 +345,9 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     }
   }, [release]);
 
-  const onCancelButtonClick = () => {
+  const onCancelButtonClick = useCallback(() => {
     navigate("/catalog/releases/list");
-  };
+  }, [navigate]);
 
   const onCreateReleaseTrackButtonClick = useCallback(() => {
     if (release) {
@@ -878,6 +880,41 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     return [];
   }, [release]);
 
+  const title = useMemo(() => <Title level={4}>{mode === ReleaseEditPageMode.Create ? "Create" : "Edit"} Release</Title>, [mode]);
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
+          <SaveOutlined /> Save
+        </Button>
+        {mode === ReleaseEditPageMode.Edit && (
+          <Button danger type="primary" onClick={onDeleteButtonClick}>
+            <DeleteOutlined /> Delete
+          </Button>
+        )}
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined /> Cancel
+        </Button>
+      </>
+    ),
+    [mode, loading, onSaveButtonClick, onDeleteButtonClick, onCancelButtonClick]
+  );
+
+  const checkIfReleaseMediaHasDetails = (releaseMedia: ReleaseMedia) => {
+    return (
+      releaseMedia.description ||
+      releaseMedia.catalogNumber ||
+      releaseMedia.mediaFormat ||
+      releaseMedia.tableOfContentsChecksum ||
+      releaseMedia.tableOfContentsChecksumLong
+    );
+  };
+
+  const checkIfReleaseMediaIsEmpty = (releaseMedia: ReleaseMedia) => {
+    return releaseMedia.releaseTrackCollection.length === 0;
+  };
+
   const tabs = useMemo(
     () => [
       {
@@ -968,36 +1005,54 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     ]
   );
 
-  const checkIfReleaseMediaHasDetails = (releaseMedia: ReleaseMedia) => {
-    return (
-      releaseMedia.description ||
-      releaseMedia.catalogNumber ||
-      releaseMedia.mediaFormat ||
-      releaseMedia.tableOfContentsChecksum ||
-      releaseMedia.tableOfContentsChecksumLong
-    );
-  };
-
-  const checkIfReleaseMediaIsEmpty = (releaseMedia: ReleaseMedia) => {
-    return releaseMedia.releaseTrackCollection.length === 0;
-  };
+  const modals = useMemo(
+    () => [
+      release && (
+        <ConfirmDeleteModal
+          key="ConfirmDeleteModal"
+          open={confirmDeleteModalOpen}
+          title="Delete Release"
+          message={`Confirm that you want to delete the "${release.title}" release. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+      release && (
+        <EditReleaseMediaModal
+          edit
+          key="EditReleaseMediaModal"
+          open={createReleaseMediaModalOpen}
+          releaseMedia={releaseMediaToEdit}
+          onOk={onCreateReleaseMediaModalOk}
+          onCancel={onCreateReleaseMediaModalCancel}
+        />
+      ),
+      release && (
+        <EditReleaseTrackModal
+          edit
+          key="EditReleaseTrackModal"
+          open={createReleaseTrackModalOpen}
+          releaseTrack={releaseTrackToEdit}
+          onOk={onCreateReleaseTrackModalOk}
+          onCancel={onCreateReleaseTrackModalCancel}
+        />
+      ),
+    ],
+    [
+      release,
+      confirmDeleteModalOpen,
+      createReleaseMediaModalOpen,
+      releaseMediaToEdit,
+      createReleaseTrackModalOpen,
+      releaseTrackToEdit,
+      onConfirmDeleteModalOk,
+      onCreateReleaseMediaModalOk,
+      onCreateReleaseTrackModalOk,
+    ]
+  );
 
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Title level={4}>{mode === ReleaseEditPageMode.Create ? "Create" : "Edit"} Release</Title>
-        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
-          <SaveOutlined /> Save
-        </Button>
-        {mode === ReleaseEditPageMode.Edit && (
-          <Button danger type="primary" onClick={onDeleteButtonClick}>
-            <DeleteOutlined /> Delete
-          </Button>
-        )}
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined /> Cancel
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
@@ -1008,49 +1063,102 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
           >
-            <Form.Item label="Id" name="id">
+            <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === ReleaseEditPageMode.Edit} />
             </Form.Item>
-            <Form.Item label="Title" name="title" rules={[{ required: true, message: "The 'Title' property must not be empty." }]}>
+            <Form.Item
+              label="Title"
+              name="title"
+              rules={[
+                { required: true, message: "The 'Title' property must not be empty." },
+                { max: 256, message: "The 'Title' property must be shorter than 256 characters." },
+              ]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Description" name="description">
+            <Form.Item
+              label="Description"
+              name="description"
+              rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item label="Disambiguation Text" name="disambiguationText">
+            <Form.Item
+              label="Disambiguation Text"
+              name="disambiguationText"
+              rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item label="Barcode" name="barcode" rules={[{ max: 32, message: "The 'Barcode' property must be shorter than 32 characters." }]}>
+            <Form.Item
+              label="Barcode"
+              name="barcode"
+              rules={[
+                {
+                  max: 32,
+                  message: "The 'Barcode' property must be shorter than 32 characters.",
+                },
+              ]}
+            >
               <Input />
             </Form.Item>
             <Form.Item
               label="Catalog Number"
               name="catalogNumber"
-              rules={[{ max: 32, message: "The 'Catalog Number' property must be shorter than 32 characters." }]}
+              rules={[
+                {
+                  max: 32,
+                  message: "The 'Catalog Number' property must be shorter than 32 characters.",
+                },
+              ]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               label="Media Format"
               name="mediaFormat"
-              rules={[{ max: 256, message: "The 'Media Format' property must be shorter than 256 characters." }]}
+              rules={[
+                {
+                  max: 256,
+                  message: "The 'Media Format' property must be shorter than 256 characters.",
+                },
+              ]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               label="Publish Format"
               name="publishFormat"
-              rules={[{ max: 256, message: "The 'Publish Format' property must be shorter than 256 characters." }]}
+              rules={[
+                {
+                  max: 256,
+                  message: "The 'Publish Format' property must be shorter than 256 characters.",
+                },
+              ]}
             >
               <Input />
             </Form.Item>
-            <Form.Item label="Released On" name="releasedOn" rules={[{ required: true, message: "The 'Released On' property must not be empty." }]}>
+            <Form.Item
+              label="Released On"
+              name="releasedOn"
+              rules={[
+                {
+                  required: true,
+                  message: "The 'Released On' property must not be empty.",
+                },
+              ]}
+            >
               <DatePicker />
             </Form.Item>
             <Form.Item
               label="Released On"
               name="releasedOnYearOnly"
-              rules={[{ required: true, message: "The 'Released On (Year Only)' property must not be empty." }]}
+              rules={[
+                {
+                  required: true,
+                  message: "The 'Released On (Year Only)' property must not be empty.",
+                },
+              ]}
               valuePropName="checked"
               initialValue={mode === ReleaseEditPageMode.Create ? false : undefined}
             >
@@ -1124,21 +1232,25 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         </Col>
       </Row>
       {release && mode === ReleaseEditPageMode.Edit && (
-        <Space direction="vertical" style={{ display: "flex" }}>
+        <>
           <Card
             size="small"
             title={
               <Space wrap className={styles.cardHeader} direction="horizontal" align="baseline">
-                Release Content
-                <Button onClick={onCreateReleaseTrackButtonClick}>
-                  <FileAddOutlined /> Create Track
-                </Button>
-                <Button onClick={onCreateReleaseMediaButtonClick}>
-                  <FolderAddOutlined /> Create Media
-                </Button>
-                <Button onClick={onRenumberReleaseContentButtonClick}>
-                  <FieldNumberOutlined /> Reorder & Renumber Content
-                </Button>
+                <Space wrap direction="horizontal" align="baseline">
+                  Release Content
+                </Space>
+                <Space wrap direction="horizontal" align="baseline">
+                  <Button onClick={onCreateReleaseTrackButtonClick}>
+                    <FileAddOutlined /> Create Track
+                  </Button>
+                  <Button onClick={onCreateReleaseMediaButtonClick}>
+                    <FolderAddOutlined /> Create Media
+                  </Button>
+                  <Button onClick={onRenumberReleaseContentButtonClick}>
+                    <FieldNumberOutlined /> Reorder & Renumber Content
+                  </Button>
+                </Space>
               </Space>
             }
           >
@@ -1158,12 +1270,14 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                       </Tooltip>
                     )}
                   </Space>
-                  <Button onClick={() => onEditReleaseMediaButtonClick(releaseMedia)}>
-                    <EditOutlined /> Edit
-                  </Button>
-                  <Button danger onClick={() => onDeleteReleaseMediaButtonClick(releaseMedia)}>
-                    <DeleteOutlined /> Delete
-                  </Button>
+                  <Space wrap direction="horizontal" align="baseline">
+                    <Button onClick={() => onEditReleaseMediaButtonClick(releaseMedia)}>
+                      <EditOutlined /> Edit
+                    </Button>
+                    <Button danger onClick={() => onDeleteReleaseMediaButtonClick(releaseMedia)}>
+                      <DeleteOutlined /> Delete
+                    </Button>
+                  </Space>
                 </Space>
               }
             >
@@ -1216,37 +1330,10 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               </Space>
             </Card>
           ))}
-          {release && <Tabs items={tabs} />}
-        </Space>
+        </>
       )}
-      {release && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Release"
-          message={`Confirm that you want to delete the "${release.title}" release. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-      {release && (
-        <EditReleaseMediaModal
-          edit
-          open={createReleaseMediaModalOpen}
-          releaseMedia={releaseMediaToEdit}
-          onOk={onCreateReleaseMediaModalOk}
-          onCancel={onCreateReleaseMediaModalCancel}
-        />
-      )}
-      {release && (
-        <EditReleaseTrackModal
-          edit
-          open={createReleaseTrackModalOpen}
-          releaseTrack={releaseTrackToEdit}
-          onOk={onCreateReleaseTrackModalOk}
-          onCancel={onCreateReleaseTrackModalCancel}
-        />
-      )}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 

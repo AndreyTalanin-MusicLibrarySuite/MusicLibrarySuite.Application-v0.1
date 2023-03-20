@@ -1,15 +1,16 @@
-import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Button, Checkbox, Col, Form, Input, Row, Tabs, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Genre, GenreRelationship, IGenre } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import GenreEditPageGenreRelationshipsTab from "./GenreEditPageGenreRelationshipsTab";
-import styles from "./GenreEditPage.module.css";
 import "antd/dist/antd.min.css";
 
 export enum GenreEditPageMode {
@@ -67,15 +68,19 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
     form.resetFields();
   }, [genreFormValues, form]);
 
-  const onSaveButtonClick = () => {
+  const onSaveButtonClick = useCallback(() => {
     form.submit();
-  };
+  }, [form]);
 
   const onDeleteButtonClick = useCallback(() => {
     if (genre) {
       setConfirmDeleteModalOpen(true);
     }
   }, [genre]);
+
+  const onCancelButtonClick = useCallback(() => {
+    navigate("/catalog/genres/list");
+  }, [navigate]);
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
@@ -100,10 +105,6 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
 
   const onConfirmDeleteModalCancel = () => {
     setConfirmDeleteModalOpen(false);
-  };
-
-  const onCancelButtonClick = () => {
-    navigate("/catalog/genres/list");
   };
 
   const onFinish = useCallback(
@@ -157,6 +158,30 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
+  const title = useMemo(() => <Typography.Title level={4}>{mode === GenreEditPageMode.Create ? "Create" : "Edit"} Genre</Typography.Title>, [mode]);
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
+          <SaveOutlined />
+          Save
+        </Button>
+        {mode === GenreEditPageMode.Edit && (
+          <Button danger type="primary" onClick={onDeleteButtonClick}>
+            <DeleteOutlined />
+            Delete
+          </Button>
+        )}
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Cancel
+        </Button>
+      </>
+    ),
+    [mode, loading, onSaveButtonClick, onDeleteButtonClick, onCancelButtonClick]
+  );
+
   const tabs = useMemo(
     () => [
       {
@@ -175,25 +200,24 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
     [genre, loading, onGenreRelationshipsChange]
   );
 
+  const modals = useMemo(
+    () => [
+      genre && (
+        <ConfirmDeleteModal
+          key="ConfirmDeleteModal"
+          open={confirmDeleteModalOpen}
+          title="Delete Genre"
+          message={`Confirm that you want to delete the "${genre.name}" genre. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+    ],
+    [genre, confirmDeleteModalOpen, onConfirmDeleteModalOk]
+  );
+
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>{mode === GenreEditPageMode.Create ? "Create" : "Edit"} Genre</Typography.Title>
-        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
-          <SaveOutlined />
-          Save
-        </Button>
-        {mode === GenreEditPageMode.Edit && (
-          <Button danger type="primary" onClick={onDeleteButtonClick}>
-            <DeleteOutlined />
-            Delete
-          </Button>
-        )}
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Cancel
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
@@ -204,13 +228,24 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
           >
-            <Form.Item label="Id" name="id">
+            <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === GenreEditPageMode.Edit} />
             </Form.Item>
-            <Form.Item label="Name" name="name" rules={[{ required: true, message: "The 'Name' property must not be empty." }]}>
+            <Form.Item
+              label="Name"
+              name="name"
+              rules={[
+                { required: true, message: "The 'Name' property must not be empty." },
+                { max: 256, message: "The 'Name' property must be shorter than 256 characters." },
+              ]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Description" name="description">
+            <Form.Item
+              label="Description"
+              name="description"
+              rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
             <Form.Item
@@ -244,17 +279,8 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      {genre && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Genre"
-          message={`Confirm that you want to delete the "${genre.name}" genre. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-      {genre && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 

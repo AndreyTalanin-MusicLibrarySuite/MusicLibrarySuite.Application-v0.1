@@ -1,4 +1,4 @@
-import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Button, Checkbox, Col, Form, Input, Row, Tabs, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -6,11 +6,12 @@ import { useNavigate } from "react-router";
 import { Artist, ArtistGenre, ArtistRelationship, Genre, IArtist } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ArtistEditPageArtistRelationshipsTab from "./ArtistEditPageArtistRelationshipsTab";
-import styles from "./ArtistEditPage.module.css";
 import "antd/dist/antd.min.css";
 
 export enum ArtistEditPageMode {
@@ -82,15 +83,19 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
     form.resetFields();
   }, [artistFormValues, form]);
 
-  const onSaveButtonClick = () => {
+  const onSaveButtonClick = useCallback(() => {
     form.submit();
-  };
+  }, [form]);
 
   const onDeleteButtonClick = useCallback(() => {
     if (artist) {
       setConfirmDeleteModalOpen(true);
     }
   }, [artist]);
+
+  const onCancelButtonClick = useCallback(() => {
+    navigate("/catalog/artists/list");
+  }, [navigate]);
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
@@ -115,10 +120,6 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
 
   const onConfirmDeleteModalCancel = () => {
     setConfirmDeleteModalOpen(false);
-  };
-
-  const onCancelButtonClick = () => {
-    navigate("/catalog/artists/list");
   };
 
   const onFinish = useCallback(
@@ -199,6 +200,30 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
 
   useEffect(() => fetchArtistGenreOptions(undefined), [fetchArtistGenreOptions]);
 
+  const title = useMemo(() => <Typography.Title level={4}>{mode === ArtistEditPageMode.Create ? "Create" : "Edit"} Artist</Typography.Title>, [mode]);
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
+          <SaveOutlined />
+          Save
+        </Button>
+        {mode === ArtistEditPageMode.Edit && (
+          <Button danger type="primary" onClick={onDeleteButtonClick}>
+            <DeleteOutlined />
+            Delete
+          </Button>
+        )}
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Cancel
+        </Button>
+      </>
+    ),
+    [mode, loading, onSaveButtonClick, onDeleteButtonClick, onCancelButtonClick]
+  );
+
   const tabs = useMemo(
     () => [
       {
@@ -217,25 +242,24 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
     [artist, loading, onArtistRelationshipsChange]
   );
 
+  const modals = useMemo(
+    () => [
+      artist && (
+        <ConfirmDeleteModal
+          key="ConfirmDeleteModal"
+          open={confirmDeleteModalOpen}
+          title="Delete Artist"
+          message={`Confirm that you want to delete the "${artist.name}" artist. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+    ],
+    [artist, confirmDeleteModalOpen, onConfirmDeleteModalOk]
+  );
+
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>{mode === ArtistEditPageMode.Create ? "Create" : "Edit"} Artist</Typography.Title>
-        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
-          <SaveOutlined />
-          Save
-        </Button>
-        {mode === ArtistEditPageMode.Edit && (
-          <Button danger type="primary" onClick={onDeleteButtonClick}>
-            <DeleteOutlined />
-            Delete
-          </Button>
-        )}
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Cancel
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
@@ -246,16 +270,31 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
           >
-            <Form.Item label="Id" name="id">
+            <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === ArtistEditPageMode.Edit} />
             </Form.Item>
-            <Form.Item label="Name" name="name" rules={[{ required: true, message: "The 'Name' property must not be empty." }]}>
+            <Form.Item
+              label="Name"
+              name="name"
+              rules={[
+                { required: true, message: "The 'Name' property must not be empty." },
+                { max: 256, message: "The 'Name' property must be shorter than 256 characters." },
+              ]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Description" name="description">
+            <Form.Item
+              label="Description"
+              name="description"
+              rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item label="Disambiguation Text" name="disambiguationText">
+            <Form.Item
+              label="Disambiguation Text"
+              name="disambiguationText"
+              rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
             <Form.Item
@@ -298,17 +337,8 @@ const ArtistEditPage = ({ mode }: ArtistEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      {artist && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Artist"
-          message={`Confirm that you want to delete the "${artist.name}" artist. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-      {artist && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 
