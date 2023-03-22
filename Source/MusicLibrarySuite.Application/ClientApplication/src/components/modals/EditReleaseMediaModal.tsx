@@ -2,6 +2,8 @@ import { Form, Input, Modal } from "antd";
 import { useCallback, useEffect, useMemo } from "react";
 import { ReleaseMedia } from "../../api/ApplicationClient";
 import { mapReleaseMediaModalFormInitialValues, mergeReleaseMediaModalFormValues } from "../../entities/forms/ReleaseMediaModalFormValues";
+import { MaxReleaseMediaNumber, MinReleaseMediaNumber } from "../../helpers/ApplicationConstants";
+import { validateReleaseMediaNumber } from "../../helpers/ReleaseMediaHelpers";
 import useEntityForm from "../../hooks/useEntityForm";
 import "antd/dist/antd.min.css";
 
@@ -52,8 +54,14 @@ const EditReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCa
           label="Media Number"
           name="mediaNumber"
           rules={[
-            { required: true, message: "The 'Media Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]{1,3}$/), message: "The 'Media Number' property must be a number in range [0 - 255]." },
+            {
+              required: true,
+              message: "The 'Media Number' property must not be empty.",
+            },
+            {
+              validator: (_, value: string) => validateReleaseMediaNumber(value),
+              message: `The 'Media Number' property must be a number in range [${MinReleaseMediaNumber} - ${MaxReleaseMediaNumber - 1}].`,
+            },
           ]}
         >
           <Input readOnly={!edit} />
@@ -68,37 +76,75 @@ const EditReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCa
         >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Description" name="description" rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}>
+        <Form.Item
+          label="Description"
+          name="description"
+          rules={[
+            {
+              max: 2048,
+              message: "The 'Description' property must be shorter than 2048 characters.",
+            },
+          ]}
+        >
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
         <Form.Item
           label="Disambiguation Text"
           name="disambiguationText"
-          rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+          rules={[
+            {
+              max: 2048,
+              message: "The 'Disambiguation Text' property must be shorter than 2048 characters.",
+            },
+          ]}
         >
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
         <Form.Item
           label="Catalog Number"
           name="catalogNumber"
-          rules={[{ max: 32, message: "The 'Catalog Number' property must be shorter than 32 characters." }]}
+          rules={[
+            {
+              max: 32,
+              message: "The 'Catalog Number' property must be shorter than 32 characters.",
+            },
+          ]}
         >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Media Format" name="mediaFormat" rules={[{ max: 256, message: "The 'Media Format' property must be shorter than 256 characters." }]}>
+        <Form.Item
+          label="Media Format"
+          name="mediaFormat"
+          rules={[
+            {
+              max: 256,
+              message: "The 'Media Format' property must be shorter than 256 characters.",
+            },
+          ]}
+        >
           <Input readOnly={!edit} />
         </Form.Item>
         <Form.Item
           label="CDDB Checksum"
           name="tableOfContentsChecksum"
-          rules={[{ max: 64, message: "The 'CDDB Checksum' property must be shorter than 64 characters." }]}
+          rules={[
+            {
+              max: 64,
+              message: "The 'CDDB Checksum' property must be shorter than 64 characters.",
+            },
+          ]}
         >
           <Input readOnly={!edit} />
         </Form.Item>
         <Form.Item
           label="MusicBrainz Checksum"
           name="tableOfContentsChecksumLong"
-          rules={[{ max: 64, message: "The 'MusicBrainz Checksum' property must be shorter than 64 characters." }]}
+          rules={[
+            {
+              max: 64,
+              message: "The 'MusicBrainz Checksum' property must be shorter than 64 characters.",
+            },
+          ]}
         >
           <Input readOnly={!edit} />
         </Form.Item>
