@@ -4,6 +4,8 @@ import {
   mapReleaseMediaRelationshipModalFormInitialValues,
   mergeReleaseMediaRelationshipModalFormValues,
 } from "../../entities/forms/ReleaseMediaRelationshipModalFormValues";
+import { MaxReleaseMediaNumber, MinReleaseMediaNumber } from "../../helpers/ApplicationConstants";
+import { validateReleaseMediaNumber } from "../../helpers/ReleaseMediaHelpers";
 import useEntityForm from "../../hooks/useEntityForm";
 import EntitySelect from "../inputs/EntitySelect";
 import "antd/dist/antd.min.css";
@@ -75,8 +77,14 @@ const EditReleaseMediaRelationshipModal = ({
           label="Media Number"
           name="mediaNumber"
           rules={[
-            { required: true, message: "The 'Media Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]+$/), message: "The 'Media Number' property must be a number." },
+            {
+              required: true,
+              message: "The 'Media Number' property must not be empty.",
+            },
+            {
+              validator: (_, value: string) => validateReleaseMediaNumber(value),
+              message: `The 'Media Number' property must be a number in range [${MinReleaseMediaNumber} - ${MaxReleaseMediaNumber - 1}].`,
+            },
           ]}
         >
           <Input />
@@ -91,13 +99,27 @@ const EditReleaseMediaRelationshipModal = ({
         >
           <Input />
         </Form.Item>
-        <Form.Item label="Description" name="description" rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}>
+        <Form.Item
+          label="Description"
+          name="description"
+          rules={[
+            {
+              max: 2048,
+              message: "The 'Description' property must be shorter than 2048 characters.",
+            },
+          ]}
+        >
           <Input.TextArea />
         </Form.Item>
         <Form.Item
           label={dependentEntityName}
           name="dependentEntityId"
-          rules={[{ required: true, message: `The '${dependentEntityName}' property must not be empty.` }]}
+          rules={[
+            {
+              required: true,
+              message: `The '${dependentEntityName}' property must not be empty.`,
+            },
+          ]}
         >
           <EntitySelect
             options={dependentEntityOptions.map((dependentEntity) => ({ value: dependentEntity.id, label: dependentEntity.displayName }))}

@@ -2,14 +2,14 @@ import { Button, Space, Table, Tag, Tooltip, Typography } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import type { FilterValue } from "antd/es/table/interface";
 import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MonitorOutlined, QuestionCircleOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Product } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ProductListPage.module.css";
 import "antd/dist/antd.min.css";
 
 const ProductListPage = () => {
@@ -50,17 +50,23 @@ const ProductListPage = () => {
     fetchProducts();
   }, [fetchProducts]);
 
-  const onCreateButtonClick = () => {
+  const onCreateButtonClick = useCallback(() => {
     navigate("/catalog/products/create");
-  };
+  }, [navigate]);
 
-  const onViewButtonClick = (id: string) => {
-    navigate(`/catalog/products/view?id=${id}`);
-  };
+  const onViewButtonClick = useCallback(
+    (id: string) => {
+      navigate(`/catalog/products/view?id=${id}`);
+    },
+    [navigate]
+  );
 
-  const onEditButtonClick = (id: string) => {
-    navigate(`/catalog/products/edit?id=${id}`);
-  };
+  const onEditButtonClick = useCallback(
+    (id: string) => {
+      navigate(`/catalog/products/edit?id=${id}`);
+    },
+    [navigate]
+  );
 
   const onDeleteButtonClick = (product: Product) => {
     setProductToDelete(product);
@@ -160,15 +166,42 @@ const ProductListPage = () => {
     },
   ];
 
-  return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>Browse Products</Typography.Title>
+  const title = <Typography.Title level={4}>Browse Products</Typography.Title>;
+
+  const actionButtons = useMemo(
+    () => (
+      <>
         <Button type="primary" onClick={onCreateButtonClick}>
           <AppstoreAddOutlined />
           Create
         </Button>
-      </Space>
+      </>
+    ),
+    [onCreateButtonClick]
+  );
+
+  const statusLine = useMemo(
+    () => totalCount !== undefined && completedOn && `Found ${totalCount} products total, request completed on ${completedOn.toLocaleString()}.`,
+    [totalCount, completedOn]
+  );
+
+  const modals = useMemo(
+    () => [
+      productToDelete && (
+        <ConfirmDeleteModal
+          open={confirmDeleteModalOpen}
+          title="Delete Product"
+          message={`Confirm that you want to delete the "${productToDelete.title}" product. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+    ],
+    [productToDelete, confirmDeleteModalOpen, onConfirmDeleteModalOk]
+  );
+
+  return (
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Table
         columns={columns}
         rowKey="id"
@@ -182,24 +215,12 @@ const ProductListPage = () => {
           total: totalCount ?? 0,
           showSizeChanger: true,
           showQuickJumper: true,
+          showTotal: statusLine ? () => statusLine : undefined,
+          style: { alignItems: "baseline" },
         }}
         onChange={(pagination, filters) => onTableChange(pagination, filters)}
       />
-      {totalCount !== undefined && completedOn && (
-        <Space className={styles.statusLine}>
-          <Typography.Paragraph>{`Found ${totalCount} products total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
-        </Space>
-      )}
-      {productToDelete && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Product"
-          message={`Confirm that you want to delete the "${productToDelete.title}" product. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-    </>
+    </ActionPage>
   );
 };
 

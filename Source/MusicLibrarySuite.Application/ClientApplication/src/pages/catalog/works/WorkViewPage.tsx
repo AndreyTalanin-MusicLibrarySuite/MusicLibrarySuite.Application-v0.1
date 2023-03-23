@@ -3,12 +3,12 @@ import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-des
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Work } from "../../../api/ApplicationClient";
+import ActionPage from "../../../components/pages/ActionPage";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import WorkViewPageReleaseTrackToWorkRelationshipsTab from "./WorkViewPageReleaseTrackToWorkRelationshipsTab";
 import WorkViewPageWorkRelationshipsTab from "./WorkViewPageWorkRelationshipsTab";
 import WorkViewPageWorkToProductRelationshipsTab from "./WorkViewPageWorkToProductRelationshipsTab";
-import styles from "./WorkViewPage.module.css";
 import "antd/dist/antd.min.css";
 
 const { Paragraph, Text, Title } = Typography;
@@ -21,7 +21,7 @@ const WorkViewPage = () => {
   const [id] = useQueryStringId(true);
   const applicationClient = useApplicationClient();
 
-  const fetchWork = useCallback(() => {
+  useEffect(() => {
     if (id) {
       applicationClient
         .getWork(id)
@@ -34,17 +34,31 @@ const WorkViewPage = () => {
     }
   }, [id, applicationClient]);
 
-  useEffect(() => {
-    fetchWork();
-  }, [fetchWork]);
-
-  const onEditButtonClick = () => {
+  const onEditButtonClick = useCallback(() => {
     navigate(`/catalog/works/edit?id=${id}`);
-  };
+  }, [navigate, id]);
 
-  const onCancelButtonClick = () => {
+  const onCancelButtonClick = useCallback(() => {
     navigate("/catalog/works/list");
-  };
+  }, [navigate]);
+
+  const title = <Title level={4}>View Work</Title>;
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" onClick={onEditButtonClick}>
+          <EditOutlined />
+          Edit
+        </Button>
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Back to Work List
+        </Button>
+      </>
+    ),
+    [onEditButtonClick, onCancelButtonClick]
+  );
 
   const tabs = useMemo(
     () => [
@@ -68,18 +82,7 @@ const WorkViewPage = () => {
   );
 
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Title level={4}>View Work</Title>
-        <Button type="primary" onClick={onEditButtonClick}>
-          <EditOutlined />
-          Edit
-        </Button>
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Back to Work List
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons}>
       {work && (
         <Card
           title={
@@ -106,7 +109,7 @@ const WorkViewPage = () => {
           </Paragraph>
           {work.workArtists && work.workArtists.length > 0 && (
             <Paragraph>
-              Work Artists:{" "}
+              Artists:{" "}
               {work.workArtists.map((workArtist, index, array) => (
                 <>
                   <Typography.Link key={workArtist.artistId} href={`/catalog/artists/view?id=${workArtist.artistId}`}>
@@ -119,7 +122,7 @@ const WorkViewPage = () => {
           )}
           {work.workFeaturedArtists && work.workFeaturedArtists.length > 0 && (
             <Paragraph>
-              Work Featured Artists:{" "}
+              Featured Artists:{" "}
               {work.workFeaturedArtists.map((workFeaturedArtist, index, array) => (
                 <>
                   <Typography.Link key={workFeaturedArtist.artistId} href={`/catalog/artists/view?id=${workFeaturedArtist.artistId}`}>
@@ -132,7 +135,7 @@ const WorkViewPage = () => {
           )}
           {work.workPerformers && work.workPerformers.length > 0 && (
             <Paragraph>
-              Work Performers:{" "}
+              Performers:{" "}
               {work.workPerformers.map((workPerformer, index, array) => (
                 <>
                   <Typography.Link key={workPerformer.artistId} href={`/catalog/artists/view?id=${workPerformer.artistId}`}>
@@ -145,7 +148,7 @@ const WorkViewPage = () => {
           )}
           {work.workComposers && work.workComposers.length > 0 && (
             <Paragraph>
-              Work Composers:{" "}
+              Composers:{" "}
               {work.workComposers.map((workComposer, index, array) => (
                 <>
                   <Typography.Link key={workComposer.artistId} href={`/catalog/artists/view?id=${workComposer.artistId}`}>
@@ -158,7 +161,7 @@ const WorkViewPage = () => {
           )}
           {work.workGenres && work.workGenres.length > 0 && (
             <Paragraph>
-              Work Genres:{" "}
+              Genres:{" "}
               {work.workGenres.map((workGenre, index, array) => (
                 <>
                   <Typography.Link key={workGenre.genreId} href={`/catalog/genres/view?id=${workGenre.genreId}`}>
@@ -182,8 +185,8 @@ const WorkViewPage = () => {
           )}
         </Card>
       )}
-      {work && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 

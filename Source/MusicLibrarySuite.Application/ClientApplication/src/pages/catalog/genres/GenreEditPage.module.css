@@ -1,8 +1,0 @@
-.pageHeader {
-  width: 100%;
-  justify-content: flex-end;
-}
-
-.pageHeader *:first-child {
-  margin-right: auto;
-}

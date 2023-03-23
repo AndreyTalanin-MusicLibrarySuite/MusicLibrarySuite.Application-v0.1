@@ -2,14 +2,14 @@ import { Button, Space, Table, Tag, Tooltip, Typography } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import type { FilterValue } from "antd/es/table/interface";
 import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MonitorOutlined, QuestionCircleOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Release } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ReleaseListPage.module.css";
 import "antd/dist/antd.min.css";
 
 const ReleaseListPage = () => {
@@ -50,17 +50,23 @@ const ReleaseListPage = () => {
     fetchReleases();
   }, [fetchReleases]);
 
-  const onCreateButtonClick = () => {
+  const onCreateButtonClick = useCallback(() => {
     navigate("/catalog/releases/create");
-  };
+  }, [navigate]);
 
-  const onViewButtonClick = (id: string) => {
-    navigate(`/catalog/releases/view?id=${id}`);
-  };
+  const onViewButtonClick = useCallback(
+    (id: string) => {
+      navigate(`/catalog/releases/view?id=${id}`);
+    },
+    [navigate]
+  );
 
-  const onEditButtonClick = (id: string) => {
-    navigate(`/catalog/releases/edit?id=${id}`);
-  };
+  const onEditButtonClick = useCallback(
+    (id: string) => {
+      navigate(`/catalog/releases/edit?id=${id}`);
+    },
+    [navigate]
+  );
 
   const onDeleteButtonClick = (release: Release) => {
     setReleaseToDelete(release);
@@ -159,15 +165,42 @@ const ReleaseListPage = () => {
     },
   ];
 
-  return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>Browse Releases</Typography.Title>
+  const title = <Typography.Title level={4}>Browse Releases</Typography.Title>;
+
+  const actionButtons = useMemo(
+    () => (
+      <>
         <Button type="primary" onClick={onCreateButtonClick}>
           <AppstoreAddOutlined />
           Create
         </Button>
-      </Space>
+      </>
+    ),
+    [onCreateButtonClick]
+  );
+
+  const statusLine = useMemo(
+    () => totalCount !== undefined && completedOn && `Found ${totalCount} releases total, request completed on ${completedOn.toLocaleString()}.`,
+    [totalCount, completedOn]
+  );
+
+  const modals = useMemo(
+    () => [
+      releaseToDelete && (
+        <ConfirmDeleteModal
+          open={confirmDeleteModalOpen}
+          title="Delete Release"
+          message={`Confirm that you want to delete the "${releaseToDelete.title}" release. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+    ],
+    [releaseToDelete, confirmDeleteModalOpen, onConfirmDeleteModalOk]
+  );
+
+  return (
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Table
         columns={columns}
         rowKey="id"
@@ -181,24 +214,12 @@ const ReleaseListPage = () => {
           total: totalCount ?? 0,
           showSizeChanger: true,
           showQuickJumper: true,
+          showTotal: statusLine ? () => statusLine : undefined,
+          style: { alignItems: "baseline" },
         }}
         onChange={(pagination, filters) => onTableChange(pagination, filters)}
       />
-      {totalCount !== undefined && completedOn && (
-        <Space className={styles.statusLine}>
-          <Typography.Paragraph>{`Found ${totalCount} releases total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
-        </Space>
-      )}
-      {releaseToDelete && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Release"
-          message={`Confirm that you want to delete the "${releaseToDelete.title}" release. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-    </>
+    </ActionPage>
   );
 };
 

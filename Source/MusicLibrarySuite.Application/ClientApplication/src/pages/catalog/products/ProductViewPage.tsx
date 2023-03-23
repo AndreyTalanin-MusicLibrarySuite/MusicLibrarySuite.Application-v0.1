@@ -3,6 +3,7 @@ import { EditOutlined, QuestionCircleOutlined, RollbackOutlined } from "@ant-des
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Product } from "../../../api/ApplicationClient";
+import ActionPage from "../../../components/pages/ActionPage";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductViewPageProductRelationshipsTab from "./ProductViewPageProductRelationshipsTab";
@@ -10,7 +11,6 @@ import ProductViewPageReleaseMediaToProductRelationshipsTab from "./ProductViewP
 import ProductViewPageReleaseToProductRelationshipsTab from "./ProductViewPageReleaseToProductRelationshipsTab";
 import ProductViewPageReleaseTrackToProductRelationshipsTab from "./ProductViewPageReleaseTrackToProductRelationshipsTab";
 import ProductViewPageWorkToProductRelationshipsTab from "./ProductViewPageWorkToProductRelationshipsTab";
-import styles from "./ProductViewPage.module.css";
 import "antd/dist/antd.min.css";
 
 const { Paragraph, Text, Title } = Typography;
@@ -23,7 +23,7 @@ const ProductViewPage = () => {
   const [id] = useQueryStringId(true);
   const applicationClient = useApplicationClient();
 
-  const fetchProduct = useCallback(() => {
+  useEffect(() => {
     if (id) {
       applicationClient
         .getProduct(id)
@@ -36,17 +36,31 @@ const ProductViewPage = () => {
     }
   }, [id, applicationClient]);
 
-  useEffect(() => {
-    fetchProduct();
-  }, [fetchProduct]);
-
-  const onEditButtonClick = () => {
+  const onEditButtonClick = useCallback(() => {
     navigate(`/catalog/products/edit?id=${id}`);
-  };
+  }, [navigate, id]);
 
-  const onCancelButtonClick = () => {
+  const onCancelButtonClick = useCallback(() => {
     navigate("/catalog/products/list");
-  };
+  }, [navigate]);
+
+  const title = <Title level={4}>View Product</Title>;
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" onClick={onEditButtonClick}>
+          <EditOutlined />
+          Edit
+        </Button>
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Back to Product List
+        </Button>
+      </>
+    ),
+    [onEditButtonClick, onCancelButtonClick]
+  );
 
   const tabs = useMemo(
     () => [
@@ -80,18 +94,7 @@ const ProductViewPage = () => {
   );
 
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Title level={4}>View Product</Title>
-        <Button type="primary" onClick={onEditButtonClick}>
-          <EditOutlined />
-          Edit
-        </Button>
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Back to Product List
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons}>
       {product && (
         <Card
           title={
@@ -124,8 +127,8 @@ const ProductViewPage = () => {
           )}
         </Card>
       )}
-      {product && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 

@@ -1,4 +1,4 @@
-import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Tabs, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
@@ -22,13 +22,14 @@ import {
 } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import WorkEditPageReleaseTrackToWorkRelationshipsTab from "./WorkEditPageReleaseTrackToWorkRelationshipsTab";
 import WorkEditPageWorkRelationshipsTab from "./WorkEditPageWorkRelationshipsTab";
 import WorkEditPageWorkToProductRelationshipsTab from "./WorkEditPageWorkToProductRelationshipsTab";
-import styles from "./WorkEditPage.module.css";
 import "antd/dist/antd.min.css";
 
 dayjs.extend(weekday);
@@ -172,15 +173,19 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
     form.resetFields();
   }, [workFormValues, form]);
 
-  const onSaveButtonClick = () => {
+  const onSaveButtonClick = useCallback(() => {
     form.submit();
-  };
+  }, [form]);
 
   const onDeleteButtonClick = useCallback(() => {
     if (work) {
       setConfirmDeleteModalOpen(true);
     }
   }, [work]);
+
+  const onCancelButtonClick = useCallback(() => {
+    navigate("/catalog/works/list");
+  }, [navigate]);
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
@@ -205,10 +210,6 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
 
   const onConfirmDeleteModalCancel = () => {
     setConfirmDeleteModalOpen(false);
-  };
-
-  const onCancelButtonClick = () => {
-    navigate("/catalog/works/list");
   };
 
   const onFinish = useCallback(
@@ -382,6 +383,30 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
 
   useEffect(() => fetchWorkGenreOptions(undefined), [fetchWorkGenreOptions]);
 
+  const title = useMemo(() => <Typography.Title level={4}>{mode === WorkEditPageMode.Create ? "Create" : "Edit"} Work</Typography.Title>, [mode]);
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
+          <SaveOutlined />
+          Save
+        </Button>
+        {mode === WorkEditPageMode.Edit && (
+          <Button danger type="primary" onClick={onDeleteButtonClick}>
+            <DeleteOutlined />
+            Delete
+          </Button>
+        )}
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Cancel
+        </Button>
+      </>
+    ),
+    [mode, loading, onSaveButtonClick, onDeleteButtonClick, onCancelButtonClick]
+  );
+
   const tabs = useMemo(
     () => [
       {
@@ -423,50 +448,82 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
     [work, loading, onWorkRelationshipsChange, releaseTrackToWorkRelationships, onWorkToProductRelationshipsChange]
   );
 
+  const modals = useMemo(
+    () => [
+      work && (
+        <ConfirmDeleteModal
+          key="ConfirmDeleteModal"
+          open={confirmDeleteModalOpen}
+          title="Delete Work"
+          message={`Confirm that you want to delete the "${work.title}" work. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+    ],
+    [work, confirmDeleteModalOpen, onConfirmDeleteModalOk]
+  );
+
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>{mode === WorkEditPageMode.Create ? "Create" : "Edit"} Work</Typography.Title>
-        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
-          <SaveOutlined />
-          Save
-        </Button>
-        {mode === WorkEditPageMode.Edit && (
-          <Button danger type="primary" onClick={onDeleteButtonClick}>
-            <DeleteOutlined />
-            Delete
-          </Button>
-        )}
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Cancel
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form form={form} initialValues={workFormValues} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} onFinish={onFinish} onFinishFailed={onFinishFailed}>
-            <Form.Item label="Id" name="id">
+            <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === WorkEditPageMode.Edit} />
             </Form.Item>
-            <Form.Item label="Title" name="title" rules={[{ required: true, message: "The 'Title' property must not be empty." }]}>
+            <Form.Item
+              label="Title"
+              name="title"
+              rules={[
+                { required: true, message: "The 'Title' property must not be empty." },
+                { max: 256, message: "The 'Title' property must be shorter than 256 characters." },
+              ]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Description" name="description">
+            <Form.Item
+              label="Description"
+              name="description"
+              rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item label="Disambiguation Text" name="disambiguationText">
+            <Form.Item
+              label="Disambiguation Text"
+              name="disambiguationText"
+              rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item label="ISWC" name="internationalStandardMusicalWorkCode">
+            <Form.Item
+              label="ISWC"
+              name="internationalStandardMusicalWorkCode"
+              rules={[{ max: 32, message: "The 'ISWC' property must be shorter than 32 characters." }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Released On" name="releasedOn" rules={[{ required: true, message: "The 'Released On' property must not be empty." }]}>
+            <Form.Item
+              label="Released On"
+              name="releasedOn"
+              rules={[
+                {
+                  required: true,
+                  message: "The 'Released On' property must not be empty.",
+                },
+              ]}
+            >
               <DatePicker />
             </Form.Item>
             <Form.Item
               label="Released On"
               name="releasedOnYearOnly"
-              rules={[{ required: true, message: "The 'Released On (Year Only)' property must not be empty." }]}
+              rules={[
+                {
+                  required: true,
+                  message: "The 'Released On (Year Only)' property must not be empty.",
+                },
+              ]}
               valuePropName="checked"
               initialValue={mode === WorkEditPageMode.Create ? false : undefined}
             >
@@ -548,17 +605,8 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      {work && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Work"
-          message={`Confirm that you want to delete the "${work.title}" work. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-      {work && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 

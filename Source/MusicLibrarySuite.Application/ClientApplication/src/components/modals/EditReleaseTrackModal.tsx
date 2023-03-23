@@ -2,6 +2,9 @@ import { Form, Input, Modal } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Artist, Genre, ReleaseTrack } from "../../api/ApplicationClient";
 import { mapReleaseTrackModalFormInitialValues, mergeReleaseTrackModalFormValues } from "../../entities/forms/ReleaseTrackModalFormValues";
+import { MaxReleaseMediaNumber, MaxReleaseTrackNumber, MinReleaseMediaNumber, MinReleaseTrackNumber } from "../../helpers/ApplicationConstants";
+import { validateReleaseMediaNumber } from "../../helpers/ReleaseMediaHelpers";
+import { validateReleaseTrackNumber } from "../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../hooks/useApplicationClient";
 import useEntityForm from "../../hooks/useEntityForm";
 import EntitySelect from "../inputs/EntitySelect";
@@ -193,8 +196,14 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
           label="Track Number"
           name="trackNumber"
           rules={[
-            { required: true, message: "The 'Track Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]{1,3}$/), message: "The 'Track Number' property must be a number in range [0 - 255]." },
+            {
+              required: true,
+              message: "The 'Track Number' property must not be empty.",
+            },
+            {
+              validator: (_, value: string) => validateReleaseTrackNumber(value),
+              message: `The 'Track Number' property must be a number in range [${MinReleaseTrackNumber} - ${MaxReleaseTrackNumber - 1}].`,
+            },
           ]}
         >
           <Input readOnly={!edit} />
@@ -203,8 +212,14 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
           label="Media Number"
           name="mediaNumber"
           rules={[
-            { required: true, message: "The 'Media Number' property must not be empty." },
-            { pattern: new RegExp(/^[0-9]{1,3}$/), message: "The 'Media Number' property must be a number in range [0 - 255]." },
+            {
+              required: true,
+              message: "The 'Media Number' property must not be empty.",
+            },
+            {
+              validator: (_, value: string) => validateReleaseMediaNumber(value),
+              message: `The 'Media Number' property must be a number in range [${MinReleaseMediaNumber} - ${MaxReleaseMediaNumber - 1}].`,
+            },
           ]}
         >
           <Input readOnly={!edit} />
@@ -219,20 +234,39 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
         >
           <Input readOnly={!edit} />
         </Form.Item>
-        <Form.Item label="Description" name="description" rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}>
+        <Form.Item
+          label="Description"
+          name="description"
+          rules={[
+            {
+              max: 2048,
+              message: "The 'Description' property must be shorter than 2048 characters.",
+            },
+          ]}
+        >
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
         <Form.Item
           label="Disambiguation Text"
           name="disambiguationText"
-          rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+          rules={[
+            {
+              max: 2048,
+              message: "The 'Disambiguation Text' property must be shorter than 2048 characters.",
+            },
+          ]}
         >
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
         <Form.Item
           label="ISRC"
           name="internationalStandardRecordingCode"
-          rules={[{ max: 64, message: "The 'ISRC' property must be shorter than 32 characters." }]}
+          rules={[
+            {
+              max: 64,
+              message: "The 'ISRC' property must be shorter than 32 characters.",
+            },
+          ]}
         >
           <Input readOnly={!edit} />
         </Form.Item>

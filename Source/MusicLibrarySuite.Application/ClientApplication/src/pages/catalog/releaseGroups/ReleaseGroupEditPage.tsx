@@ -1,16 +1,17 @@
-import { Button, Checkbox, Col, Form, Input, Row, Space, Tabs, Typography } from "antd";
+import { Button, Checkbox, Col, Form, Input, Row, Tabs, Typography } from "antd";
 import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { IReleaseGroup, ReleaseGroup, ReleaseGroupRelationship, ReleaseToReleaseGroupRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseGroupEditPageReleaseGroupRelationshipsTab from "./ReleaseGroupEditPageReleaseGroupRelationshipsTab";
 import ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab";
-import styles from "./ReleaseGroupEditPage.module.css";
 import "antd/dist/antd.min.css";
 
 export enum ReleaseGroupEditPageMode {
@@ -80,15 +81,19 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
     form.resetFields();
   }, [releaseGroupFormValues, form]);
 
-  const onSaveButtonClick = () => {
+  const onSaveButtonClick = useCallback(() => {
     form.submit();
-  };
+  }, [form]);
 
   const onDeleteButtonClick = useCallback(() => {
     if (releaseGroup) {
       setConfirmDeleteModalOpen(true);
     }
   }, [releaseGroup]);
+
+  const onCancelButtonClick = useCallback(() => {
+    navigate("/catalog/releaseGroups/list");
+  }, [navigate]);
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
@@ -113,10 +118,6 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
 
   const onConfirmDeleteModalCancel = () => {
     setConfirmDeleteModalOpen(false);
-  };
-
-  const onCancelButtonClick = () => {
-    navigate("/catalog/releaseGroups/list");
   };
 
   const onFinish = useCallback(
@@ -181,6 +182,33 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
     alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
+  const title = useMemo(
+    () => <Typography.Title level={4}>{mode === ReleaseGroupEditPageMode.Create ? "Create" : "Edit"} Release Group</Typography.Title>,
+    [mode]
+  );
+
+  const actionButtons = useMemo(
+    () => (
+      <>
+        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
+          <SaveOutlined />
+          Save
+        </Button>
+        {mode === ReleaseGroupEditPageMode.Edit && (
+          <Button danger type="primary" onClick={onDeleteButtonClick}>
+            <DeleteOutlined />
+            Delete
+          </Button>
+        )}
+        <Button onClick={onCancelButtonClick}>
+          <RollbackOutlined />
+          Cancel
+        </Button>
+      </>
+    ),
+    [mode, loading, onSaveButtonClick, onDeleteButtonClick, onCancelButtonClick]
+  );
+
   const tabs = useMemo(
     () => [
       {
@@ -210,25 +238,24 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
     [releaseGroup, loading, releaseToReleaseGroupRelationships, onReleaseGroupRelationshipsChange]
   );
 
+  const modals = useMemo(
+    () => [
+      releaseGroup && (
+        <ConfirmDeleteModal
+          key="ConfirmDeleteModal"
+          open={confirmDeleteModalOpen}
+          title="Delete Release Group"
+          message={`Confirm that you want to delete the "${releaseGroup.title}" release group. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+    ],
+    [releaseGroup, confirmDeleteModalOpen, onConfirmDeleteModalOk]
+  );
+
   return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>{mode === ReleaseGroupEditPageMode.Create ? "Create" : "Edit"} Release Group</Typography.Title>
-        <Button type="primary" loading={loading} onClick={onSaveButtonClick}>
-          <SaveOutlined />
-          Save
-        </Button>
-        {mode === ReleaseGroupEditPageMode.Edit && (
-          <Button danger type="primary" onClick={onDeleteButtonClick}>
-            <DeleteOutlined />
-            Delete
-          </Button>
-        )}
-        <Button onClick={onCancelButtonClick}>
-          <RollbackOutlined />
-          Cancel
-        </Button>
-      </Space>
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
@@ -239,16 +266,31 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
           >
-            <Form.Item label="Id" name="id">
+            <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === ReleaseGroupEditPageMode.Edit} />
             </Form.Item>
-            <Form.Item label="Title" name="title" rules={[{ required: true, message: "The 'Title' property must not be empty." }]}>
+            <Form.Item
+              label="Title"
+              name="title"
+              rules={[
+                { required: true, message: "The 'Title' property must not be empty." },
+                { max: 256, message: "The 'Title' property must be shorter than 256 characters." },
+              ]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Description" name="description">
+            <Form.Item
+              label="Description"
+              name="description"
+              rules={[{ max: 2048, message: "The 'Description' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item label="Disambiguation Text" name="disambiguationText">
+            <Form.Item
+              label="Disambiguation Text"
+              name="disambiguationText"
+              rules={[{ max: 2048, message: "The 'Disambiguation Text' property must be shorter than 2048 characters." }]}
+            >
               <Input.TextArea />
             </Form.Item>
             <Form.Item
@@ -273,17 +315,8 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      {releaseGroup && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Release Group"
-          message={`Confirm that you want to delete the "${releaseGroup.title}" release group. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-      {releaseGroup && <Tabs items={tabs} />}
-    </>
+      <Tabs items={tabs} />
+    </ActionPage>
   );
 };
 
