@@ -2,14 +2,14 @@ import { Button, Space, Table, Tag, Tooltip, Typography } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import type { FilterValue } from "antd/es/table/interface";
 import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MonitorOutlined, QuestionCircleOutlined } from "@ant-design/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Work } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
+import ActionPage from "../../../components/pages/ActionPage";
 import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./WorkListPage.module.css";
 import "antd/dist/antd.min.css";
 
 const WorkListPage = () => {
@@ -50,17 +50,23 @@ const WorkListPage = () => {
     fetchWorks();
   }, [fetchWorks]);
 
-  const onCreateButtonClick = () => {
+  const onCreateButtonClick = useCallback(() => {
     navigate("/catalog/works/create");
-  };
+  }, [navigate]);
 
-  const onViewButtonClick = (id: string) => {
-    navigate(`/catalog/works/view?id=${id}`);
-  };
+  const onViewButtonClick = useCallback(
+    (id: string) => {
+      navigate(`/catalog/works/view?id=${id}`);
+    },
+    [navigate]
+  );
 
-  const onEditButtonClick = (id: string) => {
-    navigate(`/catalog/works/edit?id=${id}`);
-  };
+  const onEditButtonClick = useCallback(
+    (id: string) => {
+      navigate(`/catalog/works/edit?id=${id}`);
+    },
+    [navigate]
+  );
 
   const onDeleteButtonClick = (work: Work) => {
     setWorkToDelete(work);
@@ -160,15 +166,42 @@ const WorkListPage = () => {
     },
   ];
 
-  return (
-    <>
-      <Space className={styles.pageHeader} direction="horizontal" align="baseline">
-        <Typography.Title level={4}>Browse Works</Typography.Title>
+  const title = <Typography.Title level={4}>Browse Works</Typography.Title>;
+
+  const actionButtons = useMemo(
+    () => (
+      <>
         <Button type="primary" onClick={onCreateButtonClick}>
           <AppstoreAddOutlined />
           Create
         </Button>
-      </Space>
+      </>
+    ),
+    [onCreateButtonClick]
+  );
+
+  const statusLine = useMemo(
+    () => totalCount !== undefined && completedOn && `Found ${totalCount} works total, request completed on ${completedOn.toLocaleString()}.`,
+    [totalCount, completedOn]
+  );
+
+  const modals = useMemo(
+    () => [
+      workToDelete && (
+        <ConfirmDeleteModal
+          open={confirmDeleteModalOpen}
+          title="Delete Work"
+          message={`Confirm that you want to delete the "${workToDelete.title}" work. This operation can not be undone.`}
+          onOk={onConfirmDeleteModalOk}
+          onCancel={onConfirmDeleteModalCancel}
+        />
+      ),
+    ],
+    [workToDelete, confirmDeleteModalOpen, onConfirmDeleteModalOk]
+  );
+
+  return (
+    <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Table
         columns={columns}
         rowKey="id"
@@ -182,24 +215,12 @@ const WorkListPage = () => {
           total: totalCount ?? 0,
           showSizeChanger: true,
           showQuickJumper: true,
+          showTotal: statusLine ? () => statusLine : undefined,
+          style: { alignItems: "baseline" },
         }}
         onChange={(pagination, filters) => onTableChange(pagination, filters)}
       />
-      {totalCount !== undefined && completedOn && (
-        <Space className={styles.statusLine}>
-          <Typography.Paragraph>{`Found ${totalCount} works total, request completed on ${completedOn.toLocaleString()}.`}</Typography.Paragraph>
-        </Space>
-      )}
-      {workToDelete && (
-        <ConfirmDeleteModal
-          open={confirmDeleteModalOpen}
-          title="Delete Work"
-          message={`Confirm that you want to delete the "${workToDelete.title}" work. This operation can not be undone.`}
-          onOk={onConfirmDeleteModalOk}
-          onCancel={onConfirmDeleteModalCancel}
-        />
-      )}
-    </>
+    </ActionPage>
   );
 };
 
