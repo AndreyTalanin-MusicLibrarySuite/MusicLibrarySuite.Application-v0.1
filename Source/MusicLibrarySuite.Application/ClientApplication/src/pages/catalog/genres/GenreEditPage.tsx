@@ -1,14 +1,14 @@
 import { Button, Checkbox, Col, Form, Input, Row, Tabs, Typography } from "antd";
-import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Genre, GenreRelationship, IGenre } from "../../../api/ApplicationClient";
+import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { mapGenreFormInitialValues, mergeGenreFormValues } from "../../../entities/forms/GenreFormValues";
 import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import GenreEditPageGenreRelationshipsTab from "./GenreEditPageGenreRelationshipsTab";
 import "antd/dist/antd.min.css";
@@ -26,30 +26,84 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
   const navigate = useNavigate();
 
   const [genre, setGenre] = useState<Genre>();
-  const [genreFormValues, setGenreFormValues] = useState<Store>({});
+  const [genreInitialValues, setGenreInitialValues] = useState<Genre>();
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
   const [id] = useQueryStringId(mode === GenreEditPageMode.Edit);
   const applicationClient = useApplicationClient();
 
-  const [form] = Form.useForm();
-
   const fetchGenre = useCallback(() => {
     if (id !== undefined) {
       applicationClient
         .getGenre(id)
         .then((genre) => {
-          genre.genreRelationships = genre.genreRelationships.map((genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: genre }));
+          genre.genreRelationships.forEach((genreRelationship) => (genreRelationship.genre = genre));
 
           setGenre(genre);
-          setGenreFormValues(genre);
+          setGenreInitialValues(genre);
         })
         .catch((error) => {
           alert(error);
         });
     }
   }, [id, applicationClient]);
+
+  useEffect(() => {
+    fetchGenre();
+  }, [fetchGenre]);
+
+  const saveGenre = useCallback(
+    (genreValues: Genre) => {
+      genreValues.genreRelationships =
+        genre?.genreRelationships?.map(
+          (genreRelationship) =>
+            new GenreRelationship({
+              ...genreRelationship,
+              genre: undefined,
+              dependentGenre: undefined,
+            })
+        ) ?? [];
+
+      if (mode === GenreEditPageMode.Create) {
+        setLoading(true);
+        applicationClient
+          .createGenre(genreValues)
+          .then((genre) => {
+            setLoading(false);
+            navigate(`/catalog/genres/edit?id=${genre.id}`);
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      } else {
+        setLoading(true);
+        applicationClient
+          .updateGenre(genreValues)
+          .then(() => {
+            setLoading(false);
+            fetchGenre();
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      }
+    },
+    [mode, navigate, genre, applicationClient, fetchGenre]
+  );
+
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(genreInitialValues, mapGenreFormInitialValues, mergeGenreFormValues, saveGenre),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
+
+  useEffect(() => {
+    form.resetFields();
+  }, [genreInitialValues, form]);
 
   const onGenreRelationshipsChange = useCallback(
     (genreRelationships: GenreRelationship[]) => {
@@ -59,14 +113,6 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
     },
     [genre]
   );
-
-  useEffect(() => {
-    fetchGenre();
-  }, [fetchGenre]);
-
-  useEffect(() => {
-    form.resetFields();
-  }, [genreFormValues, form]);
 
   const onSaveButtonClick = useCallback(() => {
     form.submit();
@@ -105,57 +151,6 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
 
   const onConfirmDeleteModalCancel = () => {
     setConfirmDeleteModalOpen(false);
-  };
-
-  const onFinish = useCallback(
-    (genreFormValues: Store) => {
-      const genreModel = new Genre({ ...genre, ...(genreFormValues as IGenre) });
-      genreModel.id = genreModel.id?.trim();
-      genreModel.name = genreModel.name?.trim();
-      genreModel.description = genreModel.description?.trim();
-      if (genreModel.id !== undefined && genreModel.id.length === 0) {
-        genreModel.id = EmptyGuidString;
-      }
-      if (genreModel.description !== undefined && genreModel.description.length === 0) {
-        genreModel.description = undefined;
-      }
-
-      genreModel.genreRelationships =
-        genreModel.genreRelationships?.map(
-          (genreRelationship) => new GenreRelationship({ ...genreRelationship, genre: undefined, dependentGenre: undefined })
-        ) ?? [];
-
-      if (mode === GenreEditPageMode.Create) {
-        setLoading(true);
-        applicationClient
-          .createGenre(genreModel)
-          .then((genre) => {
-            setLoading(false);
-            navigate(`/catalog/genres/edit?id=${genre.id}`);
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      } else {
-        setLoading(true);
-        applicationClient
-          .updateGenre(genreModel)
-          .then(() => {
-            setLoading(false);
-            fetchGenre();
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      }
-    },
-    [mode, navigate, genre, applicationClient, fetchGenre]
-  );
-
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
   const title = useMemo(() => <Typography.Title level={4}>{mode === GenreEditPageMode.Create ? "Create" : "Edit"} Genre</Typography.Title>, [mode]);
@@ -222,11 +217,11 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
             form={form}
-            initialValues={genreFormValues}
+            initialValues={initialFormValues}
+            onFinish={onFormFinish}
+            onFinishFailed={onFormFinishFailed}
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
           >
             <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === GenreEditPageMode.Edit} />
@@ -279,7 +274,7 @@ const GenreEditPage = ({ mode }: GenreEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      <Tabs items={tabs} />
+      {mode === GenreEditPageMode.Edit && <Tabs items={tabs} />}
     </ActionPage>
   );
 };

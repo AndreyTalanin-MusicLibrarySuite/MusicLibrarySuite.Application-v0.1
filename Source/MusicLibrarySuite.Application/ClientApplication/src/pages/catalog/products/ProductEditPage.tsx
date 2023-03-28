@@ -1,13 +1,8 @@
 import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Tabs, Typography } from "antd";
-import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
-import dayjs, { Dayjs } from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  IProduct,
   Product,
   ProductRelationship,
   ReleaseMediaToProductRelationship,
@@ -17,9 +12,10 @@ import {
 } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { mapProductFormInitialValues, mergeProductFormValues } from "../../../entities/forms/ProductFormValues";
 import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ProductEditPageProductRelationshipsTab from "./ProductEditPageProductRelationshipsTab";
 import ProductEditPageReleaseMediaToProductRelationshipsTab from "./ProductEditPageReleaseMediaToProductRelationshipsTab";
@@ -27,9 +23,6 @@ import ProductEditPageReleaseToProductRelationshipsTab from "./ProductEditPageRe
 import ProductEditPageReleaseTrackToProductRelationshipsTab from "./ProductEditPageReleaseTrackToProductRelationshipsTab";
 import ProductEditPageWorkToProductRelationshipsTab from "./ProductEditPageWorkToProductRelationshipsTab";
 import "antd/dist/antd.min.css";
-
-dayjs.extend(weekday);
-dayjs.extend(localeData);
 
 export enum ProductEditPageMode {
   Create,
@@ -44,7 +37,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
   const navigate = useNavigate();
 
   const [product, setProduct] = useState<Product>();
-  const [productFormValues, setProductFormValues] = useState<Store>({});
+  const [productInitialValues, setProductInitialValues] = useState<Product>();
   const [releaseToProductRelationships, setReleaseToProductRelationships] = useState<ReleaseToProductRelationship[]>([]);
   const [releaseMediaToProductRelationships, setReleaseMediaToProductRelationships] = useState<ReleaseMediaToProductRelationship[]>([]);
   const [releaseTrackToProductRelationships, setReleaseTrackToProductRelationships] = useState<ReleaseTrackToProductRelationship[]>([]);
@@ -55,19 +48,15 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
   const [id] = useQueryStringId(mode === ProductEditPageMode.Edit);
   const applicationClient = useApplicationClient();
 
-  const [form] = Form.useForm();
-
   const fetchProduct = useCallback(() => {
     if (id !== undefined) {
       applicationClient
         .getProduct(id)
         .then((product) => {
-          product.productRelationships = product.productRelationships.map(
-            (productRelationship) => new ProductRelationship({ ...productRelationship, product: product })
-          );
+          product.productRelationships.forEach((productRelationship) => (productRelationship.product = product));
 
           setProduct(product);
-          setProductFormValues({ ...product, releasedOn: dayjs(product.releasedOn) });
+          setProductInitialValues(product);
 
           applicationClient
             .getReleaseToProductRelationshipsByProduct(id)
@@ -108,6 +97,117 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
     }
   }, [id, applicationClient]);
 
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  const saveProduct = useCallback(
+    (productValues: Product) => {
+      productValues.productRelationships =
+        product?.productRelationships?.map(
+          (productRelationship) =>
+            new ProductRelationship({
+              ...productRelationship,
+              product: undefined,
+              dependentProduct: undefined,
+            })
+        ) ?? [];
+
+      if (mode === ProductEditPageMode.Create) {
+        setLoading(true);
+        applicationClient
+          .createProduct(productValues)
+          .then((product) => {
+            setLoading(false);
+            navigate(`/catalog/products/edit?id=${product.id}`);
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      } else {
+        setLoading(true);
+        applicationClient
+          .updateProduct(productValues)
+          .then(() => {
+            const releaseToProductRelationshipModels = releaseToProductRelationships.map(
+              (releaseToProductRelationship) =>
+                new ReleaseToProductRelationship({
+                  ...releaseToProductRelationship,
+                  release: undefined,
+                  product: undefined,
+                })
+            );
+            const releaseMediaToProductRelationshipModels = releaseMediaToProductRelationships.map(
+              (releaseMediaToProductRelationship) =>
+                new ReleaseMediaToProductRelationship({
+                  ...releaseMediaToProductRelationship,
+                  releaseMedia: undefined,
+                  product: undefined,
+                })
+            );
+            const releaseTrackToProductRelationshipModels = releaseTrackToProductRelationships.map(
+              (releaseTrackToProductRelationship) =>
+                new ReleaseTrackToProductRelationship({
+                  ...releaseTrackToProductRelationship,
+                  releaseTrack: undefined,
+                  product: undefined,
+                })
+            );
+            const workToProductRelationshipModels = workToProductRelationships.map(
+              (workToProductRelationship) =>
+                new WorkToProductRelationship({
+                  ...workToProductRelationship,
+                  work: undefined,
+                  product: undefined,
+                })
+            );
+
+            Promise.all([
+              applicationClient.updateReleaseToProductRelationshipsOrder(true, releaseToProductRelationshipModels),
+              applicationClient.updateReleaseMediaToProductRelationshipsOrder(true, releaseMediaToProductRelationshipModels),
+              applicationClient.updateReleaseTrackToProductRelationshipsOrder(true, releaseTrackToProductRelationshipModels),
+              applicationClient.updateWorkToProductRelationshipsOrder(true, workToProductRelationshipModels),
+            ])
+              .then(() => {
+                setLoading(false);
+                fetchProduct();
+              })
+              .catch((error) => {
+                setLoading(false);
+                alert(error);
+              });
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      }
+    },
+    [
+      mode,
+      navigate,
+      product,
+      releaseToProductRelationships,
+      releaseMediaToProductRelationships,
+      releaseTrackToProductRelationships,
+      workToProductRelationships,
+      applicationClient,
+      fetchProduct,
+    ]
+  );
+
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(productInitialValues, mapProductFormInitialValues, mergeProductFormValues, saveProduct),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
+
+  useEffect(() => {
+    form.resetFields();
+  }, [productInitialValues, form]);
+
   const onProductRelationshipsChange = useCallback(
     (productRelationships: ProductRelationship[]) => {
       if (product) {
@@ -116,14 +216,6 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
     },
     [product]
   );
-
-  useEffect(() => {
-    fetchProduct();
-  }, [fetchProduct]);
-
-  useEffect(() => {
-    form.resetFields();
-  }, [productFormValues, form]);
 
   const onSaveButtonClick = useCallback(() => {
     form.submit();
@@ -162,86 +254,6 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
 
   const onConfirmDeleteModalCancel = () => {
     setConfirmDeleteModalOpen(false);
-  };
-
-  const onFinish = useCallback(
-    (productFormValues: Store) => {
-      const releasedOn = productFormValues.releasedOn as Dayjs;
-      productFormValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
-
-      const productModel = new Product({ ...product, ...(productFormValues as IProduct) });
-      productModel.id = productModel.id?.trim();
-      productModel.title = productModel.title?.trim();
-      productModel.description = productModel.description?.trim();
-      productModel.disambiguationText = productModel.disambiguationText?.trim();
-      if (productModel.id !== undefined && productModel.id.length === 0) {
-        productModel.id = EmptyGuidString;
-      }
-      if (productModel.description !== undefined && productModel.description.length === 0) {
-        productModel.description = undefined;
-      }
-      if (productModel.disambiguationText !== undefined && productModel.disambiguationText.length === 0) {
-        productModel.disambiguationText = undefined;
-      }
-
-      productModel.productRelationships =
-        productModel.productRelationships?.map(
-          (productRelationship) => new ProductRelationship({ ...productRelationship, product: undefined, dependentProduct: undefined })
-        ) ?? [];
-
-      if (mode === ProductEditPageMode.Create) {
-        setLoading(true);
-        applicationClient
-          .createProduct(productModel)
-          .then((product) => {
-            setLoading(false);
-            navigate(`/catalog/products/edit?id=${product.id}`);
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      } else {
-        setLoading(true);
-        applicationClient
-          .updateProduct(productModel)
-          .then(() => {
-            Promise.all([
-              applicationClient.updateReleaseToProductRelationshipsOrder(true, releaseToProductRelationships),
-              applicationClient.updateReleaseMediaToProductRelationshipsOrder(true, releaseMediaToProductRelationships),
-              applicationClient.updateReleaseTrackToProductRelationshipsOrder(true, releaseTrackToProductRelationships),
-              applicationClient.updateWorkToProductRelationshipsOrder(true, workToProductRelationships),
-            ])
-              .then(() => {
-                setLoading(false);
-                fetchProduct();
-              })
-              .catch((error) => {
-                setLoading(false);
-                alert(error);
-              });
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      }
-    },
-    [
-      mode,
-      navigate,
-      product,
-      releaseToProductRelationships,
-      releaseMediaToProductRelationships,
-      releaseTrackToProductRelationships,
-      workToProductRelationships,
-      applicationClient,
-      fetchProduct,
-    ]
-  );
-
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
   const title = useMemo(() => <Typography.Title level={4}>{mode === ProductEditPageMode.Create ? "Create" : "Edit"} Product</Typography.Title>, [mode]);
@@ -329,11 +341,11 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
     ],
     [
       product,
-      loading,
       releaseToProductRelationships,
       releaseMediaToProductRelationships,
       releaseTrackToProductRelationships,
       workToProductRelationships,
+      loading,
       onProductRelationshipsChange,
     ]
   );
@@ -360,11 +372,11 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
             form={form}
-            initialValues={productFormValues}
+            initialValues={initialFormValues}
+            onFinish={onFormFinish}
+            onFinishFailed={onFormFinishFailed}
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
           >
             <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === ProductEditPageMode.Edit} />
@@ -450,7 +462,7 @@ const ProductEditPage = ({ mode }: ProductEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      <Tabs items={tabs} />
+      {mode === ProductEditPageMode.Edit && <Tabs items={tabs} />}
     </ActionPage>
   );
 };
