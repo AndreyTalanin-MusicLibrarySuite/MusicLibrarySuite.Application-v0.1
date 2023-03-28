@@ -90,7 +90,10 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
   const onReleaseTrackToWorkRelationshipDelete = (releaseTrackRelationship: TableReleaseTrackRelationship) => {
     setReleaseTrackToWorkRelationships(
       releaseTrackToWorkRelationships.filter(
-        (releaseTrackToWorkRelationship) => releaseTrackToWorkRelationship.workId !== releaseTrackRelationship.dependentEntityId
+        (releaseTrackToWorkRelationship) =>
+          releaseTrackToWorkRelationship.trackNumber !== releaseTrackRelationship.releaseTrackNumber ||
+          releaseTrackToWorkRelationship.mediaNumber !== releaseTrackRelationship.releaseMediaNumber ||
+          releaseTrackToWorkRelationship.workId !== releaseTrackRelationship.dependentEntityId
       )
     );
   };
