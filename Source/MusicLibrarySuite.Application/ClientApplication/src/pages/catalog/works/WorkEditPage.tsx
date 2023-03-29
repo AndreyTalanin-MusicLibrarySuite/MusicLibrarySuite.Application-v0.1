@@ -1,39 +1,21 @@
 import { Button, Checkbox, Col, DatePicker, Form, Input, Row, Tabs, Typography } from "antd";
-import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
-import dayjs, { Dayjs } from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import {
-  Artist,
-  Genre,
-  IWork,
-  ReleaseTrackToWorkRelationship,
-  Work,
-  WorkArtist,
-  WorkComposer,
-  WorkFeaturedArtist,
-  WorkGenre,
-  WorkPerformer,
-  WorkRelationship,
-  WorkToProductRelationship,
-} from "../../../api/ApplicationClient";
+import { Artist, Genre, ReleaseTrackToWorkRelationship, Work, WorkRelationship, WorkToProductRelationship } from "../../../api/ApplicationClient";
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { mapWorkFormInitialValues, mergeWorkFormValues } from "../../../entities/forms/WorkFormValues";
+import { DefaultPageSize } from "../../../helpers/ApplicationConstants";
 import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import WorkEditPageReleaseTrackToWorkRelationshipsTab from "./WorkEditPageReleaseTrackToWorkRelationshipsTab";
 import WorkEditPageWorkRelationshipsTab from "./WorkEditPageWorkRelationshipsTab";
 import WorkEditPageWorkToProductRelationshipsTab from "./WorkEditPageWorkToProductRelationshipsTab";
 import "antd/dist/antd.min.css";
-
-dayjs.extend(weekday);
-dayjs.extend(localeData);
 
 export enum WorkEditPageMode {
   Create,
@@ -48,94 +30,75 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const navigate = useNavigate();
 
   const [work, setWork] = useState<Work>();
-  const [workFormValues, setWorkFormValues] = useState<Store>({});
+  const [workInitialValues, setWorkInitialValues] = useState<Work>();
+  const [releaseTrackToWorkRelationships, setReleaseTrackToWorkRelationships] = useState<ReleaseTrackToWorkRelationship[]>([]);
   const [workArtistOptions, setWorkArtistOptions] = useState<Artist[]>([]);
   const [workFeaturedArtistOptions, setWorkFeaturedArtistOptions] = useState<Artist[]>([]);
   const [workPerformerOptions, setWorkPerformerOptions] = useState<Artist[]>([]);
   const [workComposerOptions, setWorkComposerOptions] = useState<Artist[]>([]);
   const [workGenreOptions, setWorkGenreOptions] = useState<Genre[]>([]);
-  const [releaseTrackToWorkRelationships, setReleaseTrackToWorkRelationships] = useState<ReleaseTrackToWorkRelationship[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
 
   const [id] = useQueryStringId(mode === WorkEditPageMode.Edit);
   const applicationClient = useApplicationClient();
 
-  const [form] = Form.useForm();
-
   const fetchWork = useCallback(() => {
     if (id !== undefined) {
       applicationClient
         .getWork(id)
         .then((work) => {
-          work.workRelationships = work.workRelationships.map((workRelationship) => new WorkRelationship({ ...workRelationship, work: work }));
-
-          work.workToProductRelationships = work.workToProductRelationships.map(
-            (workToProductRelationship) => new WorkToProductRelationship({ ...workToProductRelationship, work: work })
-          );
-
-          work.workArtists = work.workArtists.map((workArtist) => new WorkArtist({ ...workArtist, work: work }));
-          work.workFeaturedArtists = work.workFeaturedArtists.map((workFeaturedArtist) => new WorkFeaturedArtist({ ...workFeaturedArtist, work: work }));
-          work.workPerformers = work.workPerformers.map((workPerformer) => new WorkPerformer({ ...workPerformer, work: work }));
-          work.workComposers = work.workComposers.map((workComposer) => new WorkComposer({ ...workComposer, work: work }));
-          work.workGenres = work.workGenres.map((workGenre) => new WorkGenre({ ...workGenre, work: work }));
+          work.workRelationships.forEach((workRelationship) => (workRelationship.work = work));
+          work.workToProductRelationships.forEach((workToProductRelationship) => (workToProductRelationship.work = work));
 
           setWork(work);
-          setWorkFormValues({
-            ...work,
-            releasedOn: dayjs(work.releasedOn),
-            workArtists: work?.workArtists.map((workArtist) => workArtist.artistId) ?? [],
-            workFeaturedArtists: work?.workFeaturedArtists.map((workFeaturedArtist) => workFeaturedArtist.artistId) ?? [],
-            workPerformers: work?.workPerformers.map((workPerformer) => workPerformer.artistId) ?? [],
-            workComposers: work?.workComposers.map((workComposer) => workComposer.artistId) ?? [],
-            workGenres: work?.workGenres.map((workGenre) => workGenre.genreId) ?? [],
-          });
+          setWorkInitialValues(work);
+
+          applicationClient
+            .getReleaseTrackToWorkRelationshipsByWork(id)
+            .then((releaseTrackToWorkRelationships) => {
+              setReleaseTrackToWorkRelationships(releaseTrackToWorkRelationships);
+            })
+            .catch((error) => {
+              alert(error);
+            });
 
           applicationClient
             .getArtists(work.workArtists?.map((workArtist) => workArtist.artistId) ?? [])
-            .then((workArtists) => {
-              setWorkArtistOptions(workArtists);
+            .then((artists) => {
+              setWorkArtistOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getArtists(work.workFeaturedArtists?.map((workFeaturedArtist) => workFeaturedArtist.artistId) ?? [])
-            .then((workFeaturedArtists) => {
-              setWorkFeaturedArtistOptions(workFeaturedArtists);
+            .then((artists) => {
+              setWorkFeaturedArtistOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getArtists(work.workPerformers?.map((workPerformer) => workPerformer.artistId) ?? [])
-            .then((workPerformers) => {
-              setWorkPerformerOptions(workPerformers);
+            .then((artists) => {
+              setWorkPerformerOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getArtists(work.workComposers?.map((workComposer) => workComposer.artistId) ?? [])
-            .then((workComposers) => {
-              setWorkComposerOptions(workComposers);
+            .then((artists) => {
+              setWorkComposerOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getGenres(work.workGenres?.map((workGenre) => workGenre.genreId) ?? [])
-            .then((workGenres) => {
-              setWorkGenreOptions(workGenres);
-            })
-            .catch((error) => {
-              alert(error);
-            });
-
-          applicationClient
-            .getReleaseTrackToWorkRelationshipsByWork(id)
-            .then((releaseTrackToWorkRelationships) => {
-              setReleaseTrackToWorkRelationships(releaseTrackToWorkRelationships);
+            .then((genres) => {
+              setWorkGenreOptions(genres);
             })
             .catch((error) => {
               alert(error);
@@ -146,6 +109,87 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
         });
     }
   }, [id, applicationClient]);
+
+  useEffect(() => {
+    fetchWork();
+  }, [fetchWork]);
+
+  const saveWork = useCallback(
+    (workValues: Work) => {
+      workValues.workRelationships =
+        work?.workRelationships?.map(
+          (workRelationship) =>
+            new WorkRelationship({
+              ...workRelationship,
+              work: undefined,
+              dependentWork: undefined,
+            })
+        ) ?? [];
+      workValues.workToProductRelationships =
+        work?.workToProductRelationships?.map(
+          (workToProductRelationship) =>
+            new WorkToProductRelationship({
+              ...workToProductRelationship,
+              work: undefined,
+              product: undefined,
+            })
+        ) ?? [];
+
+      if (mode === WorkEditPageMode.Create) {
+        setLoading(true);
+        applicationClient
+          .createWork(workValues)
+          .then((work) => {
+            setLoading(false);
+            navigate(`/catalog/works/edit?id=${work.id}`);
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      } else {
+        setLoading(true);
+        applicationClient
+          .updateWork(workValues)
+          .then(() => {
+            const releaseTrackToWorkRelationshipModels = releaseTrackToWorkRelationships.map(
+              (releaseTrackToWorkRelationship) =>
+                new ReleaseTrackToWorkRelationship({
+                  ...releaseTrackToWorkRelationship,
+                  releaseTrack: undefined,
+                  work: undefined,
+                })
+            );
+
+            Promise.all([applicationClient.updateReleaseTrackToWorkRelationshipsOrder(true, releaseTrackToWorkRelationshipModels)])
+              .then(() => {
+                setLoading(false);
+                fetchWork();
+              })
+              .catch((error) => {
+                setLoading(false);
+                alert(error);
+              });
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      }
+    },
+    [mode, navigate, work, releaseTrackToWorkRelationships, applicationClient, fetchWork]
+  );
+
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(workInitialValues, mapWorkFormInitialValues, mergeWorkFormValues, saveWork),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
+
+  useEffect(() => {
+    form.resetFields();
+  }, [workInitialValues, form]);
 
   const onWorkRelationshipsChange = useCallback(
     (workRelationships: WorkRelationship[]) => {
@@ -164,14 +208,6 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
     },
     [work]
   );
-
-  useEffect(() => {
-    fetchWork();
-  }, [fetchWork]);
-
-  useEffect(() => {
-    form.resetFields();
-  }, [workFormValues, form]);
 
   const onSaveButtonClick = useCallback(() => {
     form.submit();
@@ -212,101 +248,10 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
     setConfirmDeleteModalOpen(false);
   };
 
-  const onFinish = useCallback(
-    (workFormValues: Store) => {
-      const releasedOn = workFormValues.releasedOn as Dayjs;
-      workFormValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
-
-      const workArtistIds = workFormValues.workArtists as string[];
-      const workFeaturedArtistIds = workFormValues.workFeaturedArtists as string[];
-      const workPerformerIds = workFormValues.workPerformers as string[];
-      const workComposerIds = workFormValues.workComposers as string[];
-      const workGenreIds = workFormValues.workGenres as string[];
-      if (work?.id) {
-        workFormValues.workArtists = workArtistIds.map((artistId) => new WorkArtist({ workId: work.id, artistId: artistId }));
-        workFormValues.workFeaturedArtists = workFeaturedArtistIds.map((artistId) => new WorkFeaturedArtist({ workId: work.id, artistId: artistId }));
-        workFormValues.workPerformers = workPerformerIds.map((artistId) => new WorkPerformer({ workId: work.id, artistId: artistId }));
-        workFormValues.workComposers = workComposerIds.map((artistId) => new WorkComposer({ workId: work.id, artistId: artistId }));
-        workFormValues.workGenres = workGenreIds.map((genreId) => new WorkGenre({ workId: work.id, genreId: genreId }));
-      } else {
-        workFormValues.workArtists = [];
-        workFormValues.workFeaturedArtists = [];
-        workFormValues.workPerformers = [];
-        workFormValues.workComposers = [];
-        workFormValues.workGenres = [];
-      }
-
-      const workModel = new Work({ ...work, ...(workFormValues as IWork) });
-      workModel.id = workModel.id?.trim();
-      workModel.title = workModel.title?.trim();
-      workModel.description = workModel.description?.trim();
-      workModel.disambiguationText = workModel.disambiguationText?.trim();
-      workModel.internationalStandardMusicalWorkCode = workModel.internationalStandardMusicalWorkCode?.trim();
-      if (workModel.id !== undefined && workModel.id.length === 0) {
-        workModel.id = EmptyGuidString;
-      }
-      if (workModel.description !== undefined && workModel.description.length === 0) {
-        workModel.description = undefined;
-      }
-      if (workModel.disambiguationText !== undefined && workModel.disambiguationText.length === 0) {
-        workModel.disambiguationText = undefined;
-      }
-      if (workModel.internationalStandardMusicalWorkCode !== undefined && workModel.internationalStandardMusicalWorkCode.length === 0) {
-        workModel.internationalStandardMusicalWorkCode = undefined;
-      }
-
-      workModel.workRelationships =
-        workModel.workRelationships?.map((workRelationship) => new WorkRelationship({ ...workRelationship, work: undefined, dependentWork: undefined })) ?? [];
-
-      workModel.workToProductRelationships =
-        workModel.workToProductRelationships?.map(
-          (workToProductRelationship) => new WorkToProductRelationship({ ...workToProductRelationship, work: undefined, product: undefined })
-        ) ?? [];
-
-      if (mode === WorkEditPageMode.Create) {
-        setLoading(true);
-        applicationClient
-          .createWork(workModel)
-          .then((work) => {
-            setLoading(false);
-            navigate(`/catalog/works/edit?id=${work.id}`);
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      } else {
-        setLoading(true);
-        applicationClient
-          .updateWork(workModel)
-          .then(() => {
-            Promise.all([applicationClient.updateReleaseTrackToWorkRelationshipsOrder(true, releaseTrackToWorkRelationships)])
-              .then(() => {
-                setLoading(false);
-                fetchWork();
-              })
-              .catch((error) => {
-                setLoading(false);
-                alert(error);
-              });
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      }
-    },
-    [mode, navigate, work, releaseTrackToWorkRelationships, applicationClient, fetchWork]
-  );
-
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
-  };
-
   const fetchWorkArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setWorkArtistOptions(artistResponse.items);
         })
@@ -322,7 +267,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const fetchWorkFeaturedArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setWorkFeaturedArtistOptions(artistResponse.items);
         })
@@ -338,7 +283,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const fetchWorkPerformerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setWorkPerformerOptions(artistResponse.items);
         })
@@ -354,7 +299,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const fetchWorkComposerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setWorkComposerOptions(artistResponse.items);
         })
@@ -370,7 +315,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
   const fetchWorkGenreOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedGenres(20, 0, nameFilter, undefined)
+        .getPagedGenres(DefaultPageSize, 0, nameFilter, undefined)
         .then((genreResponse) => {
           setWorkGenreOptions(genreResponse.items);
         })
@@ -445,7 +390,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
         ),
       },
     ],
-    [work, loading, onWorkRelationshipsChange, releaseTrackToWorkRelationships, onWorkToProductRelationshipsChange]
+    [work, releaseTrackToWorkRelationships, loading, onWorkRelationshipsChange, onWorkToProductRelationshipsChange]
   );
 
   const modals = useMemo(
@@ -468,7 +413,14 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
     <ActionPage title={title} actionButtons={actionButtons} modals={modals}>
       <Row>
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-          <Form form={form} initialValues={workFormValues} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} onFinish={onFinish} onFinishFailed={onFinishFailed}>
+          <Form
+            form={form}
+            initialValues={initialFormValues}
+            onFinish={onFormFinish}
+            onFinishFailed={onFormFinishFailed}
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
+          >
             <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === WorkEditPageMode.Edit} />
             </Form.Item>
@@ -548,7 +500,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               <Checkbox />
             </Form.Item>
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Artists" name="workArtists">
+              <Form.Item label="Artists" name="workArtistIds">
                 <EntitySelect
                   mode="multiple"
                   options={workArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -557,7 +509,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Featured Artists" name="workFeaturedArtists">
+              <Form.Item label="Featured Artists" name="workFeaturedArtistIds">
                 <EntitySelect
                   mode="multiple"
                   options={workFeaturedArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -566,7 +518,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Performers" name="workPerformers">
+              <Form.Item label="Performers" name="workPerformerIds">
                 <EntitySelect
                   mode="multiple"
                   options={workPerformerOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -575,7 +527,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Composers" name="workComposers">
+              <Form.Item label="Composers" name="workComposerIds">
                 <EntitySelect
                   mode="multiple"
                   options={workComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -584,7 +536,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
               </Form.Item>
             )}
             {mode === WorkEditPageMode.Edit && (
-              <Form.Item label="Genres" name="workGenres">
+              <Form.Item label="Genres" name="workGenreIds">
                 <EntitySelect
                   mode="multiple"
                   options={workGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -605,7 +557,7 @@ const WorkEditPage = ({ mode }: WorkEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      <Tabs items={tabs} />
+      {mode === WorkEditPageMode.Edit && <Tabs items={tabs} />}
     </ActionPage>
   );
 };

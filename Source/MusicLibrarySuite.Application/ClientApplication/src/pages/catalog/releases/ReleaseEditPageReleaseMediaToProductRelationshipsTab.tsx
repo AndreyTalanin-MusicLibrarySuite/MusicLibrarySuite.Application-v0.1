@@ -88,7 +88,9 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
   const onReleaseMediaToProductRelationshipDelete = (releaseMediaRelationship: TableReleaseMediaRelationship) => {
     setReleaseMediaToProductRelationships(
       releaseMediaToProductRelationships.filter(
-        (releaseMediaToProductRelationship) => releaseMediaToProductRelationship.productId !== releaseMediaRelationship.dependentEntityId
+        (releaseMediaToProductRelationship) =>
+          releaseMediaToProductRelationship.mediaNumber !== releaseMediaRelationship.releaseMediaNumber ||
+          releaseMediaToProductRelationship.productId !== releaseMediaRelationship.dependentEntityId
       )
     );
   };

@@ -2,7 +2,13 @@ import { Form, Input, Modal } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Artist, Genre, ReleaseTrack } from "../../api/ApplicationClient";
 import { mapReleaseTrackModalFormInitialValues, mergeReleaseTrackModalFormValues } from "../../entities/forms/ReleaseTrackModalFormValues";
-import { MaxReleaseMediaNumber, MaxReleaseTrackNumber, MinReleaseMediaNumber, MinReleaseTrackNumber } from "../../helpers/ApplicationConstants";
+import {
+  DefaultPageSize,
+  MaxReleaseMediaNumber,
+  MaxReleaseTrackNumber,
+  MinReleaseMediaNumber,
+  MinReleaseTrackNumber,
+} from "../../helpers/ApplicationConstants";
 import { validateReleaseMediaNumber } from "../../helpers/ReleaseMediaHelpers";
 import { validateReleaseTrackNumber } from "../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../hooks/useApplicationClient";
@@ -101,7 +107,7 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
   const fetchReleaseTrackArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(10, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackArtistOptions(artistResponse.items);
         })
@@ -117,7 +123,7 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
   const fetchReleaseTrackFeaturedArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(10, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackFeaturedArtistOptions(artistResponse.items);
         })
@@ -133,7 +139,7 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
   const fetchReleaseTrackPerformerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(10, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackPerformerOptions(artistResponse.items);
         })
@@ -149,7 +155,7 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
   const fetchReleaseTrackComposerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(10, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseTrackComposerOptions(artistResponse.items);
         })
@@ -165,7 +171,7 @@ const EditReleaseTrackModal = ({ edit, open, releaseTrack, onOk: onModalOk, onCa
   const fetchReleaseTrackGenreOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedGenres(10, 0, nameFilter, undefined)
+        .getPagedGenres(DefaultPageSize, 0, nameFilter, undefined)
         .then((genreResponse) => {
           setReleaseTrackGenreOptions(genreResponse.items);
         })

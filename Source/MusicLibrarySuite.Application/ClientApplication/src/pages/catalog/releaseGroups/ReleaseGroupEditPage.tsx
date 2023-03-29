@@ -1,14 +1,14 @@
 import { Button, Checkbox, Col, Form, Input, Row, Tabs, Typography } from "antd";
-import { Store } from "antd/lib/form/interface";
 import { DeleteOutlined, RollbackOutlined, SaveOutlined } from "@ant-design/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { IReleaseGroup, ReleaseGroup, ReleaseGroupRelationship, ReleaseToReleaseGroupRelationship } from "../../../api/ApplicationClient";
+import { ReleaseGroup, ReleaseGroupRelationship, ReleaseToReleaseGroupRelationship } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { mapReleaseGroupFormInitialValues, mergeReleaseGroupFormValues } from "../../../entities/forms/ReleaseGroupFormValues";
 import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseGroupEditPageReleaseGroupRelationshipsTab from "./ReleaseGroupEditPageReleaseGroupRelationshipsTab";
 import ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab from "./ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab";
@@ -27,7 +27,7 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
   const navigate = useNavigate();
 
   const [releaseGroup, setReleaseGroup] = useState<ReleaseGroup>();
-  const [releaseGroupFormValues, setReleaseGroupFormValues] = useState<Store>({});
+  const [releaseGroupInitialValues, setReleaseGroupInitialValues] = useState<ReleaseGroup>();
   const [releaseToReleaseGroupRelationships, setReleaseToReleaseGroupRelationships] = useState<ReleaseToReleaseGroupRelationship[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
@@ -35,19 +35,15 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
   const [id] = useQueryStringId(mode === ReleaseGroupEditPageMode.Edit);
   const applicationClient = useApplicationClient();
 
-  const [form] = Form.useForm();
-
   const fetchReleaseGroup = useCallback(() => {
     if (id !== undefined) {
       applicationClient
         .getReleaseGroup(id)
         .then((releaseGroup) => {
-          releaseGroup.releaseGroupRelationships = releaseGroup.releaseGroupRelationships.map(
-            (releaseGroupRelationship) => new ReleaseGroupRelationship({ ...releaseGroupRelationship, releaseGroup: releaseGroup })
-          );
+          releaseGroup.releaseGroupRelationships.forEach((releaseGroupRelationship) => (releaseGroupRelationship.releaseGroup = releaseGroup));
 
           setReleaseGroup(releaseGroup);
-          setReleaseGroupFormValues(releaseGroup);
+          setReleaseGroupInitialValues(releaseGroup);
 
           applicationClient
             .getReleaseToReleaseGroupRelationshipsByReleaseGroup(id)
@@ -64,6 +60,78 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
     }
   }, [id, applicationClient]);
 
+  useEffect(() => {
+    fetchReleaseGroup();
+  }, [fetchReleaseGroup]);
+
+  const saveReleaseGroup = useCallback(
+    (releaseGroupValues: ReleaseGroup) => {
+      releaseGroupValues.releaseGroupRelationships =
+        releaseGroup?.releaseGroupRelationships?.map(
+          (releaseGroupRelationship) =>
+            new ReleaseGroupRelationship({
+              ...releaseGroupRelationship,
+              releaseGroup: undefined,
+              dependentReleaseGroup: undefined,
+            })
+        ) ?? [];
+
+      if (mode === ReleaseGroupEditPageMode.Create) {
+        setLoading(true);
+        applicationClient
+          .createReleaseGroup(releaseGroupValues)
+          .then((releaseGroup) => {
+            setLoading(false);
+            navigate(`/catalog/releaseGroups/edit?id=${releaseGroup.id}`);
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      } else {
+        setLoading(true);
+        applicationClient
+          .updateReleaseGroup(releaseGroupValues)
+          .then(() => {
+            const releaseToReleaseGroupRelationshipModels = releaseToReleaseGroupRelationships.map(
+              (releaseToReleaseGroupRelationship) =>
+                new ReleaseToReleaseGroupRelationship({
+                  ...releaseToReleaseGroupRelationship,
+                  release: undefined,
+                  releaseGroup: undefined,
+                })
+            );
+
+            Promise.all([applicationClient.updateReleaseToReleaseGroupRelationshipsOrder(true, releaseToReleaseGroupRelationshipModels)])
+              .then(() => {
+                setLoading(false);
+                fetchReleaseGroup();
+              })
+              .catch((error) => {
+                setLoading(false);
+                alert(error);
+              });
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      }
+    },
+    [mode, navigate, releaseGroup, releaseToReleaseGroupRelationships, applicationClient, fetchReleaseGroup]
+  );
+
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(releaseGroupInitialValues, mapReleaseGroupFormInitialValues, mergeReleaseGroupFormValues, saveReleaseGroup),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
+
+  useEffect(() => {
+    form.resetFields();
+  }, [releaseGroupInitialValues, form]);
+
   const onReleaseGroupRelationshipsChange = useCallback(
     (releaseGroupRelationships: ReleaseGroupRelationship[]) => {
       if (releaseGroup) {
@@ -72,14 +140,6 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
     },
     [releaseGroup]
   );
-
-  useEffect(() => {
-    fetchReleaseGroup();
-  }, [fetchReleaseGroup]);
-
-  useEffect(() => {
-    form.resetFields();
-  }, [releaseGroupFormValues, form]);
 
   const onSaveButtonClick = useCallback(() => {
     form.submit();
@@ -118,68 +178,6 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
 
   const onConfirmDeleteModalCancel = () => {
     setConfirmDeleteModalOpen(false);
-  };
-
-  const onFinish = useCallback(
-    (releaseGroupFormValues: Store) => {
-      const releaseGroupModel = new ReleaseGroup({ ...releaseGroup, ...(releaseGroupFormValues as IReleaseGroup) });
-      releaseGroupModel.id = releaseGroupModel.id?.trim();
-      releaseGroupModel.title = releaseGroupModel.title?.trim();
-      releaseGroupModel.description = releaseGroupModel.description?.trim();
-      releaseGroupModel.disambiguationText = releaseGroupModel.disambiguationText?.trim();
-      if (releaseGroupModel.id !== undefined && releaseGroupModel.id.length === 0) {
-        releaseGroupModel.id = EmptyGuidString;
-      }
-      if (releaseGroupModel.description !== undefined && releaseGroupModel.description.length === 0) {
-        releaseGroupModel.description = undefined;
-      }
-      if (releaseGroupModel.disambiguationText !== undefined && releaseGroupModel.disambiguationText.length === 0) {
-        releaseGroupModel.disambiguationText = undefined;
-      }
-
-      releaseGroupModel.releaseGroupRelationships =
-        releaseGroupModel.releaseGroupRelationships?.map(
-          (releaseGroupRelationship) => new ReleaseGroupRelationship({ ...releaseGroupRelationship, releaseGroup: undefined, dependentReleaseGroup: undefined })
-        ) ?? [];
-
-      if (mode === ReleaseGroupEditPageMode.Create) {
-        setLoading(true);
-        applicationClient
-          .createReleaseGroup(releaseGroupModel)
-          .then((releaseGroup) => {
-            setLoading(false);
-            navigate(`/catalog/releaseGroups/edit?id=${releaseGroup.id}`);
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      } else {
-        setLoading(true);
-        applicationClient
-          .updateReleaseGroup(releaseGroupModel)
-          .then(() => {
-            Promise.all([applicationClient.updateReleaseToReleaseGroupRelationshipsOrder(true, releaseToReleaseGroupRelationships)])
-              .then(() => {
-                setLoading(false);
-                fetchReleaseGroup();
-              })
-              .catch((error) => {
-                setLoading(false);
-                alert(error);
-              });
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      }
-    },
-    [mode, navigate, releaseGroup, releaseToReleaseGroupRelationships, applicationClient, fetchReleaseGroup]
-  );
-
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
   };
 
   const title = useMemo(
@@ -235,7 +233,7 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
         ),
       },
     ],
-    [releaseGroup, loading, releaseToReleaseGroupRelationships, onReleaseGroupRelationshipsChange]
+    [releaseGroup, releaseToReleaseGroupRelationships, loading, onReleaseGroupRelationshipsChange]
   );
 
   const modals = useMemo(
@@ -260,11 +258,11 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
             form={form}
-            initialValues={releaseGroupFormValues}
+            initialValues={initialFormValues}
+            onFinish={onFormFinish}
+            onFinishFailed={onFormFinishFailed}
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
           >
             <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === ReleaseGroupEditPageMode.Edit} />
@@ -315,7 +313,7 @@ const ReleaseGroupEditPage = ({ mode }: ReleaseGroupEditPageProps) => {
           </Form>
         </Col>
       </Row>
-      <Tabs items={tabs} />
+      {mode === ReleaseGroupEditPageMode.Edit && <Tabs items={tabs} />}
     </ActionPage>
   );
 };

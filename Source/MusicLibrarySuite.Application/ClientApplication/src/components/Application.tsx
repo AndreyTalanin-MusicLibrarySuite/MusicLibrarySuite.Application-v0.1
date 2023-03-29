@@ -1,7 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { BrowserRouter } from "react-router-dom";
-import ApplicationLayout from "./ApplicationLayout";
 import ApplicationMenuItemDescriptor from "../entities/application/ApplicationMenuItemDescriptor";
 import ApplicationPageDescriptor from "../entities/application/ApplicationPageDescriptor";
 import ArtistEditPage, { ArtistEditPageMode } from "../pages/catalog/artists/ArtistEditPage";
@@ -10,8 +9,6 @@ import ArtistViewPage from "../pages/catalog/artists/ArtistViewPage";
 import GenreEditPage, { GenreEditPageMode } from "../pages/catalog/genres/GenreEditPage";
 import GenreListPage from "../pages/catalog/genres/GenreListPage";
 import GenreViewPage from "../pages/catalog/genres/GenreViewPage";
-import HomePage from "../pages/HomePage";
-import InvalidRoutePage from "../pages/InvalidRoutePage";
 import ProductEditPage, { ProductEditPageMode } from "../pages/catalog/products/ProductEditPage";
 import ProductListPage from "../pages/catalog/products/ProductListPage";
 import ProductViewPage from "../pages/catalog/products/ProductViewPage";
@@ -24,6 +21,9 @@ import ReleaseViewPage from "../pages/catalog/releases/ReleaseViewPage";
 import WorkEditPage, { WorkEditPageMode } from "../pages/catalog/works/WorkEditPage";
 import WorkListPage from "../pages/catalog/works/WorkListPage";
 import WorkViewPage from "../pages/catalog/works/WorkViewPage";
+import HomePage from "../pages/HomePage";
+import InvalidRoutePage from "../pages/InvalidRoutePage";
+import ApplicationLayout from "./ApplicationLayout";
 
 // prettier-ignore
 const applicationPageDescriptors: ApplicationPageDescriptor[] = [
@@ -44,21 +44,21 @@ const applicationPageDescriptors: ApplicationPageDescriptor[] = [
   { key: "catalog-release-group-view-page", path: "/catalog/releaseGroups/view", name: "View", componentFactory: () => <ReleaseGroupViewPage /> },
   { key: "catalog-release-group-create-page", path: "/catalog/releaseGroups/create", name: "Create", componentFactory: () => <ReleaseGroupEditPage mode={ReleaseGroupEditPageMode.Create} />, },
   { key: "catalog-release-group-edit-page", path: "/catalog/releaseGroups/edit", name: "Edit", componentFactory: () => <ReleaseGroupEditPage mode={ReleaseGroupEditPageMode.Edit} /> },
-  { key: "catalog-genre-node", path: "/catalog/genres", name: "Genres" },
-  { key: "catalog-genre-list-page", path: "/catalog/genres/list", name: "Browse All", componentFactory: () => <GenreListPage /> },
-  { key: "catalog-genre-view-page", path: "/catalog/genres/view", name: "View", componentFactory: () => <GenreViewPage /> },
-  { key: "catalog-genre-create-page", path: "/catalog/genres/create", name: "Create", componentFactory: () => <GenreEditPage mode={GenreEditPageMode.Create} />, },
-  { key: "catalog-genre-edit-page", path: "/catalog/genres/edit", name: "Edit", componentFactory: () => <GenreEditPage mode={GenreEditPageMode.Edit} /> },
-  { key: "catalog-product-node", path: "/catalog/products", name: "Products" },
-  { key: "catalog-product-list-page", path: "/catalog/products/list", name: "Browse All", componentFactory: () => <ProductListPage /> },
-  { key: "catalog-product-view-page", path: "/catalog/products/view", name: "View", componentFactory: () => <ProductViewPage /> },
-  { key: "catalog-product-create-page", path: "/catalog/products/create", name: "Create", componentFactory: () => <ProductEditPage mode={ProductEditPageMode.Create} />, },
-  { key: "catalog-product-edit-page", path: "/catalog/products/edit", name: "Edit", componentFactory: () => <ProductEditPage mode={ProductEditPageMode.Edit} /> },
   { key: "catalog-work-node", path: "/catalog/works", name: "Works" },
   { key: "catalog-work-list-page", path: "/catalog/works/list", name: "Browse All", componentFactory: () => <WorkListPage /> },
   { key: "catalog-work-view-page", path: "/catalog/works/view", name: "View", componentFactory: () => <WorkViewPage /> },
   { key: "catalog-work-create-page", path: "/catalog/works/create", name: "Create", componentFactory: () => <WorkEditPage mode={WorkEditPageMode.Create} />, },
   { key: "catalog-work-edit-page", path: "/catalog/works/edit", name: "Edit", componentFactory: () => <WorkEditPage mode={WorkEditPageMode.Edit} /> },
+  { key: "catalog-product-node", path: "/catalog/products", name: "Products" },
+  { key: "catalog-product-list-page", path: "/catalog/products/list", name: "Browse All", componentFactory: () => <ProductListPage /> },
+  { key: "catalog-product-view-page", path: "/catalog/products/view", name: "View", componentFactory: () => <ProductViewPage /> },
+  { key: "catalog-product-create-page", path: "/catalog/products/create", name: "Create", componentFactory: () => <ProductEditPage mode={ProductEditPageMode.Create} />, },
+  { key: "catalog-product-edit-page", path: "/catalog/products/edit", name: "Edit", componentFactory: () => <ProductEditPage mode={ProductEditPageMode.Edit} /> },
+  { key: "catalog-genre-node", path: "/catalog/genres", name: "Genres" },
+  { key: "catalog-genre-list-page", path: "/catalog/genres/list", name: "Browse All", componentFactory: () => <GenreListPage /> },
+  { key: "catalog-genre-view-page", path: "/catalog/genres/view", name: "View", componentFactory: () => <GenreViewPage /> },
+  { key: "catalog-genre-create-page", path: "/catalog/genres/create", name: "Create", componentFactory: () => <GenreEditPage mode={GenreEditPageMode.Create} />, },
+  { key: "catalog-genre-edit-page", path: "/catalog/genres/edit", name: "Edit", componentFactory: () => <GenreEditPage mode={GenreEditPageMode.Edit} /> },
   { key: "invalid-route-page", path: "*", name: "Invalid Route", componentFactory: () => <InvalidRoutePage /> },
 ];
 
@@ -73,9 +73,9 @@ const applicationMenuItemDescriptors: ApplicationMenuItemDescriptor[] = [
       { key: "catalog-artist-list-page", label: "Artists", type: "item" },
       { key: "catalog-release-list-page", label: "Releases", type: "item" },
       { key: "catalog-release-group-list-page", label: "Release Groups", type: "item" },
-      { key: "catalog-genre-list-page", label: "Genres", type: "item" },
-      { key: "catalog-product-list-page", label: "Products", type: "item" },
       { key: "catalog-work-list-page", label: "Works", type: "item" },
+      { key: "catalog-product-list-page", label: "Products", type: "item" },
+      { key: "catalog-genre-list-page", label: "Genres", type: "item" },
     ],
   },
 ];

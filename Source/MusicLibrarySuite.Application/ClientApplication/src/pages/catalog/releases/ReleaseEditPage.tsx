@@ -1,5 +1,4 @@
 import { Button, Card, Checkbox, Col, Collapse, DatePicker, Divider, Form, Input, Row, Space, Table, Tabs, Tooltip, Typography } from "antd";
-import { Store } from "antd/lib/form/interface";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -10,23 +9,14 @@ import {
   RollbackOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
-import dayjs, { Dayjs } from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import localeData from "dayjs/plugin/localeData";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Artist,
   Genre,
-  IRelease,
   Release,
-  ReleaseArtist,
-  ReleaseComposer,
-  ReleaseFeaturedArtist,
-  ReleaseGenre,
   ReleaseMedia,
   ReleaseMediaToProductRelationship,
-  ReleasePerformer,
   ReleaseRelationship,
   ReleaseToProductRelationship,
   ReleaseToReleaseGroupRelationship,
@@ -39,11 +29,13 @@ import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import EditReleaseMediaModal from "../../../components/modals/EditReleaseMediaModal";
 import EditReleaseTrackModal from "../../../components/modals/EditReleaseTrackModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { EmptyGuidString } from "../../../helpers/ApplicationConstants";
+import { mapReleaseFormInitialValues, mergeReleaseFormValues } from "../../../entities/forms/ReleaseFormValues";
+import { DefaultPageSize } from "../../../helpers/ApplicationConstants";
 import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import { formatReleaseMediaNumber, getReleaseMediaKey, getReleaseMediaKeyByComponents } from "../../../helpers/ReleaseMediaHelpers";
 import { formatReleaseTrackNumber, getReleaseTrackKey, getReleaseTrackKeyByComponents } from "../../../helpers/ReleaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseEditPageReleaseMediaToProductRelationshipsTab from "./ReleaseEditPageReleaseMediaToProductRelationshipsTab";
 import ReleaseEditPageReleaseRelationshipsTab from "./ReleaseEditPageReleaseRelationshipsTab";
@@ -55,9 +47,6 @@ import styles from "./ReleaseEditPage.module.css";
 import "antd/dist/antd.min.css";
 
 const { Paragraph, Text, Title } = Typography;
-
-dayjs.extend(weekday);
-dayjs.extend(localeData);
 
 export enum ReleaseEditPageMode {
   Create,
@@ -72,7 +61,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const navigate = useNavigate();
 
   const [release, setRelease] = useState<Release>();
-  const [releaseFormValues, setReleaseFormValues] = useState<Store>({});
+  const [releaseInitialValues, setReleaseInitialValues] = useState<Release>();
   const [releaseArtistOptions, setReleaseArtistOptions] = useState<Artist[]>([]);
   const [releaseFeaturedArtistOptions, setReleaseFeaturedArtistOptions] = useState<Artist[]>([]);
   const [releasePerformerOptions, setReleasePerformerOptions] = useState<Artist[]>([]);
@@ -88,23 +77,14 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const [id] = useQueryStringId(mode === ReleaseEditPageMode.Edit);
   const applicationClient = useApplicationClient();
 
-  const [form] = Form.useForm();
-
   const fetchRelease = useCallback(() => {
     if (id !== undefined) {
       applicationClient
         .getRelease(id)
         .then((release) => {
-          release.releaseRelationships = release.releaseRelationships.map(
-            (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: release })
-          );
-
-          release.releaseToProductRelationships = release.releaseToProductRelationships.map(
-            (releaseToProductRelationship) => new ReleaseToProductRelationship({ ...releaseToProductRelationship, release: release })
-          );
-          release.releaseToReleaseGroupRelationships = release.releaseToReleaseGroupRelationships.map(
-            (releaseToReleaseGroupRelationship) => new ReleaseToReleaseGroupRelationship({ ...releaseToReleaseGroupRelationship, release: release })
-          );
+          release.releaseRelationships.forEach((releaseRelationship) => (releaseRelationship.release = release));
+          release.releaseToProductRelationships.forEach((releaseToProductRelationship) => (releaseToProductRelationship.release = release));
+          release.releaseToReleaseGroupRelationships.forEach((releaseToReleaseGroupRelationship) => (releaseToReleaseGroupRelationship.release = release));
 
           release.releaseMediaCollection.forEach((releaseMedia) => {
             releaseMedia.releaseMediaToProductRelationships.forEach(
@@ -121,61 +101,45 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
             });
           });
 
-          release.releaseArtists = release.releaseArtists.map((releaseArtist) => new ReleaseArtist({ ...releaseArtist, release: release }));
-          release.releaseFeaturedArtists = release.releaseFeaturedArtists.map(
-            (releaseFeaturedArtist) => new ReleaseFeaturedArtist({ ...releaseFeaturedArtist, release: release })
-          );
-          release.releasePerformers = release.releasePerformers.map((releasePerformer) => new ReleasePerformer({ ...releasePerformer, release: release }));
-          release.releaseComposers = release.releaseComposers.map((releaseComposer) => new ReleaseComposer({ ...releaseComposer, release: release }));
-          release.releaseGenres = release.releaseGenres.map((releaseGenre) => new ReleaseGenre({ ...releaseGenre, release: release }));
-
           setRelease(release);
-          setReleaseFormValues({
-            ...release,
-            releasedOn: dayjs(release.releasedOn),
-            releaseArtists: release?.releaseArtists.map((releaseArtist) => releaseArtist.artistId) ?? [],
-            releaseFeaturedArtists: release?.releaseFeaturedArtists.map((releaseFeaturedArtist) => releaseFeaturedArtist.artistId) ?? [],
-            releasePerformers: release?.releasePerformers.map((releasePerformer) => releasePerformer.artistId) ?? [],
-            releaseComposers: release?.releaseComposers.map((releaseComposer) => releaseComposer.artistId) ?? [],
-            releaseGenres: release?.releaseGenres.map((releaseGenre) => releaseGenre.genreId) ?? [],
-          });
+          setReleaseInitialValues(release);
 
           applicationClient
             .getArtists(release.releaseArtists?.map((releaseArtist) => releaseArtist.artistId) ?? [])
-            .then((releaseArtists) => {
-              setReleaseArtistOptions(releaseArtists);
+            .then((artists) => {
+              setReleaseArtistOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getArtists(release.releaseFeaturedArtists?.map((releaseFeaturedArtist) => releaseFeaturedArtist.artistId) ?? [])
-            .then((releaseFeaturedArtists) => {
-              setReleaseFeaturedArtistOptions(releaseFeaturedArtists);
+            .then((artists) => {
+              setReleaseFeaturedArtistOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getArtists(release.releasePerformers?.map((releasePerformer) => releasePerformer.artistId) ?? [])
-            .then((releasePerformers) => {
-              setReleasePerformerOptions(releasePerformers);
+            .then((artists) => {
+              setReleasePerformerOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getArtists(release.releaseComposers?.map((releaseComposer) => releaseComposer.artistId) ?? [])
-            .then((releaseComposers) => {
-              setReleaseComposerOptions(releaseComposers);
+            .then((artists) => {
+              setReleaseComposerOptions(artists);
             })
             .catch((error) => {
               alert(error);
             });
           applicationClient
             .getGenres(release.releaseGenres?.map((releaseGenre) => releaseGenre.genreId) ?? [])
-            .then((releaseGenres) => {
-              setReleaseGenreOptions(releaseGenres);
+            .then((genres) => {
+              setReleaseGenreOptions(genres);
             })
             .catch((error) => {
               alert(error);
@@ -186,6 +150,119 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         });
     }
   }, [id, applicationClient]);
+
+  useEffect(() => {
+    fetchRelease();
+  }, [fetchRelease]);
+
+  const saveRelease = useCallback(
+    (releaseValues: Release) => {
+      releaseValues.releaseRelationships =
+        release?.releaseRelationships?.map(
+          (releaseRelationship) =>
+            new ReleaseRelationship({
+              ...releaseRelationship,
+              release: undefined,
+              dependentRelease: undefined,
+            })
+        ) ?? [];
+      releaseValues.releaseToProductRelationships =
+        release?.releaseToProductRelationships?.map(
+          (releaseToProductRelationship) =>
+            new ReleaseToProductRelationship({
+              ...releaseToProductRelationship,
+              release: undefined,
+              product: undefined,
+            })
+        ) ?? [];
+      releaseValues.releaseToReleaseGroupRelationships =
+        release?.releaseToReleaseGroupRelationships?.map(
+          (releaseToReleaseGroupRelationship) =>
+            new ReleaseToReleaseGroupRelationship({
+              ...releaseToReleaseGroupRelationship,
+              release: undefined,
+              releaseGroup: undefined,
+            })
+        ) ?? [];
+
+      releaseValues.releaseMediaCollection =
+        release?.releaseMediaCollection?.map((releaseMedia) => {
+          releaseMedia.releaseMediaToProductRelationships =
+            releaseMedia.releaseMediaToProductRelationships?.map(
+              (releaseMediaToProductRelationship) =>
+                new ReleaseMediaToProductRelationship({
+                  ...releaseMediaToProductRelationship,
+                  releaseMedia: undefined,
+                  product: undefined,
+                })
+            ) ?? [];
+
+          releaseMedia.releaseTrackCollection =
+            releaseMedia.releaseTrackCollection?.map((releaseTrack) => {
+              releaseTrack.releaseTrackToProductRelationships =
+                releaseTrack.releaseTrackToProductRelationships?.map(
+                  (releaseTrackToProductRelationship) =>
+                    new ReleaseTrackToProductRelationship({
+                      ...releaseTrackToProductRelationship,
+                      releaseTrack: undefined,
+                      product: undefined,
+                    })
+                ) ?? [];
+              releaseTrack.releaseTrackToWorkRelationships =
+                releaseTrack.releaseTrackToWorkRelationships?.map(
+                  (releaseTrackToWorkRelationship) =>
+                    new ReleaseTrackToWorkRelationship({
+                      ...releaseTrackToWorkRelationship,
+                      releaseTrack: undefined,
+                      work: undefined,
+                    })
+                ) ?? [];
+
+              return releaseTrack;
+            }) ?? [];
+
+          return releaseMedia;
+        }) ?? [];
+
+      if (mode === ReleaseEditPageMode.Create) {
+        setLoading(true);
+        applicationClient
+          .createRelease(releaseValues)
+          .then((release) => {
+            setLoading(false);
+            navigate(`/catalog/releases/edit?id=${release.id}`);
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      } else {
+        setLoading(true);
+        applicationClient
+          .updateRelease(releaseValues)
+          .then(() => {
+            setLoading(false);
+            fetchRelease();
+          })
+          .catch((error) => {
+            setLoading(false);
+            alert(error);
+          });
+      }
+    },
+    [mode, navigate, release, applicationClient, fetchRelease]
+  );
+
+  const [form, initialFormValues, onFormFinish, onFormFinishFailed] = [
+    ...useEntityForm(releaseInitialValues, mapReleaseFormInitialValues, mergeReleaseFormValues, saveRelease),
+    () => {
+      alert("Form validation failed. Please ensure that you have filled all the required fields.");
+    },
+  ];
+
+  useEffect(() => {
+    form.resetFields();
+  }, [releaseInitialValues, form]);
 
   const onReleaseRelationshipsChange = useCallback(
     (releaseRelationships: ReleaseRelationship[]) => {
@@ -327,14 +404,6 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     [release]
   );
 
-  useEffect(() => {
-    fetchRelease();
-  }, [fetchRelease]);
-
-  useEffect(() => {
-    form.resetFields();
-  }, [releaseFormValues, form]);
-
   const onSaveButtonClick = useCallback(() => {
     form.submit();
   }, [form]);
@@ -441,138 +510,6 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     },
     [release]
   );
-
-  const onFinish = useCallback(
-    (releaseFormValues: Store) => {
-      const releasedOn = releaseFormValues.releasedOn as Dayjs;
-      releaseFormValues.releasedOn = releasedOn.startOf("day").add(releasedOn.utcOffset(), "minute").toDate();
-
-      const releaseArtistIds = releaseFormValues.releaseArtists as string[];
-      const releaseFeaturedArtistIds = releaseFormValues.releaseFeaturedArtists as string[];
-      const releasePerformerIds = releaseFormValues.releasePerformers as string[];
-      const releaseComposerIds = releaseFormValues.releaseComposers as string[];
-      const releaseGenreIds = releaseFormValues.releaseGenres as string[];
-      if (release?.id) {
-        releaseFormValues.releaseArtists = releaseArtistIds.map((artistId) => new ReleaseArtist({ releaseId: release.id, artistId: artistId }));
-        releaseFormValues.releaseFeaturedArtists = releaseFeaturedArtistIds.map(
-          (artistId) => new ReleaseFeaturedArtist({ releaseId: release.id, artistId: artistId })
-        );
-        releaseFormValues.releasePerformers = releasePerformerIds.map((artistId) => new ReleasePerformer({ releaseId: release.id, artistId: artistId }));
-        releaseFormValues.releaseComposers = releaseComposerIds.map((artistId) => new ReleaseComposer({ releaseId: release.id, artistId: artistId }));
-        releaseFormValues.releaseGenres = releaseGenreIds.map((genreId) => new ReleaseGenre({ releaseId: release.id, genreId: genreId }));
-      } else {
-        releaseFormValues.releaseArtists = [];
-        releaseFormValues.releaseFeaturedArtists = [];
-        releaseFormValues.releasePerformers = [];
-        releaseFormValues.releaseComposers = [];
-        releaseFormValues.releaseGenres = [];
-      }
-
-      const releaseModel = new Release({ ...release, ...(releaseFormValues as IRelease) });
-      releaseModel.id = releaseModel.id?.trim();
-      releaseModel.title = releaseModel.title?.trim();
-      releaseModel.description = releaseModel.description?.trim();
-      releaseModel.disambiguationText = releaseModel.disambiguationText?.trim();
-      releaseModel.barcode = releaseModel.barcode?.trim();
-      releaseModel.catalogNumber = releaseModel.catalogNumber?.trim();
-      releaseModel.mediaFormat = releaseModel.mediaFormat?.trim();
-      releaseModel.publishFormat = releaseModel.publishFormat?.trim();
-      if (releaseModel.id !== undefined && releaseModel.id.length === 0) {
-        releaseModel.id = EmptyGuidString;
-      }
-      if (releaseModel.description !== undefined && releaseModel.description.length === 0) {
-        releaseModel.description = undefined;
-      }
-      if (releaseModel.disambiguationText !== undefined && releaseModel.disambiguationText.length === 0) {
-        releaseModel.disambiguationText = undefined;
-      }
-      if (releaseModel.barcode !== undefined && releaseModel.barcode.length === 0) {
-        releaseModel.barcode = undefined;
-      }
-      if (releaseModel.catalogNumber !== undefined && releaseModel.catalogNumber.length === 0) {
-        releaseModel.catalogNumber = undefined;
-      }
-      if (releaseModel.mediaFormat !== undefined && releaseModel.mediaFormat.length === 0) {
-        releaseModel.mediaFormat = undefined;
-      }
-      if (releaseModel.publishFormat !== undefined && releaseModel.publishFormat.length === 0) {
-        releaseModel.publishFormat = undefined;
-      }
-
-      releaseModel.releaseRelationships =
-        releaseModel.releaseRelationships?.map(
-          (releaseRelationship) => new ReleaseRelationship({ ...releaseRelationship, release: undefined, dependentRelease: undefined })
-        ) ?? [];
-
-      releaseModel.releaseToProductRelationships =
-        releaseModel.releaseToProductRelationships?.map(
-          (releaseToProductRelationship) => new ReleaseToProductRelationship({ ...releaseToProductRelationship, release: undefined, product: undefined })
-        ) ?? [];
-      releaseModel.releaseToReleaseGroupRelationships =
-        releaseModel.releaseToReleaseGroupRelationships?.map(
-          (releaseToReleaseGroupRelationship) =>
-            new ReleaseToReleaseGroupRelationship({ ...releaseToReleaseGroupRelationship, release: undefined, releaseGroup: undefined })
-        ) ?? [];
-
-      releaseModel.releaseMediaCollection =
-        releaseModel.releaseMediaCollection?.map((releaseMedia) => {
-          releaseMedia.releaseMediaToProductRelationships =
-            releaseMedia.releaseMediaToProductRelationships?.map(
-              (releaseMediaToProductRelationship) =>
-                new ReleaseMediaToProductRelationship({ ...releaseMediaToProductRelationship, releaseMedia: undefined, product: undefined })
-            ) ?? [];
-
-          releaseMedia.releaseTrackCollection =
-            releaseMedia.releaseTrackCollection?.map((releaseTrack) => {
-              releaseTrack.releaseTrackToProductRelationships =
-                releaseTrack.releaseTrackToProductRelationships?.map(
-                  (releaseTrackToProductRelationship) =>
-                    new ReleaseTrackToProductRelationship({ ...releaseTrackToProductRelationship, releaseTrack: undefined, product: undefined })
-                ) ?? [];
-              releaseTrack.releaseTrackToWorkRelationships =
-                releaseTrack.releaseTrackToWorkRelationships?.map(
-                  (releaseTrackToWorkRelationship) =>
-                    new ReleaseTrackToWorkRelationship({ ...releaseTrackToWorkRelationship, releaseTrack: undefined, work: undefined })
-                ) ?? [];
-
-              return releaseTrack;
-            }) ?? [];
-
-          return releaseMedia;
-        }) ?? [];
-
-      if (mode === ReleaseEditPageMode.Create) {
-        setLoading(true);
-        applicationClient
-          .createRelease(releaseModel)
-          .then((release) => {
-            setLoading(false);
-            navigate(`/catalog/releases/edit?id=${release.id}`);
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      } else {
-        setLoading(true);
-        applicationClient
-          .updateRelease(releaseModel)
-          .then(() => {
-            setLoading(false);
-            fetchRelease();
-          })
-          .catch((error) => {
-            setLoading(false);
-            alert(error);
-          });
-      }
-    },
-    [mode, navigate, release, applicationClient, fetchRelease]
-  );
-
-  const onFinishFailed = () => {
-    alert("Form validation failed. Please ensure that you have filled all the required fields.");
-  };
 
   const onConfirmDeleteModalOk = useCallback(
     (setModalLoading: (value: boolean) => void) => {
@@ -705,7 +642,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const fetchReleaseArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseArtistOptions(artistResponse.items);
         })
@@ -721,7 +658,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const fetchReleaseFeaturedArtistOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseFeaturedArtistOptions(artistResponse.items);
         })
@@ -737,7 +674,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const fetchReleasePerformerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleasePerformerOptions(artistResponse.items);
         })
@@ -753,7 +690,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const fetchReleaseComposerOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedArtists(20, 0, nameFilter, undefined)
+        .getPagedArtists(DefaultPageSize, 0, nameFilter, undefined)
         .then((artistResponse) => {
           setReleaseComposerOptions(artistResponse.items);
         })
@@ -769,7 +706,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   const fetchReleaseGenreOptions = useCallback(
     (nameFilter: string | undefined) => {
       applicationClient
-        .getPagedGenres(20, 0, nameFilter, undefined)
+        .getPagedGenres(DefaultPageSize, 0, nameFilter, undefined)
         .then((genreResponse) => {
           setReleaseGenreOptions(genreResponse.items);
         })
@@ -781,50 +718,6 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
   );
 
   useEffect(() => fetchReleaseGenreOptions(undefined), [fetchReleaseGenreOptions]);
-
-  const releaseTrackTableColumns = [
-    {
-      key: "trackNumber",
-      title: "Track #",
-      dataIndex: "trackNumber",
-      render: (_: number, { trackNumber, totalTrackCount }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber, totalTrackCount),
-    },
-    {
-      key: "mediaNumber",
-      title: "Media #",
-      dataIndex: "mediaNumber",
-      render: (_: number, { mediaNumber, totalMediaCount }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber, totalMediaCount),
-    },
-    {
-      key: "title",
-      title: "Title",
-      dataIndex: "title",
-      render: (_: string, { title, disambiguationText }: ReleaseTrack) => (
-        <Space wrap>
-          {title}
-          {disambiguationText && (
-            <Tooltip title={disambiguationText}>
-              <QuestionCircleOutlined />
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-    {
-      key: "action",
-      title: "Action",
-      render: (_: string, releaseTrack: ReleaseTrack) => (
-        <Space wrap>
-          <Button onClick={() => onEditReleaseTrackButtonClick(releaseTrack)}>
-            <EditOutlined /> Edit
-          </Button>
-          <Button danger onClick={() => onDeleteReleaseTrackButtonClick(releaseTrack)}>
-            <DeleteOutlined /> Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
 
   const releaseInfoCardText = useMemo(() => {
     if (release) {
@@ -838,6 +731,53 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
 
     return undefined;
   }, [release]);
+
+  const releaseTrackTableColumns = useMemo(
+    () => [
+      {
+        key: "trackNumber",
+        title: "Track #",
+        dataIndex: "trackNumber",
+        render: (_: number, { trackNumber, totalTrackCount }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber, totalTrackCount),
+      },
+      {
+        key: "mediaNumber",
+        title: "Media #",
+        dataIndex: "mediaNumber",
+        render: (_: number, { mediaNumber, totalMediaCount }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber, totalMediaCount),
+      },
+      {
+        key: "title",
+        title: "Title",
+        dataIndex: "title",
+        render: (_: string, { title, disambiguationText }: ReleaseTrack) => (
+          <Space wrap>
+            {title}
+            {disambiguationText && (
+              <Tooltip title={disambiguationText}>
+                <QuestionCircleOutlined />
+              </Tooltip>
+            )}
+          </Space>
+        ),
+      },
+      {
+        key: "action",
+        title: "Action",
+        render: (_: string, releaseTrack: ReleaseTrack) => (
+          <Space wrap>
+            <Button onClick={() => onEditReleaseTrackButtonClick(releaseTrack)}>
+              <EditOutlined /> Edit
+            </Button>
+            <Button danger onClick={() => onDeleteReleaseTrackButtonClick(releaseTrack)}>
+              <DeleteOutlined /> Delete
+            </Button>
+          </Space>
+        ),
+      },
+    ],
+    [onEditReleaseTrackButtonClick, onDeleteReleaseTrackButtonClick]
+  );
 
   const releaseMediaToProductRelationships = useMemo(() => {
     if (release) {
@@ -992,10 +932,10 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
     ],
     [
       release,
-      loading,
       releaseMediaToProductRelationships,
       releaseTrackToProductRelationships,
       releaseTrackToWorkRelationships,
+      loading,
       onReleaseRelationshipsChange,
       onReleaseToProductRelationshipsChange,
       onReleaseToReleaseGroupRelationshipsChange,
@@ -1057,11 +997,11 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         <Col xs={24} sm={24} md={24} lg={12} xl={12}>
           <Form
             form={form}
-            initialValues={releaseFormValues}
+            initialValues={initialFormValues}
+            onFinish={onFormFinish}
+            onFinishFailed={onFormFinishFailed}
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
           >
             <Form.Item label="Id" name="id" rules={[{ pattern: GuidPattern, message: "The 'Id' property must be a valid GUID (UUID)." }]}>
               <Input readOnly={mode === ReleaseEditPageMode.Edit} />
@@ -1174,7 +1114,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               <Checkbox />
             </Form.Item>
             {mode === ReleaseEditPageMode.Edit && (
-              <Form.Item label="Artists" name="releaseArtists">
+              <Form.Item label="Artists" name="releaseArtistIds">
                 <EntitySelect
                   mode="multiple"
                   options={releaseArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -1183,7 +1123,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               </Form.Item>
             )}
             {mode === ReleaseEditPageMode.Edit && (
-              <Form.Item label="Featured Artists" name="releaseFeaturedArtists">
+              <Form.Item label="Featured Artists" name="releaseFeaturedArtistIds">
                 <EntitySelect
                   mode="multiple"
                   options={releaseFeaturedArtistOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -1192,7 +1132,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               </Form.Item>
             )}
             {mode === ReleaseEditPageMode.Edit && (
-              <Form.Item label="Performers" name="releasePerformers">
+              <Form.Item label="Performers" name="releasePerformerIds">
                 <EntitySelect
                   mode="multiple"
                   options={releasePerformerOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -1201,7 +1141,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               </Form.Item>
             )}
             {mode === ReleaseEditPageMode.Edit && (
-              <Form.Item label="Composers" name="releaseComposers">
+              <Form.Item label="Composers" name="releaseComposerIds">
                 <EntitySelect
                   mode="multiple"
                   options={releaseComposerOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -1210,7 +1150,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               </Form.Item>
             )}
             {mode === ReleaseEditPageMode.Edit && (
-              <Form.Item label="Genres" name="releaseGenres">
+              <Form.Item label="Genres" name="releaseGenreIds">
                 <EntitySelect
                   mode="multiple"
                   options={releaseGenreOptions.map((option) => ({ value: option.id, label: option.name }))}
@@ -1332,7 +1272,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
           ))}
         </>
       )}
-      <Tabs items={tabs} />
+      {mode === ReleaseEditPageMode.Edit && <Tabs items={tabs} />}
     </ActionPage>
   );
 };
