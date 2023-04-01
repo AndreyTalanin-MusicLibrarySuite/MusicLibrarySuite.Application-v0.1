@@ -50,7 +50,7 @@ public class Startup
                 Url = new Uri("https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"),
             };
 
-            var version = "v0.8.0-rc2";
+            var version = "v0.8.0-rc3";
             options.SwaggerDoc("MusicLibrarySuite.Application", new OpenApiInfo()
             {
                 Title = $"Music Library Suite - Application API {version}",

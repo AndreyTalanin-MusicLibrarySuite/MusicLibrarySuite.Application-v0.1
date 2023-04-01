@@ -3337,7 +3337,6 @@ export class ArtistPageResponse implements IArtistPageResponse {
   pageIndex!: number;
   totalCount!: number;
   items!: Artist[];
-  completedOn!: Date;
 
   constructor(data?: IArtistPageResponse) {
     if (data) {
@@ -3359,7 +3358,6 @@ export class ArtistPageResponse implements IArtistPageResponse {
         this.items = [] as any;
         for (let item of _data["items"]) this.items!.push(Artist.fromJS(item));
       }
-      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
     }
   }
 
@@ -3379,7 +3377,6 @@ export class ArtistPageResponse implements IArtistPageResponse {
       data["items"] = [];
       for (let item of this.items) data["items"].push(item.toJSON());
     }
-    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
     return data;
   }
 }
@@ -3389,7 +3386,6 @@ export interface IArtistPageResponse {
   pageIndex: number;
   totalCount: number;
   items: Artist[];
-  completedOn: Date;
 }
 
 export class ArtistRelationship implements IArtistRelationship {
@@ -3524,7 +3520,6 @@ export class GenrePageResponse implements IGenrePageResponse {
   pageIndex!: number;
   totalCount!: number;
   items!: Genre[];
-  completedOn!: Date;
 
   constructor(data?: IGenrePageResponse) {
     if (data) {
@@ -3546,7 +3541,6 @@ export class GenrePageResponse implements IGenrePageResponse {
         this.items = [] as any;
         for (let item of _data["items"]) this.items!.push(Genre.fromJS(item));
       }
-      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
     }
   }
 
@@ -3566,7 +3560,6 @@ export class GenrePageResponse implements IGenrePageResponse {
       data["items"] = [];
       for (let item of this.items) data["items"].push(item.toJSON());
     }
-    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
     return data;
   }
 }
@@ -3576,7 +3569,6 @@ export interface IGenrePageResponse {
   pageIndex: number;
   totalCount: number;
   items: Genre[];
-  completedOn: Date;
 }
 
 export class GenreRelationship implements IGenreRelationship {
@@ -3784,7 +3776,6 @@ export class ProductPageResponse implements IProductPageResponse {
   pageIndex!: number;
   totalCount!: number;
   items!: Product[];
-  completedOn!: Date;
 
   constructor(data?: IProductPageResponse) {
     if (data) {
@@ -3806,7 +3797,6 @@ export class ProductPageResponse implements IProductPageResponse {
         this.items = [] as any;
         for (let item of _data["items"]) this.items!.push(Product.fromJS(item));
       }
-      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
     }
   }
 
@@ -3826,7 +3816,6 @@ export class ProductPageResponse implements IProductPageResponse {
       data["items"] = [];
       for (let item of this.items) data["items"].push(item.toJSON());
     }
-    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
     return data;
   }
 }
@@ -3836,7 +3825,6 @@ export interface IProductPageResponse {
   pageIndex: number;
   totalCount: number;
   items: Product[];
-  completedOn: Date;
 }
 
 export class ProductRelationship implements IProductRelationship {
@@ -3899,10 +3887,10 @@ export class Release implements IRelease {
   title!: string;
   description?: string | undefined;
   disambiguationText?: string | undefined;
-  barcode?: string | undefined;
-  catalogNumber?: string | undefined;
   mediaFormat?: string | undefined;
   publishFormat?: string | undefined;
+  catalogNumber?: string | undefined;
+  barcode?: string | undefined;
   releasedOn!: Date;
   releasedOnYearOnly!: boolean;
   enabled!: boolean;
@@ -3943,10 +3931,10 @@ export class Release implements IRelease {
       this.title = _data["title"];
       this.description = _data["description"];
       this.disambiguationText = _data["disambiguationText"];
-      this.barcode = _data["barcode"];
-      this.catalogNumber = _data["catalogNumber"];
       this.mediaFormat = _data["mediaFormat"];
       this.publishFormat = _data["publishFormat"];
+      this.catalogNumber = _data["catalogNumber"];
+      this.barcode = _data["barcode"];
       this.releasedOn = _data["releasedOn"] ? new Date(_data["releasedOn"].toString()) : <any>undefined;
       this.releasedOnYearOnly = _data["releasedOnYearOnly"];
       this.enabled = _data["enabled"];
@@ -4005,10 +3993,10 @@ export class Release implements IRelease {
     data["title"] = this.title;
     data["description"] = this.description;
     data["disambiguationText"] = this.disambiguationText;
-    data["barcode"] = this.barcode;
-    data["catalogNumber"] = this.catalogNumber;
     data["mediaFormat"] = this.mediaFormat;
     data["publishFormat"] = this.publishFormat;
+    data["catalogNumber"] = this.catalogNumber;
+    data["barcode"] = this.barcode;
     data["releasedOn"] = this.releasedOn ? this.releasedOn.toISOString() : <any>undefined;
     data["releasedOnYearOnly"] = this.releasedOnYearOnly;
     data["enabled"] = this.enabled;
@@ -4059,10 +4047,10 @@ export interface IRelease {
   title: string;
   description?: string | undefined;
   disambiguationText?: string | undefined;
-  barcode?: string | undefined;
-  catalogNumber?: string | undefined;
   mediaFormat?: string | undefined;
   publishFormat?: string | undefined;
+  catalogNumber?: string | undefined;
+  barcode?: string | undefined;
   releasedOn: Date;
   releasedOnYearOnly: boolean;
   enabled: boolean;
@@ -4344,7 +4332,6 @@ export class ReleaseGroupPageResponse implements IReleaseGroupPageResponse {
   pageIndex!: number;
   totalCount!: number;
   items!: ReleaseGroup[];
-  completedOn!: Date;
 
   constructor(data?: IReleaseGroupPageResponse) {
     if (data) {
@@ -4366,7 +4353,6 @@ export class ReleaseGroupPageResponse implements IReleaseGroupPageResponse {
         this.items = [] as any;
         for (let item of _data["items"]) this.items!.push(ReleaseGroup.fromJS(item));
       }
-      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
     }
   }
 
@@ -4386,7 +4372,6 @@ export class ReleaseGroupPageResponse implements IReleaseGroupPageResponse {
       data["items"] = [];
       for (let item of this.items) data["items"].push(item.toJSON());
     }
-    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
     return data;
   }
 }
@@ -4396,7 +4381,6 @@ export interface IReleaseGroupPageResponse {
   pageIndex: number;
   totalCount: number;
   items: ReleaseGroup[];
-  completedOn: Date;
 }
 
 export class ReleaseGroupRelationship implements IReleaseGroupRelationship {
@@ -4456,15 +4440,14 @@ export interface IReleaseGroupRelationship {
 
 export class ReleaseMedia implements IReleaseMedia {
   mediaNumber!: number;
-  totalMediaCount?: number;
   releaseId!: string;
   title!: string;
   description?: string | undefined;
   disambiguationText?: string | undefined;
-  catalogNumber?: string | undefined;
   mediaFormat?: string | undefined;
-  tableOfContentsChecksum?: string | undefined;
-  tableOfContentsChecksumLong?: string | undefined;
+  catalogNumber?: string | undefined;
+  freeDbChecksum?: string | undefined;
+  musicBrainzChecksum?: string | undefined;
   releaseMediaToProductRelationships!: ReleaseMediaToProductRelationship[];
   releaseTrackCollection!: ReleaseTrack[];
 
@@ -4483,15 +4466,14 @@ export class ReleaseMedia implements IReleaseMedia {
   init(_data?: any) {
     if (_data) {
       this.mediaNumber = _data["mediaNumber"];
-      this.totalMediaCount = _data["totalMediaCount"];
       this.releaseId = _data["releaseId"];
       this.title = _data["title"];
       this.description = _data["description"];
       this.disambiguationText = _data["disambiguationText"];
-      this.catalogNumber = _data["catalogNumber"];
       this.mediaFormat = _data["mediaFormat"];
-      this.tableOfContentsChecksum = _data["tableOfContentsChecksum"];
-      this.tableOfContentsChecksumLong = _data["tableOfContentsChecksumLong"];
+      this.catalogNumber = _data["catalogNumber"];
+      this.freeDbChecksum = _data["freeDbChecksum"];
+      this.musicBrainzChecksum = _data["musicBrainzChecksum"];
       if (Array.isArray(_data["releaseMediaToProductRelationships"])) {
         this.releaseMediaToProductRelationships = [] as any;
         for (let item of _data["releaseMediaToProductRelationships"])
@@ -4514,15 +4496,14 @@ export class ReleaseMedia implements IReleaseMedia {
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
     data["mediaNumber"] = this.mediaNumber;
-    data["totalMediaCount"] = this.totalMediaCount;
     data["releaseId"] = this.releaseId;
     data["title"] = this.title;
     data["description"] = this.description;
     data["disambiguationText"] = this.disambiguationText;
-    data["catalogNumber"] = this.catalogNumber;
     data["mediaFormat"] = this.mediaFormat;
-    data["tableOfContentsChecksum"] = this.tableOfContentsChecksum;
-    data["tableOfContentsChecksumLong"] = this.tableOfContentsChecksumLong;
+    data["catalogNumber"] = this.catalogNumber;
+    data["freeDbChecksum"] = this.freeDbChecksum;
+    data["musicBrainzChecksum"] = this.musicBrainzChecksum;
     if (Array.isArray(this.releaseMediaToProductRelationships)) {
       data["releaseMediaToProductRelationships"] = [];
       for (let item of this.releaseMediaToProductRelationships) data["releaseMediaToProductRelationships"].push(item.toJSON());
@@ -4537,15 +4518,14 @@ export class ReleaseMedia implements IReleaseMedia {
 
 export interface IReleaseMedia {
   mediaNumber: number;
-  totalMediaCount?: number;
   releaseId: string;
   title: string;
   description?: string | undefined;
   disambiguationText?: string | undefined;
-  catalogNumber?: string | undefined;
   mediaFormat?: string | undefined;
-  tableOfContentsChecksum?: string | undefined;
-  tableOfContentsChecksumLong?: string | undefined;
+  catalogNumber?: string | undefined;
+  freeDbChecksum?: string | undefined;
+  musicBrainzChecksum?: string | undefined;
   releaseMediaToProductRelationships: ReleaseMediaToProductRelationship[];
   releaseTrackCollection: ReleaseTrack[];
 }
@@ -4614,7 +4594,6 @@ export class ReleasePageResponse implements IReleasePageResponse {
   pageIndex!: number;
   totalCount!: number;
   items!: Release[];
-  completedOn!: Date;
 
   constructor(data?: IReleasePageResponse) {
     if (data) {
@@ -4636,7 +4615,6 @@ export class ReleasePageResponse implements IReleasePageResponse {
         this.items = [] as any;
         for (let item of _data["items"]) this.items!.push(Release.fromJS(item));
       }
-      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
     }
   }
 
@@ -4656,7 +4634,6 @@ export class ReleasePageResponse implements IReleasePageResponse {
       data["items"] = [];
       for (let item of this.items) data["items"].push(item.toJSON());
     }
-    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
     return data;
   }
 }
@@ -4666,7 +4643,6 @@ export interface IReleasePageResponse {
   pageIndex: number;
   totalCount: number;
   items: Release[];
-  completedOn: Date;
 }
 
 export class ReleasePerformer implements IReleasePerformer {
@@ -4883,9 +4859,7 @@ export interface IReleaseToReleaseGroupRelationship {
 
 export class ReleaseTrack implements IReleaseTrack {
   trackNumber!: number;
-  totalTrackCount?: number;
   mediaNumber!: number;
-  totalMediaCount?: number;
   releaseId!: string;
   title!: string;
   description?: string | undefined;
@@ -4919,9 +4893,7 @@ export class ReleaseTrack implements IReleaseTrack {
   init(_data?: any) {
     if (_data) {
       this.trackNumber = _data["trackNumber"];
-      this.totalTrackCount = _data["totalTrackCount"];
       this.mediaNumber = _data["mediaNumber"];
-      this.totalMediaCount = _data["totalMediaCount"];
       this.releaseId = _data["releaseId"];
       this.title = _data["title"];
       this.description = _data["description"];
@@ -4969,9 +4941,7 @@ export class ReleaseTrack implements IReleaseTrack {
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
     data["trackNumber"] = this.trackNumber;
-    data["totalTrackCount"] = this.totalTrackCount;
     data["mediaNumber"] = this.mediaNumber;
-    data["totalMediaCount"] = this.totalMediaCount;
     data["releaseId"] = this.releaseId;
     data["title"] = this.title;
     data["description"] = this.description;
@@ -5011,9 +4981,7 @@ export class ReleaseTrack implements IReleaseTrack {
 
 export interface IReleaseTrack {
   trackNumber: number;
-  totalTrackCount?: number;
   mediaNumber: number;
-  totalMediaCount?: number;
   releaseId: string;
   title: string;
   description?: string | undefined;
@@ -5776,7 +5744,6 @@ export class WorkPageResponse implements IWorkPageResponse {
   pageIndex!: number;
   totalCount!: number;
   items!: Work[];
-  completedOn!: Date;
 
   constructor(data?: IWorkPageResponse) {
     if (data) {
@@ -5798,7 +5765,6 @@ export class WorkPageResponse implements IWorkPageResponse {
         this.items = [] as any;
         for (let item of _data["items"]) this.items!.push(Work.fromJS(item));
       }
-      this.completedOn = _data["completedOn"] ? new Date(_data["completedOn"].toString()) : <any>undefined;
     }
   }
 
@@ -5818,7 +5784,6 @@ export class WorkPageResponse implements IWorkPageResponse {
       data["items"] = [];
       for (let item of this.items) data["items"].push(item.toJSON());
     }
-    data["completedOn"] = this.completedOn ? this.completedOn.toISOString() : <any>undefined;
     return data;
   }
 }
@@ -5828,7 +5793,6 @@ export interface IWorkPageResponse {
   pageIndex: number;
   totalCount: number;
   items: Work[];
-  completedOn: Date;
 }
 
 export class WorkPerformer implements IWorkPerformer {
