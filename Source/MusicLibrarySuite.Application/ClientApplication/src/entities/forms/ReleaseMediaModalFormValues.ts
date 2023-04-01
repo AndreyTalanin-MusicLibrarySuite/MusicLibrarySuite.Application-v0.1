@@ -1,5 +1,5 @@
 import { IReleaseMedia, ReleaseMedia } from "../../api/ApplicationClient";
-import { EmptyGuidString } from "../../helpers/ApplicationConstants";
+import { EmptyGuidString } from "../../constants/applicationConstants";
 
 export default interface ReleaseMediaModalFormValues {
   mediaNumber: string;

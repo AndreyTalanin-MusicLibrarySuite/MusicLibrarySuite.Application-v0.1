@@ -1,6 +1,6 @@
 import { ReleaseTrack } from "../api/ApplicationClient";
-import { MaxReleaseTrackNumber, MinReleaseTrackNumber } from "./ApplicationConstants";
-import { ReleaseTrackNumberPattern } from "./RegularExpressionConstants";
+import { MaxReleaseTrackNumber, MinReleaseTrackNumber } from "../constants/applicationConstants";
+import { ReleaseTrackNumberPattern } from "../constants/regularExpressionConstants";
 
 export const getReleaseTrackKey = (releaseTrack: ReleaseTrack) => {
   return `${releaseTrack.trackNumber}-${releaseTrack.mediaNumber}-${releaseTrack.releaseId}`;

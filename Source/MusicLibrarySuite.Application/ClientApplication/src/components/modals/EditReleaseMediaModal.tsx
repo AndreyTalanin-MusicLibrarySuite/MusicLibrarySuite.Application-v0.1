@@ -1,9 +1,9 @@
 import { Form, Input, Modal } from "antd";
 import { useCallback, useEffect, useMemo } from "react";
 import { ReleaseMedia } from "../../api/ApplicationClient";
+import { MaxReleaseMediaNumber, MinReleaseMediaNumber } from "../../constants/applicationConstants";
 import { mapReleaseMediaModalFormInitialValues, mergeReleaseMediaModalFormValues } from "../../entities/forms/ReleaseMediaModalFormValues";
-import { MaxReleaseMediaNumber, MinReleaseMediaNumber } from "../../helpers/ApplicationConstants";
-import { validateReleaseMediaNumber } from "../../helpers/ReleaseMediaHelpers";
+import { validateReleaseMediaNumber } from "../../helpers/releaseMediaHelpers";
 import useEntityForm from "../../hooks/useEntityForm";
 import "antd/dist/antd.min.css";
 

@@ -12,8 +12,8 @@ import {
 } from "../../../api/ApplicationClient";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
+import { GuidPattern } from "../../../constants/regularExpressionConstants";
 import { mapProductFormInitialValues, mergeProductFormValues } from "../../../entities/forms/ProductFormValues";
-import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";

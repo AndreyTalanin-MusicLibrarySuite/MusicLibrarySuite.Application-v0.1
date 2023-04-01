@@ -6,8 +6,8 @@ import { Release, ReleaseMedia, ReleaseTrack } from "../../../api/ApplicationCli
 import EditReleaseMediaModal from "../../../components/modals/EditReleaseMediaModal";
 import EditReleaseTrackModal from "../../../components/modals/EditReleaseTrackModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
-import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
+import { formatReleaseMediaNumber, getReleaseMediaKey } from "../../../helpers/releaseMediaHelpers";
+import { formatReleaseTrackNumber, getReleaseTrackKey } from "../../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useQueryStringId from "../../../hooks/useQueryStringId";
 import ReleaseViewPageReleaseMediaToProductRelationshipsTab from "./ReleaseViewPageReleaseMediaToProductRelationshipsTab";

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ReleaseMediaToProductRelationship } from "../../../api/ApplicationClient";
 import ReleaseMediaRelationshipTable, { ReleaseMediaRelationship } from "../../../components/tables/ReleaseMediaRelationshipTable";
-import { getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
+import { getReleaseMediaKey } from "../../../helpers/releaseMediaHelpers";
 import "antd/dist/antd.min.css";
 
 export interface ProductEditPageReleaseMediaToProductRelationshipsTabProps {

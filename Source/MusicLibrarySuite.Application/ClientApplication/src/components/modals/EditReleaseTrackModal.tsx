@@ -1,16 +1,16 @@
 import { Form, Input, Modal } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Artist, Genre, ReleaseTrack } from "../../api/ApplicationClient";
-import { mapReleaseTrackModalFormInitialValues, mergeReleaseTrackModalFormValues } from "../../entities/forms/ReleaseTrackModalFormValues";
 import {
   DefaultPageSize,
   MaxReleaseMediaNumber,
   MaxReleaseTrackNumber,
   MinReleaseMediaNumber,
   MinReleaseTrackNumber,
-} from "../../helpers/ApplicationConstants";
-import { validateReleaseMediaNumber } from "../../helpers/ReleaseMediaHelpers";
-import { validateReleaseTrackNumber } from "../../helpers/ReleaseTrackHelpers";
+} from "../../constants/applicationConstants";
+import { mapReleaseTrackModalFormInitialValues, mergeReleaseTrackModalFormValues } from "../../entities/forms/ReleaseTrackModalFormValues";
+import { validateReleaseMediaNumber } from "../../helpers/releaseMediaHelpers";
+import { validateReleaseTrackNumber } from "../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../hooks/useApplicationClient";
 import useEntityForm from "../../hooks/useEntityForm";
 import EntitySelect from "../inputs/EntitySelect";

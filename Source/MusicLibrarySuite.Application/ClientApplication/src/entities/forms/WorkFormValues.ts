@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from "dayjs";
 import { IWork, Work, WorkArtist, WorkComposer, WorkFeaturedArtist, WorkGenre, WorkPerformer } from "../../api/ApplicationClient";
-import { EmptyGuidString } from "../../helpers/ApplicationConstants";
-import { getStartOfDayDate } from "../../helpers/DateTimeHelpers";
+import { EmptyGuidString } from "../../constants/applicationConstants";
+import { getStartOfDayDate } from "../../helpers/dateTimeHelpers";
 
 export default interface WorkFormValues {
   id?: string;

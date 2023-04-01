@@ -8,7 +8,7 @@ import { ReleaseGroup } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
+import { DefaultPageIndex, DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
 

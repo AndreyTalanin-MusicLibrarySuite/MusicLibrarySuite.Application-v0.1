@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ReleaseMediaToProductRelationship } from "../../../api/ApplicationClient";
 import ReleaseMediaRelationshipTable from "../../../components/tables/ReleaseMediaRelationshipTable";
-import { getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
+import { getReleaseMediaKey } from "../../../helpers/releaseMediaHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 
 export interface ReleaseViewPageReleaseMediaToProductRelationshipsTabProps {
