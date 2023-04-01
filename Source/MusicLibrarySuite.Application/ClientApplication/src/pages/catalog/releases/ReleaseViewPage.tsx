@@ -196,16 +196,6 @@ const ReleaseViewPage = () => {
           }
         >
           {release.description?.length && <Paragraph>{release.description}</Paragraph>}
-          {release.barcode?.length && (
-            <Paragraph>
-              Barcode: <Text keyboard>{release.barcode}</Text>
-            </Paragraph>
-          )}
-          {release.catalogNumber?.length && (
-            <Paragraph>
-              Catalog Number: <Text keyboard>{release.catalogNumber}</Text>
-            </Paragraph>
-          )}
           {release.mediaFormat?.length && (
             <Paragraph>
               Media Format: <Text>{release.mediaFormat}</Text>
@@ -214,6 +204,16 @@ const ReleaseViewPage = () => {
           {release.publishFormat?.length && (
             <Paragraph>
               Publish Format: <Text>{release.publishFormat}</Text>
+            </Paragraph>
+          )}
+          {release.catalogNumber?.length && (
+            <Paragraph>
+              Catalog Number: <Text keyboard>{release.catalogNumber}</Text>
+            </Paragraph>
+          )}
+          {release.barcode?.length && (
+            <Paragraph>
+              Barcode: <Text keyboard>{release.barcode}</Text>
             </Paragraph>
           )}
           <Paragraph>
@@ -322,36 +322,35 @@ const ReleaseViewPage = () => {
           >
             <Space direction="vertical" style={{ display: "flex" }}>
               {(releaseMedia.description ||
-                releaseMedia.catalogNumber ||
                 releaseMedia.mediaFormat ||
-                releaseMedia.tableOfContentsChecksum ||
-                releaseMedia.tableOfContentsChecksumLong) && (
+                releaseMedia.catalogNumber ||
+                releaseMedia.freeDbChecksum ||
+                releaseMedia.musicBrainzChecksum) && (
                 <Collapse>
                   <Collapse.Panel key="release-media-details" header="Release Media Details">
                     {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
                     {releaseMedia.description &&
-                      (releaseMedia.catalogNumber ||
-                        releaseMedia.mediaFormat ||
-                        releaseMedia.tableOfContentsChecksum ||
-                        releaseMedia.tableOfContentsChecksumLong) && <Divider />}
-                    {releaseMedia.catalogNumber && (
-                      <Paragraph>
-                        Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
-                      </Paragraph>
-                    )}
+                      (releaseMedia.mediaFormat || releaseMedia.catalogNumber || releaseMedia.freeDbChecksum || releaseMedia.musicBrainzChecksum) && (
+                        <Divider />
+                      )}
                     {releaseMedia.mediaFormat && (
                       <Paragraph>
                         Media Format: <Text>{releaseMedia.mediaFormat}</Text>
                       </Paragraph>
                     )}
-                    {releaseMedia.tableOfContentsChecksum && (
+                    {releaseMedia.catalogNumber && (
                       <Paragraph>
-                        CDDB Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksum}</Text>
+                        Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
                       </Paragraph>
                     )}
-                    {releaseMedia.tableOfContentsChecksumLong && (
+                    {releaseMedia.freeDbChecksum && (
                       <Paragraph>
-                        MusicBrainz Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksumLong}</Text>
+                        FreeDb Checksum: <Text keyboard>{releaseMedia.freeDbChecksum}</Text>
+                      </Paragraph>
+                    )}
+                    {releaseMedia.musicBrainzChecksum && (
+                      <Paragraph>
+                        MusicBrainz Checksum: <Text keyboard>{releaseMedia.musicBrainzChecksum}</Text>
                       </Paragraph>
                     )}
                   </Collapse.Panel>

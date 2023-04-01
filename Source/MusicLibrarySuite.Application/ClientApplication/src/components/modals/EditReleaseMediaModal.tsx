@@ -101,18 +101,6 @@ const EditReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCa
           <Input.TextArea readOnly={!edit} />
         </Form.Item>
         <Form.Item
-          label="Catalog Number"
-          name="catalogNumber"
-          rules={[
-            {
-              max: 32,
-              message: "The 'Catalog Number' property must be shorter than 32 characters.",
-            },
-          ]}
-        >
-          <Input readOnly={!edit} />
-        </Form.Item>
-        <Form.Item
           label="Media Format"
           name="mediaFormat"
           rules={[
@@ -125,12 +113,24 @@ const EditReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCa
           <Input readOnly={!edit} />
         </Form.Item>
         <Form.Item
-          label="CDDB Checksum"
-          name="tableOfContentsChecksum"
+          label="Catalog Number"
+          name="catalogNumber"
+          rules={[
+            {
+              max: 32,
+              message: "The 'Catalog Number' property must be shorter than 32 characters.",
+            },
+          ]}
+        >
+          <Input readOnly={!edit} />
+        </Form.Item>
+        <Form.Item
+          label="FreeDb Checksum"
+          name="freeDbChecksum"
           rules={[
             {
               max: 64,
-              message: "The 'CDDB Checksum' property must be shorter than 64 characters.",
+              message: "The 'FreeDb Checksum' property must be shorter than 64 characters.",
             },
           ]}
         >
@@ -138,7 +138,7 @@ const EditReleaseMediaModal = ({ edit, open, releaseMedia, onOk: onModalOk, onCa
         </Form.Item>
         <Form.Item
           label="MusicBrainz Checksum"
-          name="tableOfContentsChecksumLong"
+          name="musicBrainzChecksum"
           rules={[
             {
               max: 64,

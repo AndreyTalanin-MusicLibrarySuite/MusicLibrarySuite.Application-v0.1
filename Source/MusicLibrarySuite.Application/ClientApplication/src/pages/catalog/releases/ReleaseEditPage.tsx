@@ -843,11 +843,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
 
   const checkIfReleaseMediaHasDetails = (releaseMedia: ReleaseMedia) => {
     return (
-      releaseMedia.description ||
-      releaseMedia.catalogNumber ||
-      releaseMedia.mediaFormat ||
-      releaseMedia.tableOfContentsChecksum ||
-      releaseMedia.tableOfContentsChecksumLong
+      releaseMedia.description || releaseMedia.mediaFormat || releaseMedia.catalogNumber || releaseMedia.freeDbChecksum || releaseMedia.musicBrainzChecksum
     );
   };
 
@@ -1031,30 +1027,6 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               <Input.TextArea />
             </Form.Item>
             <Form.Item
-              label="Barcode"
-              name="barcode"
-              rules={[
-                {
-                  max: 32,
-                  message: "The 'Barcode' property must be shorter than 32 characters.",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Catalog Number"
-              name="catalogNumber"
-              rules={[
-                {
-                  max: 32,
-                  message: "The 'Catalog Number' property must be shorter than 32 characters.",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
               label="Media Format"
               name="mediaFormat"
               rules={[
@@ -1073,6 +1045,30 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                 {
                   max: 256,
                   message: "The 'Publish Format' property must be shorter than 256 characters.",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Catalog Number"
+              name="catalogNumber"
+              rules={[
+                {
+                  max: 32,
+                  message: "The 'Catalog Number' property must be shorter than 32 characters.",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Barcode"
+              name="barcode"
+              rules={[
+                {
+                  max: 32,
+                  message: "The 'Barcode' property must be shorter than 32 characters.",
                 },
               ]}
             >
@@ -1227,28 +1223,27 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                     <Collapse.Panel key="release-media-details" header="Release Media Details">
                       {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
                       {releaseMedia.description &&
-                        (releaseMedia.catalogNumber ||
-                          releaseMedia.mediaFormat ||
-                          releaseMedia.tableOfContentsChecksum ||
-                          releaseMedia.tableOfContentsChecksumLong) && <Divider />}
-                      {releaseMedia.catalogNumber && (
-                        <Paragraph>
-                          Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
-                        </Paragraph>
-                      )}
+                        (releaseMedia.mediaFormat || releaseMedia.catalogNumber || releaseMedia.freeDbChecksum || releaseMedia.musicBrainzChecksum) && (
+                          <Divider />
+                        )}
                       {releaseMedia.mediaFormat && (
                         <Paragraph>
                           Media Format: <Text>{releaseMedia.mediaFormat}</Text>
                         </Paragraph>
                       )}
-                      {releaseMedia.tableOfContentsChecksum && (
+                      {releaseMedia.catalogNumber && (
                         <Paragraph>
-                          CDDB Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksum}</Text>
+                          Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
                         </Paragraph>
                       )}
-                      {releaseMedia.tableOfContentsChecksumLong && (
+                      {releaseMedia.freeDbChecksum && (
                         <Paragraph>
-                          MusicBrainz Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksumLong}</Text>
+                          FreeDb Checksum: <Text keyboard>{releaseMedia.freeDbChecksum}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.musicBrainzChecksum && (
+                        <Paragraph>
+                          MusicBrainz Checksum: <Text keyboard>{releaseMedia.musicBrainzChecksum}</Text>
                         </Paragraph>
                       )}
                     </Collapse.Panel>

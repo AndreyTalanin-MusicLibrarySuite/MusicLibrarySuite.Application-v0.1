@@ -8,10 +8,10 @@ export default interface ReleaseFormValues {
   title: string;
   description?: string;
   disambiguationText?: string;
-  barcode?: string;
-  catalogNumber?: string;
   mediaFormat?: string;
   publishFormat?: string;
+  catalogNumber?: string;
+  barcode?: string;
   releasedOn: Dayjs;
   releasedOnYearOnly: boolean;
   enabled: boolean;
@@ -31,10 +31,10 @@ export function mapReleaseFormInitialValues(initialValues?: IRelease): ReleaseFo
         title: initialValues.title,
         description: initialValues.description,
         disambiguationText: initialValues.disambiguationText,
-        barcode: initialValues.barcode,
-        catalogNumber: initialValues.catalogNumber,
         mediaFormat: initialValues.mediaFormat,
         publishFormat: initialValues.publishFormat,
+        catalogNumber: initialValues.catalogNumber,
+        barcode: initialValues.barcode,
         releasedOn: dayjs(initialValues.releasedOn),
         releasedOnYearOnly: initialValues.releasedOnYearOnly,
         enabled: initialValues.enabled,
@@ -102,10 +102,10 @@ export function mergeReleaseFormValues(formValues: ReleaseFormValues, initialVal
     title: formValues.title.trim(),
     description: formValues.description?.trim(),
     disambiguationText: formValues.disambiguationText?.trim(),
-    barcode: formValues.barcode?.trim(),
-    catalogNumber: formValues.catalogNumber?.trim(),
     mediaFormat: formValues.mediaFormat?.trim(),
     publishFormat: formValues.publishFormat?.trim(),
+    catalogNumber: formValues.catalogNumber?.trim(),
+    barcode: formValues.barcode?.trim(),
     releasedOn: releasedOn,
     releasedOnYearOnly: formValues.releasedOnYearOnly,
     enabled: formValues.enabled,
@@ -129,17 +129,17 @@ export function mergeReleaseFormValues(formValues: ReleaseFormValues, initialVal
   if (!updatedValues.disambiguationText && updatedValues.disambiguationText !== undefined) {
     updatedValues.disambiguationText = undefined;
   }
-  if (!updatedValues.barcode && updatedValues.barcode !== undefined) {
-    updatedValues.barcode = undefined;
-  }
-  if (!updatedValues.catalogNumber && updatedValues.catalogNumber !== undefined) {
-    updatedValues.catalogNumber = undefined;
-  }
   if (!updatedValues.mediaFormat && updatedValues.mediaFormat !== undefined) {
     updatedValues.mediaFormat = undefined;
   }
   if (!updatedValues.publishFormat && updatedValues.publishFormat !== undefined) {
     updatedValues.publishFormat = undefined;
+  }
+  if (!updatedValues.catalogNumber && updatedValues.catalogNumber !== undefined) {
+    updatedValues.catalogNumber = undefined;
+  }
+  if (!updatedValues.barcode && updatedValues.barcode !== undefined) {
+    updatedValues.barcode = undefined;
   }
 
   if (initialValues) {
