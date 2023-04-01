@@ -738,13 +738,13 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         key: "trackNumber",
         title: "Track #",
         dataIndex: "trackNumber",
-        render: (_: number, { trackNumber, totalTrackCount }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber, totalTrackCount),
+        render: (_: number, { trackNumber }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber),
       },
       {
         key: "mediaNumber",
         title: "Media #",
         dataIndex: "mediaNumber",
-        render: (_: number, { mediaNumber, totalMediaCount }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber, totalMediaCount),
+        render: (_: number, { mediaNumber }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber),
       },
       {
         key: "title",
@@ -1199,7 +1199,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               title={
                 <Space wrap className={styles.cardHeader} direction="horizontal" align="baseline">
                   <Space wrap direction="horizontal" align="baseline">
-                    {`${formatReleaseMediaNumber(releaseMedia.mediaNumber, releaseMedia.totalMediaCount)} - ${releaseMedia.title}`}
+                    {`${formatReleaseMediaNumber(releaseMedia.mediaNumber)} - ${releaseMedia.title}`}
                     {releaseMedia.disambiguationText && (
                       <Tooltip title={releaseMedia.disambiguationText}>
                         <QuestionCircleOutlined />

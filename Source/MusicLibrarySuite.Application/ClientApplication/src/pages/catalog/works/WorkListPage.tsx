@@ -21,7 +21,6 @@ const WorkListPage = () => {
   const [titleFilter, setTitleFilter] = useState<string>();
   const [enabledFilter, setEnabledFilter] = useState<boolean>();
   const [totalCount, setTotalCount] = useState<number>();
-  const [completedOn, setCompletedOn] = useState<Date>();
   const [works, setWorks] = useState<Work[]>([]);
   const [workToDelete, setWorkToDelete] = useState<Work>();
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
@@ -37,7 +36,6 @@ const WorkListPage = () => {
         setPageSize(pageResult.pageSize);
         setPageIndex(pageResult.pageIndex);
         setTotalCount(pageResult.totalCount);
-        setCompletedOn(pageResult.completedOn);
         setWorks(pageResult.items);
       })
       .catch((error) => {
@@ -180,10 +178,7 @@ const WorkListPage = () => {
     [onCreateButtonClick]
   );
 
-  const statusLine = useMemo(
-    () => totalCount !== undefined && completedOn && `Found ${totalCount} works total, request completed on ${completedOn.toLocaleString()}.`,
-    [totalCount, completedOn]
-  );
+  const statusLine = useMemo(() => totalCount !== undefined && `Found ${totalCount} works total.`, [totalCount]);
 
   const modals = useMemo(
     () => [

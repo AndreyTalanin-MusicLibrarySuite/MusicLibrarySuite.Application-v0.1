@@ -69,13 +69,13 @@ const ReleaseViewPage = () => {
       key: "trackNumber",
       title: "Track #",
       dataIndex: "trackNumber",
-      render: (_: number, { trackNumber, totalTrackCount }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber, totalTrackCount),
+      render: (_: number, { trackNumber }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber),
     },
     {
       key: "mediaNumber",
       title: "Media #",
       dataIndex: "mediaNumber",
-      render: (_: number, { mediaNumber, totalMediaCount }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber, totalMediaCount),
+      render: (_: number, { mediaNumber }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber),
     },
     {
       key: "title",

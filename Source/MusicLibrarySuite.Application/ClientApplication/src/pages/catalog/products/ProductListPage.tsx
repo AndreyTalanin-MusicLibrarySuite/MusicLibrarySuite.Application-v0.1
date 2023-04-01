@@ -21,7 +21,6 @@ const ProductListPage = () => {
   const [titleFilter, setTitleFilter] = useState<string>();
   const [enabledFilter, setEnabledFilter] = useState<boolean>();
   const [totalCount, setTotalCount] = useState<number>();
-  const [completedOn, setCompletedOn] = useState<Date>();
   const [products, setProducts] = useState<Product[]>([]);
   const [productToDelete, setProductToDelete] = useState<Product>();
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
@@ -37,7 +36,6 @@ const ProductListPage = () => {
         setPageSize(pageResult.pageSize);
         setPageIndex(pageResult.pageIndex);
         setTotalCount(pageResult.totalCount);
-        setCompletedOn(pageResult.completedOn);
         setProducts(pageResult.items);
       })
       .catch((error) => {
@@ -180,10 +178,7 @@ const ProductListPage = () => {
     [onCreateButtonClick]
   );
 
-  const statusLine = useMemo(
-    () => totalCount !== undefined && completedOn && `Found ${totalCount} products total, request completed on ${completedOn.toLocaleString()}.`,
-    [totalCount, completedOn]
-  );
+  const statusLine = useMemo(() => totalCount !== undefined && `Found ${totalCount} products total.`, [totalCount]);
 
   const modals = useMemo(
     () => [
