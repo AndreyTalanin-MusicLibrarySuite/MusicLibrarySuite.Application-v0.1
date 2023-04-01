@@ -29,11 +29,11 @@ import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import EditReleaseMediaModal from "../../../components/modals/EditReleaseMediaModal";
 import EditReleaseTrackModal from "../../../components/modals/EditReleaseTrackModal";
 import ActionPage from "../../../components/pages/ActionPage";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
+import { GuidPattern } from "../../../constants/regularExpressionConstants";
 import { mapReleaseFormInitialValues, mergeReleaseFormValues } from "../../../entities/forms/ReleaseFormValues";
-import { DefaultPageSize } from "../../../helpers/ApplicationConstants";
-import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
-import { formatReleaseMediaNumber, getReleaseMediaKey, getReleaseMediaKeyByComponents } from "../../../helpers/ReleaseMediaHelpers";
-import { formatReleaseTrackNumber, getReleaseTrackKey, getReleaseTrackKeyByComponents } from "../../../helpers/ReleaseTrackHelpers";
+import { formatReleaseMediaNumber, getReleaseMediaKey, getReleaseMediaKeyByComponents } from "../../../helpers/releaseMediaHelpers";
+import { formatReleaseTrackNumber, getReleaseTrackKey, getReleaseTrackKeyByComponents } from "../../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";
@@ -738,13 +738,13 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
         key: "trackNumber",
         title: "Track #",
         dataIndex: "trackNumber",
-        render: (_: number, { trackNumber, totalTrackCount }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber, totalTrackCount),
+        render: (_: number, { trackNumber }: ReleaseTrack) => formatReleaseTrackNumber(trackNumber),
       },
       {
         key: "mediaNumber",
         title: "Media #",
         dataIndex: "mediaNumber",
-        render: (_: number, { mediaNumber, totalMediaCount }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber, totalMediaCount),
+        render: (_: number, { mediaNumber }: ReleaseTrack) => formatReleaseMediaNumber(mediaNumber),
       },
       {
         key: "title",
@@ -843,11 +843,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
 
   const checkIfReleaseMediaHasDetails = (releaseMedia: ReleaseMedia) => {
     return (
-      releaseMedia.description ||
-      releaseMedia.catalogNumber ||
-      releaseMedia.mediaFormat ||
-      releaseMedia.tableOfContentsChecksum ||
-      releaseMedia.tableOfContentsChecksumLong
+      releaseMedia.description || releaseMedia.mediaFormat || releaseMedia.catalogNumber || releaseMedia.freeDbChecksum || releaseMedia.musicBrainzChecksum
     );
   };
 
@@ -1031,30 +1027,6 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               <Input.TextArea />
             </Form.Item>
             <Form.Item
-              label="Barcode"
-              name="barcode"
-              rules={[
-                {
-                  max: 32,
-                  message: "The 'Barcode' property must be shorter than 32 characters.",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Catalog Number"
-              name="catalogNumber"
-              rules={[
-                {
-                  max: 32,
-                  message: "The 'Catalog Number' property must be shorter than 32 characters.",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
               label="Media Format"
               name="mediaFormat"
               rules={[
@@ -1073,6 +1045,30 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                 {
                   max: 256,
                   message: "The 'Publish Format' property must be shorter than 256 characters.",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Catalog Number"
+              name="catalogNumber"
+              rules={[
+                {
+                  max: 32,
+                  message: "The 'Catalog Number' property must be shorter than 32 characters.",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Barcode"
+              name="barcode"
+              rules={[
+                {
+                  max: 32,
+                  message: "The 'Barcode' property must be shorter than 32 characters.",
                 },
               ]}
             >
@@ -1203,7 +1199,7 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
               title={
                 <Space wrap className={styles.cardHeader} direction="horizontal" align="baseline">
                   <Space wrap direction="horizontal" align="baseline">
-                    {`${formatReleaseMediaNumber(releaseMedia.mediaNumber, releaseMedia.totalMediaCount)} - ${releaseMedia.title}`}
+                    {`${formatReleaseMediaNumber(releaseMedia.mediaNumber)} - ${releaseMedia.title}`}
                     {releaseMedia.disambiguationText && (
                       <Tooltip title={releaseMedia.disambiguationText}>
                         <QuestionCircleOutlined />
@@ -1227,28 +1223,27 @@ const ReleaseEditPage = ({ mode }: ReleaseEditPageProps) => {
                     <Collapse.Panel key="release-media-details" header="Release Media Details">
                       {releaseMedia.description && <Paragraph>{releaseMedia.description}</Paragraph>}
                       {releaseMedia.description &&
-                        (releaseMedia.catalogNumber ||
-                          releaseMedia.mediaFormat ||
-                          releaseMedia.tableOfContentsChecksum ||
-                          releaseMedia.tableOfContentsChecksumLong) && <Divider />}
-                      {releaseMedia.catalogNumber && (
-                        <Paragraph>
-                          Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
-                        </Paragraph>
-                      )}
+                        (releaseMedia.mediaFormat || releaseMedia.catalogNumber || releaseMedia.freeDbChecksum || releaseMedia.musicBrainzChecksum) && (
+                          <Divider />
+                        )}
                       {releaseMedia.mediaFormat && (
                         <Paragraph>
                           Media Format: <Text>{releaseMedia.mediaFormat}</Text>
                         </Paragraph>
                       )}
-                      {releaseMedia.tableOfContentsChecksum && (
+                      {releaseMedia.catalogNumber && (
                         <Paragraph>
-                          CDDB Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksum}</Text>
+                          Catalog Number: <Text keyboard>{releaseMedia.catalogNumber}</Text>
                         </Paragraph>
                       )}
-                      {releaseMedia.tableOfContentsChecksumLong && (
+                      {releaseMedia.freeDbChecksum && (
                         <Paragraph>
-                          MusicBrainz Checksum: <Text keyboard>{releaseMedia.tableOfContentsChecksumLong}</Text>
+                          FreeDb Checksum: <Text keyboard>{releaseMedia.freeDbChecksum}</Text>
+                        </Paragraph>
+                      )}
+                      {releaseMedia.musicBrainzChecksum && (
+                        <Paragraph>
+                          MusicBrainz Checksum: <Text keyboard>{releaseMedia.musicBrainzChecksum}</Text>
                         </Paragraph>
                       )}
                     </Collapse.Panel>

@@ -7,7 +7,7 @@ import {
   ReleaseTrackGenre,
   ReleaseTrackPerformer,
 } from "../../api/ApplicationClient";
-import { EmptyGuidString } from "../../helpers/ApplicationConstants";
+import { EmptyGuidString } from "../../constants/applicationConstants";
 
 export default interface ReleaseTrackModalFormValues {
   trackNumber: string;

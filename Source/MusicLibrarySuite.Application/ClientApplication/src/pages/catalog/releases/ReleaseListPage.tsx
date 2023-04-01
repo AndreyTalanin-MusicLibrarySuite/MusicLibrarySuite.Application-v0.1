@@ -8,7 +8,7 @@ import { Release } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
+import { DefaultPageIndex, DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
 
@@ -21,7 +21,6 @@ const ReleaseListPage = () => {
   const [titleFilter, setTitleFilter] = useState<string>();
   const [enabledFilter, setEnabledFilter] = useState<boolean>();
   const [totalCount, setTotalCount] = useState<number>();
-  const [completedOn, setCompletedOn] = useState<Date>();
   const [releases, setReleases] = useState<Release[]>([]);
   const [releaseToDelete, setReleaseToDelete] = useState<Release>();
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
@@ -37,7 +36,6 @@ const ReleaseListPage = () => {
         setPageSize(pageResult.pageSize);
         setPageIndex(pageResult.pageIndex);
         setTotalCount(pageResult.totalCount);
-        setCompletedOn(pageResult.completedOn);
         setReleases(pageResult.items);
       })
       .catch((error) => {
@@ -179,10 +177,7 @@ const ReleaseListPage = () => {
     [onCreateButtonClick]
   );
 
-  const statusLine = useMemo(
-    () => totalCount !== undefined && completedOn && `Found ${totalCount} releases total, request completed on ${completedOn.toLocaleString()}.`,
-    [totalCount, completedOn]
-  );
+  const statusLine = useMemo(() => totalCount !== undefined && `Found ${totalCount} releases total.`, [totalCount]);
 
   const modals = useMemo(
     () => [

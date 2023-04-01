@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ReleaseTrackToProductRelationship } from "../../../api/ApplicationClient";
 import ReleaseTrackRelationshipTable from "../../../components/tables/ReleaseTrackRelationshipTable";
-import { getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
+import { getReleaseTrackKey } from "../../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 
 export interface ReleaseViewPageReleaseTrackToProductRelationshipsTabProps {

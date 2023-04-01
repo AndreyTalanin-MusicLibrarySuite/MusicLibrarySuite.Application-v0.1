@@ -1,5 +1,5 @@
 import { Artist, ArtistGenre, IArtist } from "../../api/ApplicationClient";
-import { EmptyGuidString } from "../../helpers/ApplicationConstants";
+import { EmptyGuidString } from "../../constants/applicationConstants";
 
 export default interface ArtistFormValues {
   id?: string;

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ReleaseTrackToProductRelationship } from "../../../api/ApplicationClient";
 import ReleaseTrackRelationshipTable, { ReleaseTrackRelationship } from "../../../components/tables/ReleaseTrackRelationshipTable";
-import { getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
+import { getReleaseTrackKey } from "../../../helpers/releaseTrackHelpers";
 import "antd/dist/antd.min.css";
 
 export interface ProductEditPageReleaseTrackToProductRelationshipsTabProps {

@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Music Library Suite - Application API v0.8.0-rc2",
+    "title": "Music Library Suite - Application API v0.8.0-rc3",
     "description": "Initial pre-release (unstable) API version.",
     "contact": {
       "name": "Andrey Talanin",
@@ -12,7 +12,7 @@
       "name": "The MIT License",
       "url": "https://github.com/AndreyTalanin-MusicLibrarySuite/MusicLibrarySuite.Application/blob/main/LICENSE.md"
     },
-    "version": "v0.8.0-rc2"
+    "version": "v0.8.0-rc3"
   },
   "paths": {
     "/api/Artist/GetArtist": {
@@ -2878,7 +2878,6 @@
       },
       "ArtistPageResponse": {
         "required": [
-          "completedOn",
           "items",
           "pageIndex",
           "pageSize",
@@ -2903,10 +2902,6 @@
             "items": {
               "$ref": "#/components/schemas/Artist"
             }
-          },
-          "completedOn": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -2991,7 +2986,6 @@
       },
       "GenrePageResponse": {
         "required": [
-          "completedOn",
           "items",
           "pageIndex",
           "pageSize",
@@ -3016,10 +3010,6 @@
             "items": {
               "$ref": "#/components/schemas/Genre"
             }
-          },
-          "completedOn": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -3144,7 +3134,6 @@
       },
       "ProductPageResponse": {
         "required": [
-          "completedOn",
           "items",
           "pageIndex",
           "pageSize",
@@ -3169,10 +3158,6 @@
             "items": {
               "$ref": "#/components/schemas/Product"
             }
-          },
-          "completedOn": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -3245,7 +3230,11 @@
             "type": "string",
             "nullable": true
           },
-          "barcode": {
+          "mediaFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishFormat": {
             "type": "string",
             "nullable": true
           },
@@ -3253,11 +3242,7 @@
             "type": "string",
             "nullable": true
           },
-          "mediaFormat": {
-            "type": "string",
-            "nullable": true
-          },
-          "publishFormat": {
+          "barcode": {
             "type": "string",
             "nullable": true
           },
@@ -3479,7 +3464,6 @@
       },
       "ReleaseGroupPageResponse": {
         "required": [
-          "completedOn",
           "items",
           "pageIndex",
           "pageSize",
@@ -3504,10 +3488,6 @@
             "items": {
               "$ref": "#/components/schemas/ReleaseGroup"
             }
-          },
-          "completedOn": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -3559,10 +3539,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "totalMediaCount": {
-            "type": "integer",
-            "format": "int32"
-          },
           "releaseId": {
             "type": "string",
             "format": "uuid"
@@ -3579,19 +3555,19 @@
             "type": "string",
             "nullable": true
           },
-          "catalogNumber": {
-            "type": "string",
-            "nullable": true
-          },
           "mediaFormat": {
             "type": "string",
             "nullable": true
           },
-          "tableOfContentsChecksum": {
+          "catalogNumber": {
             "type": "string",
             "nullable": true
           },
-          "tableOfContentsChecksumLong": {
+          "freeDbChecksum": {
+            "type": "string",
+            "nullable": true
+          },
+          "musicBrainzChecksum": {
             "type": "string",
             "nullable": true
           },
@@ -3650,7 +3626,6 @@
       },
       "ReleasePageResponse": {
         "required": [
-          "completedOn",
           "items",
           "pageIndex",
           "pageSize",
@@ -3675,10 +3650,6 @@
             "items": {
               "$ref": "#/components/schemas/Release"
             }
-          },
-          "completedOn": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -3826,15 +3797,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "totalTrackCount": {
-            "type": "integer",
-            "format": "int32"
-          },
           "mediaNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalMediaCount": {
             "type": "integer",
             "format": "int32"
           },
@@ -4361,7 +4324,6 @@
       },
       "WorkPageResponse": {
         "required": [
-          "completedOn",
           "items",
           "pageIndex",
           "pageSize",
@@ -4386,10 +4348,6 @@
             "items": {
               "$ref": "#/components/schemas/Work"
             }
-          },
-          "completedOn": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false

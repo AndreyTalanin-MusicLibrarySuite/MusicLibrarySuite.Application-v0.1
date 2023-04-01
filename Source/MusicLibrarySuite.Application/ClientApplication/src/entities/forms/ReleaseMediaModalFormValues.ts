@@ -1,15 +1,15 @@
 import { IReleaseMedia, ReleaseMedia } from "../../api/ApplicationClient";
-import { EmptyGuidString } from "../../helpers/ApplicationConstants";
+import { EmptyGuidString } from "../../constants/applicationConstants";
 
 export default interface ReleaseMediaModalFormValues {
   mediaNumber: string;
   title: string;
   description?: string;
   disambiguationText?: string;
-  catalogNumber?: string;
   mediaFormat?: string;
-  tableOfContentsChecksum?: string;
-  tableOfContentsChecksumLong?: string;
+  catalogNumber?: string;
+  freeDbChecksum?: string;
+  musicBrainzChecksum?: string;
 }
 
 export function mapReleaseMediaModalFormInitialValues(initialValues?: ReleaseMedia): ReleaseMediaModalFormValues | undefined {
@@ -19,10 +19,10 @@ export function mapReleaseMediaModalFormInitialValues(initialValues?: ReleaseMed
         title: initialValues.title,
         description: initialValues.description,
         disambiguationText: initialValues.disambiguationText,
-        catalogNumber: initialValues.catalogNumber,
         mediaFormat: initialValues.mediaFormat,
-        tableOfContentsChecksum: initialValues.tableOfContentsChecksum,
-        tableOfContentsChecksumLong: initialValues.tableOfContentsChecksumLong,
+        catalogNumber: initialValues.catalogNumber,
+        freeDbChecksum: initialValues.freeDbChecksum,
+        musicBrainzChecksum: initialValues.musicBrainzChecksum,
       }
     : undefined;
 
@@ -38,10 +38,10 @@ export function mergeReleaseMediaModalFormValues(formValues: ReleaseMediaModalFo
     title: formValues.title.trim(),
     description: formValues.description?.trim(),
     disambiguationText: formValues.disambiguationText?.trim(),
-    catalogNumber: formValues.catalogNumber?.trim(),
     mediaFormat: formValues.mediaFormat?.trim(),
-    tableOfContentsChecksum: formValues.tableOfContentsChecksum?.trim(),
-    tableOfContentsChecksumLong: formValues.tableOfContentsChecksumLong?.trim(),
+    catalogNumber: formValues.catalogNumber?.trim(),
+    freeDbChecksum: formValues.freeDbChecksum?.trim(),
+    musicBrainzChecksum: formValues.musicBrainzChecksum?.trim(),
 
     releaseMediaToProductRelationships: [],
 
@@ -54,17 +54,17 @@ export function mergeReleaseMediaModalFormValues(formValues: ReleaseMediaModalFo
   if (!updatedValues.disambiguationText && updatedValues.disambiguationText !== undefined) {
     updatedValues.disambiguationText = undefined;
   }
-  if (!updatedValues.catalogNumber && updatedValues.catalogNumber !== undefined) {
-    updatedValues.catalogNumber = undefined;
-  }
   if (!updatedValues.mediaFormat && updatedValues.mediaFormat !== undefined) {
     updatedValues.mediaFormat = undefined;
   }
-  if (!updatedValues.tableOfContentsChecksum && updatedValues.tableOfContentsChecksum !== undefined) {
-    updatedValues.tableOfContentsChecksum = undefined;
+  if (!updatedValues.catalogNumber && updatedValues.catalogNumber !== undefined) {
+    updatedValues.catalogNumber = undefined;
   }
-  if (!updatedValues.tableOfContentsChecksumLong && updatedValues.tableOfContentsChecksumLong !== undefined) {
-    updatedValues.tableOfContentsChecksumLong = undefined;
+  if (!updatedValues.freeDbChecksum && updatedValues.freeDbChecksum !== undefined) {
+    updatedValues.freeDbChecksum = undefined;
+  }
+  if (!updatedValues.musicBrainzChecksum && updatedValues.musicBrainzChecksum !== undefined) {
+    updatedValues.musicBrainzChecksum = undefined;
   }
 
   if (initialValues) {

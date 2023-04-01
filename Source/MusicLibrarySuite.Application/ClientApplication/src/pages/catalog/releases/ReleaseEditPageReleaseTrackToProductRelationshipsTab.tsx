@@ -8,7 +8,7 @@ import EditReleaseTrackRelationshipModal, {
 import ReleaseTrackRelationshipTable, {
   ReleaseTrackRelationship as TableReleaseTrackRelationship,
 } from "../../../components/tables/ReleaseTrackRelationshipTable";
-import { getReleaseTrackKey } from "../../../helpers/ReleaseTrackHelpers";
+import { getReleaseTrackKey } from "../../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./ReleaseEditPageReleaseTrackToProductRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";

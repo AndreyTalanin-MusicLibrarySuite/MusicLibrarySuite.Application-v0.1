@@ -8,7 +8,7 @@ import EditReleaseMediaRelationshipModal, {
 import ReleaseMediaRelationshipTable, {
   ReleaseMediaRelationship as TableReleaseMediaRelationship,
 } from "../../../components/tables/ReleaseMediaRelationshipTable";
-import { getReleaseMediaKey } from "../../../helpers/ReleaseMediaHelpers";
+import { getReleaseMediaKey } from "../../../helpers/releaseMediaHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import styles from "./ReleaseEditPageReleaseMediaToProductRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";

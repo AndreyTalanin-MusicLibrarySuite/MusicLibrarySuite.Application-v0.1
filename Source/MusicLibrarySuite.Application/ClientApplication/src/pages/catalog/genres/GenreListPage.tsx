@@ -8,7 +8,7 @@ import { Genre } from "../../../api/ApplicationClient";
 import StringValueFilterDropdown from "../../../components/helpers/StringValueFilterDropdown";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
-import { DefaultPageIndex, DefaultPageSize } from "../../../helpers/ApplicationConstants";
+import { DefaultPageIndex, DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
 
@@ -21,7 +21,6 @@ const GenreListPage = () => {
   const [nameFilter, setNameFilter] = useState<string>();
   const [enabledFilter, setEnabledFilter] = useState<boolean>();
   const [totalCount, setTotalCount] = useState<number>();
-  const [completedOn, setCompletedOn] = useState<Date>();
   const [genres, setGenres] = useState<Genre[]>([]);
   const [genreToDelete, setGenreToDelete] = useState<Genre>();
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState<boolean>(false);
@@ -37,7 +36,6 @@ const GenreListPage = () => {
         setPageSize(pageResult.pageSize);
         setPageIndex(pageResult.pageIndex);
         setTotalCount(pageResult.totalCount);
-        setCompletedOn(pageResult.completedOn);
         setGenres(pageResult.items);
       })
       .catch((error) => {
@@ -175,10 +173,7 @@ const GenreListPage = () => {
     [onCreateButtonClick]
   );
 
-  const statusLine = useMemo(
-    () => totalCount !== undefined && completedOn && `Found ${totalCount} genres total, request completed on ${completedOn.toLocaleString()}.`,
-    [totalCount, completedOn]
-  );
+  const statusLine = useMemo(() => totalCount !== undefined && `Found ${totalCount} genres total.`, [totalCount]);
 
   const modals = useMemo(
     () => [

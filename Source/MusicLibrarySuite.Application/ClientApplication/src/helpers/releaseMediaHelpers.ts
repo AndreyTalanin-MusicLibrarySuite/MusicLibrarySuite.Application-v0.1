@@ -1,6 +1,6 @@
 import { ReleaseMedia } from "../api/ApplicationClient";
-import { MaxReleaseMediaNumber, MinReleaseMediaNumber } from "./ApplicationConstants";
-import { ReleaseMediaNumberPattern } from "./RegularExpressionConstants";
+import { MaxReleaseMediaNumber, MinReleaseMediaNumber } from "../constants/applicationConstants";
+import { ReleaseMediaNumberPattern } from "../constants/regularExpressionConstants";
 
 export const getReleaseMediaKey = (releaseMedia: ReleaseMedia) => {
   return `${releaseMedia.mediaNumber}-${releaseMedia.releaseId}`;
@@ -10,8 +10,9 @@ export const getReleaseMediaKeyByComponents = (mediaNumber: number, releaseId: s
   return `${mediaNumber}-${releaseId}`;
 };
 
-export const formatReleaseMediaNumber = (number: number, totalCount: number | undefined) => {
-  return number.toLocaleString(undefined, { minimumIntegerDigits: totalCount !== undefined && totalCount > 99 ? 3 : 2 });
+export const formatReleaseMediaNumber = (number: number, totalCount?: number) => {
+  const minimumIntegerDigits = totalCount !== undefined ? (totalCount < 100 ? (totalCount < 10 ? 1 : 2) : 3) : undefined;
+  return number.toLocaleString(undefined, { minimumIntegerDigits });
 };
 
 export const validateReleaseMediaNumber = (value: string) => {

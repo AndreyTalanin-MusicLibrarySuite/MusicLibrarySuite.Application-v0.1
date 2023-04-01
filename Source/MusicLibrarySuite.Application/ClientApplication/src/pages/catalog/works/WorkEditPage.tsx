@@ -6,9 +6,9 @@ import { Artist, Genre, ReleaseTrackToWorkRelationship, Work, WorkRelationship, 
 import EntitySelect from "../../../components/inputs/EntitySelect";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import ActionPage from "../../../components/pages/ActionPage";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
+import { GuidPattern } from "../../../constants/regularExpressionConstants";
 import { mapWorkFormInitialValues, mergeWorkFormValues } from "../../../entities/forms/WorkFormValues";
-import { DefaultPageSize } from "../../../helpers/ApplicationConstants";
-import { GuidPattern } from "../../../helpers/RegularExpressionConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import useEntityForm from "../../../hooks/useEntityForm";
 import useQueryStringId from "../../../hooks/useQueryStringId";
