@@ -1,0 +1,11 @@
+.tab {
+  width: 100%;
+}
+
+.tabHeader {
+  width: 100%;
+}
+
+.tabHeader *:last-child {
+  margin-left: auto;
+}
