@@ -1,10 +1,12 @@
 import { Typography } from "antd";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useCallback, useMemo } from "react";
 import { ReleaseMediaToProductRelationship } from "../../../api/ApplicationClient";
 import ReleaseMediaRelationshipTable, { ReleaseMediaRelationship } from "../../../components/tables/ReleaseMediaRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import { getReleaseMediaKey } from "../../../helpers/releaseMediaHelpers";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ProductEditPageReleaseMediaToProductRelationshipsTabProps {
   releaseMediaToProductRelationships: ReleaseMediaToProductRelationship[];
@@ -17,12 +19,8 @@ const ProductEditPageReleaseMediaToProductRelationshipsTab = ({
   releaseMediaToProductRelationshipsLoading,
   setReleaseMediaToProductRelationships,
 }: ProductEditPageReleaseMediaToProductRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
-  const [releaseMediaRelationships, setReleaseMediaRelationships] = useState<ReleaseMediaRelationship[]>([]);
-
-  useEffect(() => {
-    setReleaseMediaRelationships(
+  const tableReleaseMediaRelationships = useMemo(
+    () =>
       releaseMediaToProductRelationships.map((releaseMediaToProductRelationship) => ({
         name: releaseMediaToProductRelationship.name,
         description: releaseMediaToProductRelationship.description,
@@ -33,47 +31,52 @@ const ProductEditPageReleaseMediaToProductRelationshipsTab = ({
         dependentEntityId: releaseMediaToProductRelationship.productId,
         dependentEntityName: releaseMediaToProductRelationship.product?.title ?? "",
         dependentEntityHref: `/catalog/products/view?id=${releaseMediaToProductRelationship.productId}`,
-      }))
-    );
-  }, [releaseMediaToProductRelationships, navigate]);
+      })),
+    [releaseMediaToProductRelationships]
+  );
 
-  const onReleaseMediaRelationshipsChange = (releaseMediaRelationships: ReleaseMediaRelationship[]) => {
-    const getReleaseMediaToProductRelationshipKey = (releaseMediaId: string, dependentEntityId: string) => {
-      return `(${releaseMediaId}, ${dependentEntityId})`;
-    };
-    if (releaseMediaToProductRelationships) {
-      const releaseMediaToProductRelationshipsMap = new Map<string, ReleaseMediaToProductRelationship>();
-      for (const releaseMediaToProductRelationship of releaseMediaToProductRelationships) {
-        releaseMediaToProductRelationshipsMap.set(
-          getReleaseMediaToProductRelationshipKey(
-            getReleaseMediaKey(releaseMediaToProductRelationship.releaseMedia!),
-            releaseMediaToProductRelationship.productId
-          ),
-          releaseMediaToProductRelationship
+  const onReleaseMediaRelationshipsOrderChange = useCallback(
+    (releaseMediaRelationships: ReleaseMediaRelationship[]) => {
+      const getReleaseMediaToProductRelationshipKey = (releaseMediaId: string, dependentEntityId: string) => {
+        return `(${releaseMediaId}, ${dependentEntityId})`;
+      };
+      if (releaseMediaToProductRelationships) {
+        const releaseMediaToProductRelationshipsMap = new Map<string, ReleaseMediaToProductRelationship>();
+        for (const releaseMediaToProductRelationship of releaseMediaToProductRelationships) {
+          releaseMediaToProductRelationshipsMap.set(
+            getReleaseMediaToProductRelationshipKey(
+              getReleaseMediaKey(releaseMediaToProductRelationship.releaseMedia!),
+              releaseMediaToProductRelationship.productId
+            ),
+            releaseMediaToProductRelationship
+          );
+        }
+        setReleaseMediaToProductRelationships(
+          releaseMediaRelationships.map(
+            (releaseMediaRelationship) =>
+              releaseMediaToProductRelationshipsMap.get(
+                getReleaseMediaToProductRelationshipKey(releaseMediaRelationship.releaseMediaId, releaseMediaRelationship.dependentEntityId)
+              ) as ReleaseMediaToProductRelationship
+          )
         );
       }
-      setReleaseMediaToProductRelationships(
-        releaseMediaRelationships.map(
-          (releaseMediaRelationship) =>
-            releaseMediaToProductRelationshipsMap.get(
-              getReleaseMediaToProductRelationshipKey(releaseMediaRelationship.releaseMediaId, releaseMediaRelationship.dependentEntityId)
-            ) as ReleaseMediaToProductRelationship
-        )
-      );
-    }
-  };
+    },
+    [releaseMediaToProductRelationships, setReleaseMediaToProductRelationships]
+  );
+
+  const title = <Title level={5}>Reorder Release-Media-to-Product Relationships</Title>;
 
   return (
-    <>
-      <Typography.Paragraph>You can adjust order in which the release-media-to-product relationships are displayed by dragging them.</Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>You can adjust order in which the release-media-to-product relationships are displayed by dragging them.</Paragraph>
       <ReleaseMediaRelationshipTable
         reorderMode
         dependentEntityColumnName="Product"
         loading={releaseMediaToProductRelationshipsLoading}
-        releaseMediaRelationships={releaseMediaRelationships}
-        onReleaseMediaRelationshipsChange={onReleaseMediaRelationshipsChange}
+        releaseMediaRelationships={tableReleaseMediaRelationships}
+        onReleaseMediaRelationshipsChange={onReleaseMediaRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

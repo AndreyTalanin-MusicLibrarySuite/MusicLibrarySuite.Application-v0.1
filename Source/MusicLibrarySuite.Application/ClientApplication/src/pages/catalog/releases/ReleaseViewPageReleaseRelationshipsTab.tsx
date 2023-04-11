@@ -2,7 +2,11 @@ import { Checkbox, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { ReleaseRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ReleaseViewPageReleaseRelationshipsTabProps {
   id: string;
@@ -28,11 +32,13 @@ const ReleaseViewPageReleaseRelationshipsTab = ({ id }: ReleaseViewPageReleaseRe
       });
   }, [id, includeReverseRelationships, applicationClient]);
 
+  const title = <Title level={5}>View Release Relationships</Title>;
+
   return (
-    <>
-      <Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>
         <Checkbox onChange={(e) => setIncludeReverseRelationships(e.target.checked)}>Include reverse release relationships</Checkbox>
-      </Typography.Paragraph>
+      </Paragraph>
       <EntityRelationshipTable
         entityColumnName="Release"
         dependentEntityColumnName="Dependent Release"
@@ -48,7 +54,7 @@ const ReleaseViewPageReleaseRelationshipsTab = ({ id }: ReleaseViewPageReleaseRe
           dependentEntityHref: `/catalog/releases/view?id=${releaseRelationship.dependentReleaseId}`,
         }))}
       />
-    </>
+    </ActionTab>
   );
 };
 

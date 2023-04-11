@@ -1,6 +1,5 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Product, Release, ReleaseMediaToProductRelationship } from "../../../api/ApplicationClient";
 import EditReleaseMediaRelationshipModal, {
   ReleaseMediaRelationship as ModalReleaseMediaRelationship,
@@ -8,10 +7,13 @@ import EditReleaseMediaRelationshipModal, {
 import ReleaseMediaRelationshipTable, {
   ReleaseMediaRelationship as TableReleaseMediaRelationship,
 } from "../../../components/tables/ReleaseMediaRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import { getReleaseMediaKey } from "../../../helpers/releaseMediaHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ReleaseEditPageReleaseMediaToProductRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ReleaseEditPageReleaseMediaToProductRelationshipsTabProps {
   release: Release;
@@ -26,18 +28,15 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
   releaseMediaToProductRelationshipsLoading,
   setReleaseMediaToProductRelationships,
 }: ReleaseEditPageReleaseMediaToProductRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalTitleFilter, setModalTitleFilter] = useState<string>();
   const [modalProducts, setModalProducts] = useState<Product[]>([]);
   const [modalReleaseMediaRelationship, setModalReleaseMediaRelationship] = useState<ModalReleaseMediaRelationship>();
-  const [tableReleaseMediaRelationships, setTableReleaseMediaRelationships] = useState<TableReleaseMediaRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableReleaseMediaRelationships(
+  const tableReleaseMediaRelationships = useMemo(
+    () =>
       releaseMediaToProductRelationships.map((releaseMediaToProductRelationship) => ({
         name: releaseMediaToProductRelationship.name,
         description: releaseMediaToProductRelationship.description,
@@ -48,9 +47,10 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
         dependentEntityId: releaseMediaToProductRelationship.productId,
         dependentEntityName: releaseMediaToProductRelationship.product?.title ?? "",
         dependentEntityHref: `/catalog/products/view?id=${releaseMediaToProductRelationship.productId}`,
-      }))
-    );
-  }, [releaseMediaToProductRelationships, navigate]);
+      })),
+
+    [releaseMediaToProductRelationships]
+  );
 
   useEffect(() => {
     if (modalReleaseMediaRelationship) {
@@ -61,16 +61,14 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
     }
   }, [modalReleaseMediaRelationship, applicationClient]);
 
-  const fetchModalProducts = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedProducts(20, 0, modalTitleFilter, undefined)
+      .getPagedProducts(DefaultPageSize, 0, modalTitleFilter, undefined)
       .then((pageResult) => setModalProducts(pageResult.items))
       .catch((error) => alert(error));
   }, [modalTitleFilter, applicationClient]);
 
-  useEffect(() => fetchModalProducts(), [fetchModalProducts]);
-
-  const onCreateReleaseMediaToProductRelationshipButtonClick = () => {
+  const onReleaseMediaToProductRelationshipCreate = () => {
     setModalReleaseMediaRelationship(undefined);
     setModalOpen(true);
   };
@@ -85,110 +83,114 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onReleaseMediaToProductRelationshipDelete = (releaseMediaRelationship: TableReleaseMediaRelationship) => {
-    setReleaseMediaToProductRelationships(
-      releaseMediaToProductRelationships.filter(
-        (releaseMediaToProductRelationship) =>
-          releaseMediaToProductRelationship.mediaNumber !== releaseMediaRelationship.releaseMediaNumber ||
-          releaseMediaToProductRelationship.productId !== releaseMediaRelationship.dependentEntityId
-      )
-    );
-  };
-
-  const onReleaseMediaRelationshipsChange = (releaseMediaRelationships: TableReleaseMediaRelationship[]) => {
-    const getReleaseMediaToProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (releaseMediaToProductRelationships) {
-      const releaseMediaToProductRelationshipsMap = new Map<string, ReleaseMediaToProductRelationship>();
-      for (const releaseMediaToProductRelationship of releaseMediaToProductRelationships) {
-        releaseMediaToProductRelationshipsMap.set(
-          getReleaseMediaToProductRelationshipKey(
-            getReleaseMediaKey(releaseMediaToProductRelationship.releaseMedia!),
-            releaseMediaToProductRelationship.productId
-          ),
-          releaseMediaToProductRelationship
-        );
-      }
+  const onReleaseMediaToProductRelationshipDelete = useCallback(
+    (releaseMediaRelationship: TableReleaseMediaRelationship) => {
       setReleaseMediaToProductRelationships(
-        releaseMediaRelationships.map(
-          (releaseMediaRelationship) =>
-            releaseMediaToProductRelationshipsMap.get(
-              getReleaseMediaToProductRelationshipKey(releaseMediaRelationship.releaseMediaId, releaseMediaRelationship.dependentEntityId)
-            ) as ReleaseMediaToProductRelationship
+        releaseMediaToProductRelationships.filter(
+          (releaseMediaToProductRelationship) =>
+            releaseMediaToProductRelationship.mediaNumber !== releaseMediaRelationship.releaseMediaNumber ||
+            releaseMediaToProductRelationship.productId !== releaseMediaRelationship.dependentEntityId
         )
       );
-    }
-  };
+    },
+    [releaseMediaToProductRelationships, setReleaseMediaToProductRelationships]
+  );
 
-  const onModalOk = (releaseMediaRelationship: ModalReleaseMediaRelationship, resetFormFields: () => void) => {
-    const existingReleaseMediaRelationship = releaseMediaToProductRelationships.find(
-      (releaseMediaToProductRelationship) =>
-        releaseMediaToProductRelationship.mediaNumber === releaseMediaRelationship.mediaNumber &&
-        releaseMediaToProductRelationship.productId === releaseMediaRelationship.dependentEntityId
-    );
-    if (existingReleaseMediaRelationship && !modalReleaseMediaRelationship) {
-      const releaseMediaIdentifier = `${existingReleaseMediaRelationship.mediaNumber}`;
-      alert(
-        `Unable to create a non-unique relationship between the '${releaseMediaIdentifier}' release media and the '${existingReleaseMediaRelationship.product?.title}' product.`
-      );
-      return;
-    }
-    applicationClient.getProduct(releaseMediaRelationship.dependentEntityId).then((product) => {
-      const resultReleaseMediaToProductRelationship = new ReleaseMediaToProductRelationship({
-        name: releaseMediaRelationship.name,
-        description: releaseMediaRelationship.description,
-        mediaNumber: releaseMediaRelationship.mediaNumber,
-        releaseId: release.id,
-        productId: product.id,
-        product: product,
-      });
-      if (modalReleaseMediaRelationship) {
+  const onReleaseMediaRelationshipsOrderChange = useCallback(
+    (releaseMediaRelationships: TableReleaseMediaRelationship[]) => {
+      const getReleaseMediaToProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (releaseMediaToProductRelationships) {
+        const releaseMediaToProductRelationshipsMap = new Map<string, ReleaseMediaToProductRelationship>();
+        for (const releaseMediaToProductRelationship of releaseMediaToProductRelationships) {
+          releaseMediaToProductRelationshipsMap.set(
+            getReleaseMediaToProductRelationshipKey(
+              getReleaseMediaKey(releaseMediaToProductRelationship.releaseMedia!),
+              releaseMediaToProductRelationship.productId
+            ),
+            releaseMediaToProductRelationship
+          );
+        }
         setReleaseMediaToProductRelationships(
-          releaseMediaToProductRelationships.map((releaseMediaToProductRelationship) => {
-            if (
-              releaseMediaToProductRelationship.mediaNumber === modalReleaseMediaRelationship.mediaNumber &&
-              releaseMediaToProductRelationship.productId === modalReleaseMediaRelationship.dependentEntityId
-            ) {
-              return resultReleaseMediaToProductRelationship;
-            } else {
-              return releaseMediaToProductRelationship;
-            }
-          })
+          releaseMediaRelationships.map(
+            (releaseMediaRelationship) =>
+              releaseMediaToProductRelationshipsMap.get(
+                getReleaseMediaToProductRelationshipKey(releaseMediaRelationship.releaseMediaId, releaseMediaRelationship.dependentEntityId)
+              ) as ReleaseMediaToProductRelationship
+          )
         );
-      } else {
-        setReleaseMediaToProductRelationships([...releaseMediaToProductRelationships, resultReleaseMediaToProductRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [releaseMediaToProductRelationships, setReleaseMediaToProductRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (releaseMediaRelationship: ModalReleaseMediaRelationship, resetFormFields: () => void) => {
+      const existingReleaseMediaRelationship = releaseMediaToProductRelationships.find(
+        (releaseMediaToProductRelationship) =>
+          releaseMediaToProductRelationship.mediaNumber === releaseMediaRelationship.mediaNumber &&
+          releaseMediaToProductRelationship.productId === releaseMediaRelationship.dependentEntityId
+      );
+      if (existingReleaseMediaRelationship && !modalReleaseMediaRelationship) {
+        const releaseMediaIdentifier = `${existingReleaseMediaRelationship.mediaNumber}`;
+        alert(
+          `Unable to create a non-unique relationship between the '${releaseMediaIdentifier}' release media and the '${existingReleaseMediaRelationship.product?.title}' product.`
+        );
+        return;
+      }
+      applicationClient.getProduct(releaseMediaRelationship.dependentEntityId).then((product) => {
+        const resultReleaseMediaToProductRelationship = new ReleaseMediaToProductRelationship({
+          name: releaseMediaRelationship.name,
+          description: releaseMediaRelationship.description,
+          mediaNumber: releaseMediaRelationship.mediaNumber,
+          releaseId: release.id,
+          productId: product.id,
+          product: product,
+        });
+        if (modalReleaseMediaRelationship) {
+          setReleaseMediaToProductRelationships(
+            releaseMediaToProductRelationships.map((releaseMediaToProductRelationship) => {
+              if (
+                releaseMediaToProductRelationship.mediaNumber === modalReleaseMediaRelationship.mediaNumber &&
+                releaseMediaToProductRelationship.productId === modalReleaseMediaRelationship.dependentEntityId
+              ) {
+                return resultReleaseMediaToProductRelationship;
+              } else {
+                return releaseMediaToProductRelationship;
+              }
+            })
+          );
+        } else {
+          setReleaseMediaToProductRelationships([...releaseMediaToProductRelationships, resultReleaseMediaToProductRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [release, releaseMediaToProductRelationships, setReleaseMediaToProductRelationships, modalReleaseMediaRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (title?: string) => {
-    setModalTitleFilter(title);
+  const onSearchDependentEntities = (titleFilter?: string) => {
+    setModalTitleFilter(titleFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Release-Media-to-Product Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the release-media-to-product relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateReleaseMediaToProductRelationshipButtonClick}>
-          Create a Release-Media-to-Product Relationship
-        </Button>
-      </Space>
-      <ReleaseMediaRelationshipTable
-        editMode
-        dependentEntityColumnName="Product"
-        loading={releaseMediaToProductRelationshipsLoading}
-        releaseMediaRelationships={tableReleaseMediaRelationships}
-        onReleaseMediaRelationshipEdit={onReleaseMediaToProductRelationshipEdit}
-        onReleaseMediaRelationshipDelete={onReleaseMediaToProductRelationshipDelete}
-        onReleaseMediaRelationshipsChange={onReleaseMediaRelationshipsChange}
-      />
+      <Button type="primary" onClick={onReleaseMediaToProductRelationshipCreate}>
+        Create Release-Media-to-Product Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditReleaseMediaRelationshipModal
         title="Create Release-Media-to-Product Relationship"
         dependentEntityName="Product"
@@ -198,8 +200,24 @@ const ReleaseEditPageReleaseMediaToProductRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalProducts, modalReleaseMediaRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the release-media-to-product relationships are displayed by dragging them.</Paragraph>
+      <ReleaseMediaRelationshipTable
+        editMode
+        dependentEntityColumnName="Product"
+        loading={releaseMediaToProductRelationshipsLoading}
+        releaseMediaRelationships={tableReleaseMediaRelationships}
+        onReleaseMediaRelationshipEdit={onReleaseMediaToProductRelationshipEdit}
+        onReleaseMediaRelationshipDelete={onReleaseMediaToProductRelationshipDelete}
+        onReleaseMediaRelationshipsChange={onReleaseMediaRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

@@ -1,12 +1,14 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Artist, ArtistRelationship } from "../../../api/ApplicationClient";
 import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ArtistEditPageArtistRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ArtistEditPageArtistRelationshipsTabProps {
   artist: Artist;
@@ -21,18 +23,15 @@ const ArtistEditPageArtistRelationshipsTab = ({
   artistRelationshipsLoading,
   setArtistRelationships,
 }: ArtistEditPageArtistRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalNameFilter, setModalNameFilter] = useState<string>();
   const [modalDependentArtists, setModalDependentArtists] = useState<Artist[]>([]);
   const [modalEntityRelationship, setModalEntityRelationship] = useState<ModalEntityRelationship>();
-  const [tableEntityRelationships, setTableEntityRelationships] = useState<TableEntityRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableEntityRelationships(
+  const tableEntityRelationships = useMemo(
+    () =>
       artistRelationships.map((artistRelationship) => ({
         name: artistRelationship.name,
         description: artistRelationship.description,
@@ -42,9 +41,9 @@ const ArtistEditPageArtistRelationshipsTab = ({
         dependentEntityId: artistRelationship.dependentArtistId,
         dependentEntityName: artistRelationship.dependentArtist?.name ?? "",
         dependentEntityHref: `/catalog/artists/view?id=${artistRelationship.dependentArtistId}`,
-      }))
-    );
-  }, [artistRelationships, navigate]);
+      })),
+    [artistRelationships]
+  );
 
   useEffect(() => {
     if (modalEntityRelationship) {
@@ -55,16 +54,14 @@ const ArtistEditPageArtistRelationshipsTab = ({
     }
   }, [modalEntityRelationship, applicationClient]);
 
-  const fetchModalDependentArtists = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedArtists(20, 0, modalNameFilter, undefined)
+      .getPagedArtists(DefaultPageSize, 0, modalNameFilter, undefined)
       .then((pageResult) => setModalDependentArtists(pageResult.items))
       .catch((error) => alert(error));
   }, [modalNameFilter, applicationClient]);
 
-  useEffect(() => fetchModalDependentArtists(), [fetchModalDependentArtists]);
-
-  const onCreateArtistRelationshipButtonClick = () => {
+  const onArtistRelationshipCreate = () => {
     setModalEntityRelationship(undefined);
     setModalOpen(true);
   };
@@ -78,89 +75,92 @@ const ArtistEditPageArtistRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onArtistRelationshipDelete = (entityRelationship: TableEntityRelationship) => {
-    setArtistRelationships(artistRelationships.filter((artistRelationship) => artistRelationship.dependentArtistId !== entityRelationship.dependentEntityId));
-  };
+  const onArtistRelationshipDelete = useCallback(
+    (entityRelationship: TableEntityRelationship) => {
+      setArtistRelationships(artistRelationships.filter((artistRelationship) => artistRelationship.dependentArtistId !== entityRelationship.dependentEntityId));
+    },
+    [artistRelationships, setArtistRelationships]
+  );
 
-  const onEntityRelationshipsChange = (entityRelationships: TableEntityRelationship[]) => {
-    const getArtistRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (artistRelationships) {
-      const artistRelationshipsMap = new Map<string, ArtistRelationship>();
-      for (const artistRelationship of artistRelationships) {
-        artistRelationshipsMap.set(getArtistRelationshipKey(artistRelationship.artistId, artistRelationship.dependentArtistId), artistRelationship);
-      }
-      setArtistRelationships(
-        entityRelationships.map(
-          (entityRelationship) =>
-            artistRelationshipsMap.get(getArtistRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as ArtistRelationship
-        )
-      );
-    }
-  };
-
-  const onModalOk = (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
-    const existingEntityRelationship = artistRelationships.find(
-      (artistRelationship) => artistRelationship.dependentArtistId === entityRelationship.dependentEntityId
-    );
-    if (existingEntityRelationship && !modalEntityRelationship) {
-      alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentArtist?.name}' artist.`);
-      return;
-    }
-    applicationClient.getArtist(entityRelationship.dependentEntityId).then((dependentArtist) => {
-      const resultArtistRelationship = new ArtistRelationship({
-        name: entityRelationship.name,
-        description: entityRelationship.description,
-        artistId: artist.id,
-        dependentArtistId: dependentArtist.id,
-        artist: artist,
-        dependentArtist: dependentArtist,
-      });
-      if (modalEntityRelationship) {
+  const onArtistRelationshipsOrderChange = useCallback(
+    (entityRelationships: TableEntityRelationship[]) => {
+      const getArtistRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (artistRelationships) {
+        const artistRelationshipsMap = new Map<string, ArtistRelationship>();
+        for (const artistRelationship of artistRelationships) {
+          artistRelationshipsMap.set(getArtistRelationshipKey(artistRelationship.artistId, artistRelationship.dependentArtistId), artistRelationship);
+        }
         setArtistRelationships(
-          artistRelationships.map((artistRelationship) => {
-            if (artistRelationship.dependentArtistId === modalEntityRelationship.dependentEntityId) {
-              return resultArtistRelationship;
-            } else {
-              return artistRelationship;
-            }
-          })
+          entityRelationships.map(
+            (entityRelationship) =>
+              artistRelationshipsMap.get(getArtistRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as ArtistRelationship
+          )
         );
-      } else {
-        setArtistRelationships([...artistRelationships, resultArtistRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [artistRelationships, setArtistRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
+      const existingEntityRelationship = artistRelationships.find(
+        (artistRelationship) => artistRelationship.dependentArtistId === entityRelationship.dependentEntityId
+      );
+      if (existingEntityRelationship && !modalEntityRelationship) {
+        alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentArtist?.name}' artist.`);
+        return;
+      }
+      applicationClient.getArtist(entityRelationship.dependentEntityId).then((dependentArtist) => {
+        const resultArtistRelationship = new ArtistRelationship({
+          name: entityRelationship.name,
+          description: entityRelationship.description,
+          artistId: artist.id,
+          dependentArtistId: dependentArtist.id,
+          artist: artist,
+          dependentArtist: dependentArtist,
+        });
+        if (modalEntityRelationship) {
+          setArtistRelationships(
+            artistRelationships.map((artistRelationship) => {
+              if (artistRelationship.dependentArtistId === modalEntityRelationship.dependentEntityId) {
+                return resultArtistRelationship;
+              } else {
+                return artistRelationship;
+              }
+            })
+          );
+        } else {
+          setArtistRelationships([...artistRelationships, resultArtistRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [artist, artistRelationships, setArtistRelationships, modalEntityRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (name?: string) => {
-    setModalNameFilter(name);
+  const onSearchDependentEntities = (nameFilter?: string) => {
+    setModalNameFilter(nameFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Artist Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the artist relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateArtistRelationshipButtonClick}>
-          Create an Artist Relationship
-        </Button>
-      </Space>
-      <EntityRelationshipTable
-        editMode
-        entityColumnName="Artist"
-        dependentEntityColumnName="Dependent Artist"
-        loading={artistRelationshipsLoading}
-        entityRelationships={tableEntityRelationships}
-        onEntityRelationshipEdit={onArtistRelationshipEdit}
-        onEntityRelationshipDelete={onArtistRelationshipDelete}
-        onEntityRelationshipsChange={onEntityRelationshipsChange}
-      />
+      <Button type="primary" onClick={onArtistRelationshipCreate}>
+        Create Artist Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditEntityRelationshipModal
         title="Create Artist Relationship"
         dependentEntityName="Dependent Artist"
@@ -170,8 +170,25 @@ const ArtistEditPageArtistRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalDependentArtists, modalEntityRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the artist relationships are displayed by dragging them.</Paragraph>
+      <EntityRelationshipTable
+        editMode
+        entityColumnName="Artist"
+        dependentEntityColumnName="Dependent Artist"
+        loading={artistRelationshipsLoading}
+        entityRelationships={tableEntityRelationships}
+        onEntityRelationshipEdit={onArtistRelationshipEdit}
+        onEntityRelationshipDelete={onArtistRelationshipDelete}
+        onEntityRelationshipsChange={onArtistRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

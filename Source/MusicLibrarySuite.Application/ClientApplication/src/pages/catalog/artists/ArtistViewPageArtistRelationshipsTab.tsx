@@ -2,8 +2,11 @@ import { Checkbox, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { ArtistRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ArtistViewPageArtistRelationshipsTabProps {
   id: string;
@@ -29,11 +32,13 @@ const ArtistViewPageArtistRelationshipsTab = ({ id }: ArtistViewPageArtistRelati
       });
   }, [id, includeReverseRelationships, applicationClient]);
 
+  const title = <Title level={5}>View Artist Relationships</Title>;
+
   return (
-    <>
-      <Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>
         <Checkbox onChange={(e) => setIncludeReverseRelationships(e.target.checked)}>Include reverse artist relationships</Checkbox>
-      </Typography.Paragraph>
+      </Paragraph>
       <EntityRelationshipTable
         entityColumnName="Artist"
         dependentEntityColumnName="Dependent Artist"
@@ -49,7 +54,7 @@ const ArtistViewPageArtistRelationshipsTab = ({ id }: ArtistViewPageArtistRelati
           dependentEntityHref: `/catalog/artists/view?id=${artistRelationship.dependentArtistId}`,
         }))}
       />
-    </>
+    </ActionTab>
   );
 };
 

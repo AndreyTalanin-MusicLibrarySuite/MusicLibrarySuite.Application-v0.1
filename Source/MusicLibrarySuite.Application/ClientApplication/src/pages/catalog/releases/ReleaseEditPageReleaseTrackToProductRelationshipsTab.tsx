@@ -1,6 +1,5 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Product, Release, ReleaseTrackToProductRelationship } from "../../../api/ApplicationClient";
 import EditReleaseTrackRelationshipModal, {
   ReleaseTrackRelationship as ModalReleaseTrackRelationship,
@@ -8,10 +7,13 @@ import EditReleaseTrackRelationshipModal, {
 import ReleaseTrackRelationshipTable, {
   ReleaseTrackRelationship as TableReleaseTrackRelationship,
 } from "../../../components/tables/ReleaseTrackRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import { getReleaseTrackKey } from "../../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ReleaseEditPageReleaseTrackToProductRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ReleaseEditPageReleaseTrackToProductRelationshipsTabProps {
   release: Release;
@@ -26,18 +28,15 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
   releaseTrackToProductRelationshipsLoading,
   setReleaseTrackToProductRelationships,
 }: ReleaseEditPageReleaseTrackToProductRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalTitleFilter, setModalTitleFilter] = useState<string>();
   const [modalProducts, setModalProducts] = useState<Product[]>([]);
   const [modalReleaseTrackRelationship, setModalReleaseTrackRelationship] = useState<ModalReleaseTrackRelationship>();
-  const [tableReleaseTrackRelationships, setTableReleaseTrackRelationships] = useState<TableReleaseTrackRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableReleaseTrackRelationships(
+  const tableReleaseTrackRelationships = useMemo(
+    () =>
       releaseTrackToProductRelationships.map((releaseTrackToProductRelationship) => ({
         name: releaseTrackToProductRelationship.name,
         description: releaseTrackToProductRelationship.description,
@@ -49,9 +48,9 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
         dependentEntityId: releaseTrackToProductRelationship.productId,
         dependentEntityName: releaseTrackToProductRelationship.product?.title ?? "",
         dependentEntityHref: `/catalog/products/view?id=${releaseTrackToProductRelationship.productId}`,
-      }))
-    );
-  }, [releaseTrackToProductRelationships, navigate]);
+      })),
+    [releaseTrackToProductRelationships]
+  );
 
   useEffect(() => {
     if (modalReleaseTrackRelationship) {
@@ -62,16 +61,14 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
     }
   }, [modalReleaseTrackRelationship, applicationClient]);
 
-  const fetchModalProducts = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedProducts(20, 0, modalTitleFilter, undefined)
+      .getPagedProducts(DefaultPageSize, 0, modalTitleFilter, undefined)
       .then((pageResult) => setModalProducts(pageResult.items))
       .catch((error) => alert(error));
   }, [modalTitleFilter, applicationClient]);
 
-  useEffect(() => fetchModalProducts(), [fetchModalProducts]);
-
-  const onCreateReleaseTrackToProductRelationshipButtonClick = () => {
+  const onReleaseTrackToProductRelationshipCreate = () => {
     setModalReleaseTrackRelationship(undefined);
     setModalOpen(true);
   };
@@ -87,114 +84,118 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onReleaseTrackToProductRelationshipDelete = (releaseTrackRelationship: TableReleaseTrackRelationship) => {
-    setReleaseTrackToProductRelationships(
-      releaseTrackToProductRelationships.filter(
-        (releaseTrackToProductRelationship) =>
-          releaseTrackToProductRelationship.trackNumber !== releaseTrackRelationship.releaseTrackNumber ||
-          releaseTrackToProductRelationship.mediaNumber !== releaseTrackRelationship.releaseMediaNumber ||
-          releaseTrackToProductRelationship.productId !== releaseTrackRelationship.dependentEntityId
-      )
-    );
-  };
-
-  const onReleaseTrackRelationshipsChange = (releaseTrackRelationships: TableReleaseTrackRelationship[]) => {
-    const getReleaseTrackToProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (releaseTrackToProductRelationships) {
-      const releaseTrackToProductRelationshipsMap = new Map<string, ReleaseTrackToProductRelationship>();
-      for (const releaseTrackToProductRelationship of releaseTrackToProductRelationships) {
-        releaseTrackToProductRelationshipsMap.set(
-          getReleaseTrackToProductRelationshipKey(
-            getReleaseTrackKey(releaseTrackToProductRelationship.releaseTrack!),
-            releaseTrackToProductRelationship.productId
-          ),
-          releaseTrackToProductRelationship
-        );
-      }
+  const onReleaseTrackToProductRelationshipDelete = useCallback(
+    (releaseTrackRelationship: TableReleaseTrackRelationship) => {
       setReleaseTrackToProductRelationships(
-        releaseTrackRelationships.map(
-          (releaseTrackRelationship) =>
-            releaseTrackToProductRelationshipsMap.get(
-              getReleaseTrackToProductRelationshipKey(releaseTrackRelationship.releaseTrackId, releaseTrackRelationship.dependentEntityId)
-            ) as ReleaseTrackToProductRelationship
+        releaseTrackToProductRelationships.filter(
+          (releaseTrackToProductRelationship) =>
+            releaseTrackToProductRelationship.trackNumber !== releaseTrackRelationship.releaseTrackNumber ||
+            releaseTrackToProductRelationship.mediaNumber !== releaseTrackRelationship.releaseMediaNumber ||
+            releaseTrackToProductRelationship.productId !== releaseTrackRelationship.dependentEntityId
         )
       );
-    }
-  };
+    },
+    [releaseTrackToProductRelationships, setReleaseTrackToProductRelationships]
+  );
 
-  const onModalOk = (releaseTrackRelationship: ModalReleaseTrackRelationship, resetFormFields: () => void) => {
-    const existingReleaseTrackRelationship = releaseTrackToProductRelationships.find(
-      (releaseTrackToProductRelationship) =>
-        releaseTrackToProductRelationship.trackNumber === releaseTrackRelationship.trackNumber &&
-        releaseTrackToProductRelationship.mediaNumber === releaseTrackRelationship.mediaNumber &&
-        releaseTrackToProductRelationship.productId === releaseTrackRelationship.dependentEntityId
-    );
-    if (existingReleaseTrackRelationship && !modalReleaseTrackRelationship) {
-      const releaseTrackIdentifier = `${existingReleaseTrackRelationship.trackNumber}-${existingReleaseTrackRelationship.mediaNumber}`;
-      alert(
-        `Unable to create a non-unique relationship between the '${releaseTrackIdentifier}' release track and the '${existingReleaseTrackRelationship.product?.title}' product.`
-      );
-      return;
-    }
-    applicationClient.getProduct(releaseTrackRelationship.dependentEntityId).then((product) => {
-      const resultReleaseTrackToProductRelationship = new ReleaseTrackToProductRelationship({
-        name: releaseTrackRelationship.name,
-        description: releaseTrackRelationship.description,
-        trackNumber: releaseTrackRelationship.trackNumber,
-        mediaNumber: releaseTrackRelationship.mediaNumber,
-        releaseId: release.id,
-        productId: product.id,
-        product: product,
-      });
-      if (modalReleaseTrackRelationship) {
+  const onReleaseTrackRelationshipsOrderChange = useCallback(
+    (releaseTrackRelationships: TableReleaseTrackRelationship[]) => {
+      const getReleaseTrackToProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (releaseTrackToProductRelationships) {
+        const releaseTrackToProductRelationshipsMap = new Map<string, ReleaseTrackToProductRelationship>();
+        for (const releaseTrackToProductRelationship of releaseTrackToProductRelationships) {
+          releaseTrackToProductRelationshipsMap.set(
+            getReleaseTrackToProductRelationshipKey(
+              getReleaseTrackKey(releaseTrackToProductRelationship.releaseTrack!),
+              releaseTrackToProductRelationship.productId
+            ),
+            releaseTrackToProductRelationship
+          );
+        }
         setReleaseTrackToProductRelationships(
-          releaseTrackToProductRelationships.map((releaseTrackToProductRelationship) => {
-            if (
-              releaseTrackToProductRelationship.trackNumber === modalReleaseTrackRelationship.trackNumber &&
-              releaseTrackToProductRelationship.mediaNumber === modalReleaseTrackRelationship.mediaNumber &&
-              releaseTrackToProductRelationship.productId === modalReleaseTrackRelationship.dependentEntityId
-            ) {
-              return resultReleaseTrackToProductRelationship;
-            } else {
-              return releaseTrackToProductRelationship;
-            }
-          })
+          releaseTrackRelationships.map(
+            (releaseTrackRelationship) =>
+              releaseTrackToProductRelationshipsMap.get(
+                getReleaseTrackToProductRelationshipKey(releaseTrackRelationship.releaseTrackId, releaseTrackRelationship.dependentEntityId)
+              ) as ReleaseTrackToProductRelationship
+          )
         );
-      } else {
-        setReleaseTrackToProductRelationships([...releaseTrackToProductRelationships, resultReleaseTrackToProductRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [releaseTrackToProductRelationships, setReleaseTrackToProductRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (releaseTrackRelationship: ModalReleaseTrackRelationship, resetFormFields: () => void) => {
+      const existingReleaseTrackRelationship = releaseTrackToProductRelationships.find(
+        (releaseTrackToProductRelationship) =>
+          releaseTrackToProductRelationship.trackNumber === releaseTrackRelationship.trackNumber &&
+          releaseTrackToProductRelationship.mediaNumber === releaseTrackRelationship.mediaNumber &&
+          releaseTrackToProductRelationship.productId === releaseTrackRelationship.dependentEntityId
+      );
+      if (existingReleaseTrackRelationship && !modalReleaseTrackRelationship) {
+        const releaseTrackIdentifier = `${existingReleaseTrackRelationship.trackNumber}-${existingReleaseTrackRelationship.mediaNumber}`;
+        alert(
+          `Unable to create a non-unique relationship between the '${releaseTrackIdentifier}' release track and the '${existingReleaseTrackRelationship.product?.title}' product.`
+        );
+        return;
+      }
+      applicationClient.getProduct(releaseTrackRelationship.dependentEntityId).then((product) => {
+        const resultReleaseTrackToProductRelationship = new ReleaseTrackToProductRelationship({
+          name: releaseTrackRelationship.name,
+          description: releaseTrackRelationship.description,
+          trackNumber: releaseTrackRelationship.trackNumber,
+          mediaNumber: releaseTrackRelationship.mediaNumber,
+          releaseId: release.id,
+          productId: product.id,
+          product: product,
+        });
+        if (modalReleaseTrackRelationship) {
+          setReleaseTrackToProductRelationships(
+            releaseTrackToProductRelationships.map((releaseTrackToProductRelationship) => {
+              if (
+                releaseTrackToProductRelationship.trackNumber === modalReleaseTrackRelationship.trackNumber &&
+                releaseTrackToProductRelationship.mediaNumber === modalReleaseTrackRelationship.mediaNumber &&
+                releaseTrackToProductRelationship.productId === modalReleaseTrackRelationship.dependentEntityId
+              ) {
+                return resultReleaseTrackToProductRelationship;
+              } else {
+                return releaseTrackToProductRelationship;
+              }
+            })
+          );
+        } else {
+          setReleaseTrackToProductRelationships([...releaseTrackToProductRelationships, resultReleaseTrackToProductRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [release, releaseTrackToProductRelationships, setReleaseTrackToProductRelationships, modalReleaseTrackRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (title?: string) => {
-    setModalTitleFilter(title);
+  const onSearchDependentEntities = (titleFilter?: string) => {
+    setModalTitleFilter(titleFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Release-Track-to-Product Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the release-track-to-product relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateReleaseTrackToProductRelationshipButtonClick}>
-          Create a Release-Track-to-Product Relationship
-        </Button>
-      </Space>
-      <ReleaseTrackRelationshipTable
-        editMode
-        dependentEntityColumnName="Product"
-        loading={releaseTrackToProductRelationshipsLoading}
-        releaseTrackRelationships={tableReleaseTrackRelationships}
-        onReleaseTrackRelationshipEdit={onReleaseTrackToProductRelationshipEdit}
-        onReleaseTrackRelationshipDelete={onReleaseTrackToProductRelationshipDelete}
-        onReleaseTrackRelationshipsChange={onReleaseTrackRelationshipsChange}
-      />
+      <Button type="primary" onClick={onReleaseTrackToProductRelationshipCreate}>
+        Create Release-Track-to-Product Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditReleaseTrackRelationshipModal
         title="Create Release-Track-to-Product Relationship"
         dependentEntityName="Product"
@@ -204,8 +205,24 @@ const ReleaseEditPageReleaseTrackToProductRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalProducts, modalReleaseTrackRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the release-track-to-product relationships are displayed by dragging them.</Paragraph>
+      <ReleaseTrackRelationshipTable
+        editMode
+        dependentEntityColumnName="Product"
+        loading={releaseTrackToProductRelationshipsLoading}
+        releaseTrackRelationships={tableReleaseTrackRelationships}
+        onReleaseTrackRelationshipEdit={onReleaseTrackToProductRelationshipEdit}
+        onReleaseTrackRelationshipDelete={onReleaseTrackToProductRelationshipDelete}
+        onReleaseTrackRelationshipsChange={onReleaseTrackRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

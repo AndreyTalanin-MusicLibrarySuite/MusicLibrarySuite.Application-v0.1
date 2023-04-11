@@ -1,6 +1,5 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Release, ReleaseTrackToWorkRelationship, Work } from "../../../api/ApplicationClient";
 import EditReleaseTrackRelationshipModal, {
   ReleaseTrackRelationship as ModalReleaseTrackRelationship,
@@ -8,10 +7,13 @@ import EditReleaseTrackRelationshipModal, {
 import ReleaseTrackRelationshipTable, {
   ReleaseTrackRelationship as TableReleaseTrackRelationship,
 } from "../../../components/tables/ReleaseTrackRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import { getReleaseTrackKey } from "../../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ReleaseEditPageReleaseTrackToWorkRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ReleaseEditPageReleaseTrackToWorkRelationshipsTabProps {
   release: Release;
@@ -26,18 +28,15 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
   releaseTrackToWorkRelationshipsLoading,
   setReleaseTrackToWorkRelationships,
 }: ReleaseEditPageReleaseTrackToWorkRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalTitleFilter, setModalTitleFilter] = useState<string>();
   const [modalWorks, setModalWorks] = useState<Work[]>([]);
   const [modalReleaseTrackRelationship, setModalReleaseTrackRelationship] = useState<ModalReleaseTrackRelationship>();
-  const [tableReleaseTrackRelationships, setTableReleaseTrackRelationships] = useState<TableReleaseTrackRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableReleaseTrackRelationships(
+  const tableReleaseTrackRelationships = useMemo(
+    () =>
       releaseTrackToWorkRelationships.map((releaseTrackToWorkRelationship) => ({
         name: releaseTrackToWorkRelationship.name,
         description: releaseTrackToWorkRelationship.description,
@@ -49,9 +48,9 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
         dependentEntityId: releaseTrackToWorkRelationship.workId,
         dependentEntityName: releaseTrackToWorkRelationship.work?.title ?? "",
         dependentEntityHref: `/catalog/works/view?id=${releaseTrackToWorkRelationship.workId}`,
-      }))
-    );
-  }, [releaseTrackToWorkRelationships, navigate]);
+      })),
+    [releaseTrackToWorkRelationships]
+  );
 
   useEffect(() => {
     if (modalReleaseTrackRelationship) {
@@ -62,16 +61,14 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
     }
   }, [modalReleaseTrackRelationship, applicationClient]);
 
-  const fetchModalWorks = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedWorks(20, 0, modalTitleFilter, undefined)
+      .getPagedWorks(DefaultPageSize, 0, modalTitleFilter, undefined)
       .then((pageResult) => setModalWorks(pageResult.items))
       .catch((error) => alert(error));
   }, [modalTitleFilter, applicationClient]);
 
-  useEffect(() => fetchModalWorks(), [fetchModalWorks]);
-
-  const onCreateReleaseTrackToWorkRelationshipButtonClick = () => {
+  const onReleaseTrackToWorkRelationshipCreate = () => {
     setModalReleaseTrackRelationship(undefined);
     setModalOpen(true);
   };
@@ -87,111 +84,115 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onReleaseTrackToWorkRelationshipDelete = (releaseTrackRelationship: TableReleaseTrackRelationship) => {
-    setReleaseTrackToWorkRelationships(
-      releaseTrackToWorkRelationships.filter(
-        (releaseTrackToWorkRelationship) =>
-          releaseTrackToWorkRelationship.trackNumber !== releaseTrackRelationship.releaseTrackNumber ||
-          releaseTrackToWorkRelationship.mediaNumber !== releaseTrackRelationship.releaseMediaNumber ||
-          releaseTrackToWorkRelationship.workId !== releaseTrackRelationship.dependentEntityId
-      )
-    );
-  };
-
-  const onReleaseTrackRelationshipsChange = (releaseTrackRelationships: TableReleaseTrackRelationship[]) => {
-    const getReleaseTrackToWorkRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (releaseTrackToWorkRelationships) {
-      const releaseTrackToWorkRelationshipsMap = new Map<string, ReleaseTrackToWorkRelationship>();
-      for (const releaseTrackToWorkRelationship of releaseTrackToWorkRelationships) {
-        releaseTrackToWorkRelationshipsMap.set(
-          getReleaseTrackToWorkRelationshipKey(getReleaseTrackKey(releaseTrackToWorkRelationship.releaseTrack!), releaseTrackToWorkRelationship.workId),
-          releaseTrackToWorkRelationship
-        );
-      }
+  const onReleaseTrackToWorkRelationshipDelete = useCallback(
+    (releaseTrackRelationship: TableReleaseTrackRelationship) => {
       setReleaseTrackToWorkRelationships(
-        releaseTrackRelationships.map(
-          (releaseTrackRelationship) =>
-            releaseTrackToWorkRelationshipsMap.get(
-              getReleaseTrackToWorkRelationshipKey(releaseTrackRelationship.releaseTrackId, releaseTrackRelationship.dependentEntityId)
-            ) as ReleaseTrackToWorkRelationship
+        releaseTrackToWorkRelationships.filter(
+          (releaseTrackToWorkRelationship) =>
+            releaseTrackToWorkRelationship.trackNumber !== releaseTrackRelationship.releaseTrackNumber ||
+            releaseTrackToWorkRelationship.mediaNumber !== releaseTrackRelationship.releaseMediaNumber ||
+            releaseTrackToWorkRelationship.workId !== releaseTrackRelationship.dependentEntityId
         )
       );
-    }
-  };
+    },
+    [releaseTrackToWorkRelationships, setReleaseTrackToWorkRelationships]
+  );
 
-  const onModalOk = (releaseTrackRelationship: ModalReleaseTrackRelationship, resetFormFields: () => void) => {
-    const existingReleaseTrackRelationship = releaseTrackToWorkRelationships.find(
-      (releaseTrackToWorkRelationship) =>
-        releaseTrackToWorkRelationship.trackNumber === releaseTrackRelationship.trackNumber &&
-        releaseTrackToWorkRelationship.mediaNumber === releaseTrackRelationship.mediaNumber &&
-        releaseTrackToWorkRelationship.workId === releaseTrackRelationship.dependentEntityId
-    );
-    if (existingReleaseTrackRelationship && !modalReleaseTrackRelationship) {
-      const releaseTrackIdentifier = `${existingReleaseTrackRelationship.trackNumber}-${existingReleaseTrackRelationship.mediaNumber}`;
-      alert(
-        `Unable to create a non-unique relationship between the '${releaseTrackIdentifier}' release track and the '${existingReleaseTrackRelationship.work?.title}' work.`
-      );
-      return;
-    }
-    applicationClient.getWork(releaseTrackRelationship.dependentEntityId).then((work) => {
-      const resultReleaseTrackToWorkRelationship = new ReleaseTrackToWorkRelationship({
-        name: releaseTrackRelationship.name,
-        description: releaseTrackRelationship.description,
-        trackNumber: releaseTrackRelationship.trackNumber,
-        mediaNumber: releaseTrackRelationship.mediaNumber,
-        releaseId: release.id,
-        workId: work.id,
-        work: work,
-      });
-      if (modalReleaseTrackRelationship) {
+  const onReleaseTrackRelationshipsOrderChange = useCallback(
+    (releaseTrackRelationships: TableReleaseTrackRelationship[]) => {
+      const getReleaseTrackToWorkRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (releaseTrackToWorkRelationships) {
+        const releaseTrackToWorkRelationshipsMap = new Map<string, ReleaseTrackToWorkRelationship>();
+        for (const releaseTrackToWorkRelationship of releaseTrackToWorkRelationships) {
+          releaseTrackToWorkRelationshipsMap.set(
+            getReleaseTrackToWorkRelationshipKey(getReleaseTrackKey(releaseTrackToWorkRelationship.releaseTrack!), releaseTrackToWorkRelationship.workId),
+            releaseTrackToWorkRelationship
+          );
+        }
         setReleaseTrackToWorkRelationships(
-          releaseTrackToWorkRelationships.map((releaseTrackToWorkRelationship) => {
-            if (
-              releaseTrackToWorkRelationship.trackNumber === modalReleaseTrackRelationship.trackNumber &&
-              releaseTrackToWorkRelationship.mediaNumber === modalReleaseTrackRelationship.mediaNumber &&
-              releaseTrackToWorkRelationship.workId === modalReleaseTrackRelationship.dependentEntityId
-            ) {
-              return resultReleaseTrackToWorkRelationship;
-            } else {
-              return releaseTrackToWorkRelationship;
-            }
-          })
+          releaseTrackRelationships.map(
+            (releaseTrackRelationship) =>
+              releaseTrackToWorkRelationshipsMap.get(
+                getReleaseTrackToWorkRelationshipKey(releaseTrackRelationship.releaseTrackId, releaseTrackRelationship.dependentEntityId)
+              ) as ReleaseTrackToWorkRelationship
+          )
         );
-      } else {
-        setReleaseTrackToWorkRelationships([...releaseTrackToWorkRelationships, resultReleaseTrackToWorkRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [releaseTrackToWorkRelationships, setReleaseTrackToWorkRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (releaseTrackRelationship: ModalReleaseTrackRelationship, resetFormFields: () => void) => {
+      const existingReleaseTrackRelationship = releaseTrackToWorkRelationships.find(
+        (releaseTrackToWorkRelationship) =>
+          releaseTrackToWorkRelationship.trackNumber === releaseTrackRelationship.trackNumber &&
+          releaseTrackToWorkRelationship.mediaNumber === releaseTrackRelationship.mediaNumber &&
+          releaseTrackToWorkRelationship.workId === releaseTrackRelationship.dependentEntityId
+      );
+      if (existingReleaseTrackRelationship && !modalReleaseTrackRelationship) {
+        const releaseTrackIdentifier = `${existingReleaseTrackRelationship.trackNumber}-${existingReleaseTrackRelationship.mediaNumber}`;
+        alert(
+          `Unable to create a non-unique relationship between the '${releaseTrackIdentifier}' release track and the '${existingReleaseTrackRelationship.work?.title}' work.`
+        );
+        return;
+      }
+      applicationClient.getWork(releaseTrackRelationship.dependentEntityId).then((work) => {
+        const resultReleaseTrackToWorkRelationship = new ReleaseTrackToWorkRelationship({
+          name: releaseTrackRelationship.name,
+          description: releaseTrackRelationship.description,
+          trackNumber: releaseTrackRelationship.trackNumber,
+          mediaNumber: releaseTrackRelationship.mediaNumber,
+          releaseId: release.id,
+          workId: work.id,
+          work: work,
+        });
+        if (modalReleaseTrackRelationship) {
+          setReleaseTrackToWorkRelationships(
+            releaseTrackToWorkRelationships.map((releaseTrackToWorkRelationship) => {
+              if (
+                releaseTrackToWorkRelationship.trackNumber === modalReleaseTrackRelationship.trackNumber &&
+                releaseTrackToWorkRelationship.mediaNumber === modalReleaseTrackRelationship.mediaNumber &&
+                releaseTrackToWorkRelationship.workId === modalReleaseTrackRelationship.dependentEntityId
+              ) {
+                return resultReleaseTrackToWorkRelationship;
+              } else {
+                return releaseTrackToWorkRelationship;
+              }
+            })
+          );
+        } else {
+          setReleaseTrackToWorkRelationships([...releaseTrackToWorkRelationships, resultReleaseTrackToWorkRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [release, releaseTrackToWorkRelationships, setReleaseTrackToWorkRelationships, modalReleaseTrackRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (title?: string) => {
-    setModalTitleFilter(title);
+  const onSearchDependentEntities = (titleFilter?: string) => {
+    setModalTitleFilter(titleFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Release-Track-to-Work Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the release-track-to-work relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateReleaseTrackToWorkRelationshipButtonClick}>
-          Create a Release-Track-to-Work Relationship
-        </Button>
-      </Space>
-      <ReleaseTrackRelationshipTable
-        editMode
-        dependentEntityColumnName="Work"
-        loading={releaseTrackToWorkRelationshipsLoading}
-        releaseTrackRelationships={tableReleaseTrackRelationships}
-        onReleaseTrackRelationshipEdit={onReleaseTrackToWorkRelationshipEdit}
-        onReleaseTrackRelationshipDelete={onReleaseTrackToWorkRelationshipDelete}
-        onReleaseTrackRelationshipsChange={onReleaseTrackRelationshipsChange}
-      />
+      <Button type="primary" onClick={onReleaseTrackToWorkRelationshipCreate}>
+        Create Release-Track-to-Work Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditReleaseTrackRelationshipModal
         title="Create Release-Track-to-Work Relationship"
         dependentEntityName="Work"
@@ -201,8 +202,24 @@ const ReleaseEditPageReleaseTrackToWorkRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalWorks, modalReleaseTrackRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the release-track-to-work relationships are displayed by dragging them.</Paragraph>
+      <ReleaseTrackRelationshipTable
+        editMode
+        dependentEntityColumnName="Work"
+        loading={releaseTrackToWorkRelationshipsLoading}
+        releaseTrackRelationships={tableReleaseTrackRelationships}
+        onReleaseTrackRelationshipEdit={onReleaseTrackToWorkRelationshipEdit}
+        onReleaseTrackRelationshipDelete={onReleaseTrackToWorkRelationshipDelete}
+        onReleaseTrackRelationshipsChange={onReleaseTrackRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

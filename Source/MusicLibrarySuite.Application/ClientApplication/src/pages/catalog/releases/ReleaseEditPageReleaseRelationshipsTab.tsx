@@ -1,12 +1,14 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Release, ReleaseRelationship } from "../../../api/ApplicationClient";
 import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ReleaseEditPageReleaseRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ReleaseEditPageReleaseRelationshipsTabProps {
   release: Release;
@@ -21,18 +23,15 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
   releaseRelationshipsLoading,
   setReleaseRelationships,
 }: ReleaseEditPageReleaseRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalTitleFilter, setModalTitleFilter] = useState<string>();
   const [modalDependentReleases, setModalDependentReleases] = useState<Release[]>([]);
   const [modalEntityRelationship, setModalEntityRelationship] = useState<ModalEntityRelationship>();
-  const [tableEntityRelationships, setTableEntityRelationships] = useState<TableEntityRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableEntityRelationships(
+  const tableEntityRelationships = useMemo(
+    () =>
       releaseRelationships.map((releaseRelationship) => ({
         name: releaseRelationship.name,
         description: releaseRelationship.description,
@@ -42,9 +41,9 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
         dependentEntityId: releaseRelationship.dependentReleaseId,
         dependentEntityName: releaseRelationship.dependentRelease?.title ?? "",
         dependentEntityHref: `/catalog/releases/view?id=${releaseRelationship.dependentReleaseId}`,
-      }))
-    );
-  }, [releaseRelationships, navigate]);
+      })),
+    [releaseRelationships]
+  );
 
   useEffect(() => {
     if (modalEntityRelationship) {
@@ -55,16 +54,14 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
     }
   }, [modalEntityRelationship, applicationClient]);
 
-  const fetchModalDependentReleases = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedReleases(20, 0, modalTitleFilter, undefined)
+      .getPagedReleases(DefaultPageSize, 0, modalTitleFilter, undefined)
       .then((pageResult) => setModalDependentReleases(pageResult.items))
       .catch((error) => alert(error));
   }, [modalTitleFilter, applicationClient]);
 
-  useEffect(() => fetchModalDependentReleases(), [fetchModalDependentReleases]);
-
-  const onCreateReleaseRelationshipButtonClick = () => {
+  const onReleaseRelationshipCreate = () => {
     setModalEntityRelationship(undefined);
     setModalOpen(true);
   };
@@ -78,91 +75,94 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onReleaseRelationshipDelete = (entityRelationship: TableEntityRelationship) => {
-    setReleaseRelationships(
-      releaseRelationships.filter((releaseRelationship) => releaseRelationship.dependentReleaseId !== entityRelationship.dependentEntityId)
-    );
-  };
-
-  const onEntityRelationshipsChange = (entityRelationships: TableEntityRelationship[]) => {
-    const getReleaseRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (releaseRelationships) {
-      const releaseRelationshipsMap = new Map<string, ReleaseRelationship>();
-      for (const releaseRelationship of releaseRelationships) {
-        releaseRelationshipsMap.set(getReleaseRelationshipKey(releaseRelationship.releaseId, releaseRelationship.dependentReleaseId), releaseRelationship);
-      }
+  const onReleaseRelationshipDelete = useCallback(
+    (entityRelationship: TableEntityRelationship) => {
       setReleaseRelationships(
-        entityRelationships.map(
-          (entityRelationship) =>
-            releaseRelationshipsMap.get(getReleaseRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as ReleaseRelationship
-        )
+        releaseRelationships.filter((releaseRelationship) => releaseRelationship.dependentReleaseId !== entityRelationship.dependentEntityId)
       );
-    }
-  };
+    },
+    [releaseRelationships, setReleaseRelationships]
+  );
 
-  const onModalOk = (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
-    const existingEntityRelationship = releaseRelationships.find(
-      (releaseRelationship) => releaseRelationship.dependentReleaseId === entityRelationship.dependentEntityId
-    );
-    if (existingEntityRelationship && !modalEntityRelationship) {
-      alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentRelease?.title}' release.`);
-      return;
-    }
-    applicationClient.getRelease(entityRelationship.dependentEntityId).then((dependentRelease) => {
-      const resultReleaseRelationship = new ReleaseRelationship({
-        name: entityRelationship.name,
-        description: entityRelationship.description,
-        releaseId: release.id,
-        dependentReleaseId: dependentRelease.id,
-        release: release,
-        dependentRelease: dependentRelease,
-      });
-      if (modalEntityRelationship) {
+  const onEntityRelationshipsOrderChange = useCallback(
+    (entityRelationships: TableEntityRelationship[]) => {
+      const getReleaseRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (releaseRelationships) {
+        const releaseRelationshipsMap = new Map<string, ReleaseRelationship>();
+        for (const releaseRelationship of releaseRelationships) {
+          releaseRelationshipsMap.set(getReleaseRelationshipKey(releaseRelationship.releaseId, releaseRelationship.dependentReleaseId), releaseRelationship);
+        }
         setReleaseRelationships(
-          releaseRelationships.map((releaseRelationship) => {
-            if (releaseRelationship.dependentReleaseId === modalEntityRelationship.dependentEntityId) {
-              return resultReleaseRelationship;
-            } else {
-              return releaseRelationship;
-            }
-          })
+          entityRelationships.map(
+            (entityRelationship) =>
+              releaseRelationshipsMap.get(getReleaseRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as ReleaseRelationship
+          )
         );
-      } else {
-        setReleaseRelationships([...releaseRelationships, resultReleaseRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [releaseRelationships, setReleaseRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
+      const existingEntityRelationship = releaseRelationships.find(
+        (releaseRelationship) => releaseRelationship.dependentReleaseId === entityRelationship.dependentEntityId
+      );
+      if (existingEntityRelationship && !modalEntityRelationship) {
+        alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentRelease?.title}' release.`);
+        return;
+      }
+      applicationClient.getRelease(entityRelationship.dependentEntityId).then((dependentRelease) => {
+        const resultReleaseRelationship = new ReleaseRelationship({
+          name: entityRelationship.name,
+          description: entityRelationship.description,
+          releaseId: release.id,
+          dependentReleaseId: dependentRelease.id,
+          release: release,
+          dependentRelease: dependentRelease,
+        });
+        if (modalEntityRelationship) {
+          setReleaseRelationships(
+            releaseRelationships.map((releaseRelationship) => {
+              if (releaseRelationship.dependentReleaseId === modalEntityRelationship.dependentEntityId) {
+                return resultReleaseRelationship;
+              } else {
+                return releaseRelationship;
+              }
+            })
+          );
+        } else {
+          setReleaseRelationships([...releaseRelationships, resultReleaseRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [release, releaseRelationships, setReleaseRelationships, modalEntityRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (title?: string) => {
-    setModalTitleFilter(title);
+  const onSearchDependentEntities = (titleFilter?: string) => {
+    setModalTitleFilter(titleFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Release Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the release relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateReleaseRelationshipButtonClick}>
-          Create a Release Relationship
-        </Button>
-      </Space>
-      <EntityRelationshipTable
-        editMode
-        entityColumnName="Release"
-        dependentEntityColumnName="Dependent Release"
-        loading={releaseRelationshipsLoading}
-        entityRelationships={tableEntityRelationships}
-        onEntityRelationshipEdit={onReleaseRelationshipEdit}
-        onEntityRelationshipDelete={onReleaseRelationshipDelete}
-        onEntityRelationshipsChange={onEntityRelationshipsChange}
-      />
+      <Button type="primary" onClick={onReleaseRelationshipCreate}>
+        Create Release Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditEntityRelationshipModal
         title="Create Release Relationship"
         dependentEntityName="Dependent Release"
@@ -172,8 +172,25 @@ const ReleaseEditPageReleaseRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalDependentReleases, modalEntityRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the release relationships are displayed by dragging them.</Paragraph>
+      <EntityRelationshipTable
+        editMode
+        entityColumnName="Release"
+        dependentEntityColumnName="Dependent Release"
+        loading={releaseRelationshipsLoading}
+        entityRelationships={tableEntityRelationships}
+        onEntityRelationshipEdit={onReleaseRelationshipEdit}
+        onEntityRelationshipDelete={onReleaseRelationshipDelete}
+        onEntityRelationshipsChange={onEntityRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 
