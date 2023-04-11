@@ -2,8 +2,11 @@ import { Checkbox, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { WorkRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface WorkViewPageWorkRelationshipsTabProps {
   id: string;
@@ -29,11 +32,13 @@ const WorkViewPageWorkRelationshipsTab = ({ id }: WorkViewPageWorkRelationshipsT
       });
   }, [id, includeReverseRelationships, applicationClient]);
 
+  const title = <Title level={5}>View Work Relationships</Title>;
+
   return (
-    <>
-      <Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>
         <Checkbox onChange={(e) => setIncludeReverseRelationships(e.target.checked)}>Include reverse work relationships</Checkbox>
-      </Typography.Paragraph>
+      </Paragraph>
       <EntityRelationshipTable
         entityColumnName="Work"
         dependentEntityColumnName="Dependent Work"
@@ -49,7 +54,7 @@ const WorkViewPageWorkRelationshipsTab = ({ id }: WorkViewPageWorkRelationshipsT
           dependentEntityHref: `/catalog/works/view?id=${workRelationship.dependentWorkId}`,
         }))}
       />
-    </>
+    </ActionTab>
   );
 };
 

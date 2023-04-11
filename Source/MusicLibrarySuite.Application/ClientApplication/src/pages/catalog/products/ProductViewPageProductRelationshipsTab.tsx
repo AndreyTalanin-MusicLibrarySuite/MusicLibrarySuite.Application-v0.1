@@ -2,8 +2,11 @@ import { Checkbox, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { ProductRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ProductViewPageProductRelationshipsTabProps {
   id: string;
@@ -29,11 +32,13 @@ const ProductViewPageProductRelationshipsTab = ({ id }: ProductViewPageProductRe
       });
   }, [id, includeReverseRelationships, applicationClient]);
 
+  const title = <Title level={5}>View Product Relationships</Title>;
+
   return (
-    <>
-      <Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>
         <Checkbox onChange={(e) => setIncludeReverseRelationships(e.target.checked)}>Include reverse product relationships</Checkbox>
-      </Typography.Paragraph>
+      </Paragraph>
       <EntityRelationshipTable
         entityColumnName="Product"
         dependentEntityColumnName="Dependent Product"
@@ -49,7 +54,7 @@ const ProductViewPageProductRelationshipsTab = ({ id }: ProductViewPageProductRe
           dependentEntityHref: `/catalog/products/view?id=${productRelationship.dependentProductId}`,
         }))}
       />
-    </>
+    </ActionTab>
   );
 };
 

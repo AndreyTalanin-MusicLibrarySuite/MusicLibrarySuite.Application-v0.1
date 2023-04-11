@@ -1,9 +1,11 @@
 import { Typography } from "antd";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useCallback, useMemo } from "react";
 import { ReleaseToReleaseGroupRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTabProps {
   releaseToReleaseGroupRelationships: ReleaseToReleaseGroupRelationship[];
@@ -16,12 +18,8 @@ const ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab = ({
   releaseToReleaseGroupRelationshipsLoading,
   setReleaseToReleaseGroupRelationships,
 }: ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
-  const [tableEntityRelationships, setTableEntityRelationships] = useState<TableEntityRelationship[]>([]);
-
-  useEffect(() => {
-    setTableEntityRelationships(
+  const tableEntityRelationships = useMemo(
+    () =>
       releaseToReleaseGroupRelationships.map((releaseToReleaseGroupRelationship) => ({
         name: releaseToReleaseGroupRelationship.name,
         description: releaseToReleaseGroupRelationship.description,
@@ -31,45 +29,50 @@ const ReleaseGroupEditPageReleaseToReleaseGroupRelationshipsTab = ({
         dependentEntityId: releaseToReleaseGroupRelationship.releaseGroupId,
         dependentEntityName: releaseToReleaseGroupRelationship.releaseGroup?.title ?? "",
         dependentEntityHref: `/catalog/releaseGroups/view?id=${releaseToReleaseGroupRelationship.releaseGroupId}`,
-      }))
-    );
-  }, [releaseToReleaseGroupRelationships, navigate]);
+      })),
+    [releaseToReleaseGroupRelationships]
+  );
 
-  const onEntityRelationshipsChange = (entityRelationships: TableEntityRelationship[]) => {
-    const getReleaseToReleaseGroupRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (releaseToReleaseGroupRelationships) {
-      const releaseToReleaseGroupRelationshipsMap = new Map<string, ReleaseToReleaseGroupRelationship>();
-      for (const releaseToReleaseGroupRelationship of releaseToReleaseGroupRelationships) {
-        releaseToReleaseGroupRelationshipsMap.set(
-          getReleaseToReleaseGroupRelationshipKey(releaseToReleaseGroupRelationship.releaseId, releaseToReleaseGroupRelationship.releaseGroupId),
-          releaseToReleaseGroupRelationship
+  const onEntityRelationshipsOrderChange = useCallback(
+    (entityRelationships: TableEntityRelationship[]) => {
+      const getReleaseToReleaseGroupRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (releaseToReleaseGroupRelationships) {
+        const releaseToReleaseGroupRelationshipsMap = new Map<string, ReleaseToReleaseGroupRelationship>();
+        for (const releaseToReleaseGroupRelationship of releaseToReleaseGroupRelationships) {
+          releaseToReleaseGroupRelationshipsMap.set(
+            getReleaseToReleaseGroupRelationshipKey(releaseToReleaseGroupRelationship.releaseId, releaseToReleaseGroupRelationship.releaseGroupId),
+            releaseToReleaseGroupRelationship
+          );
+        }
+        setReleaseToReleaseGroupRelationships(
+          entityRelationships.map(
+            (entityRelationship) =>
+              releaseToReleaseGroupRelationshipsMap.get(
+                getReleaseToReleaseGroupRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)
+              ) as ReleaseToReleaseGroupRelationship
+          )
         );
       }
-      setReleaseToReleaseGroupRelationships(
-        entityRelationships.map(
-          (entityRelationship) =>
-            releaseToReleaseGroupRelationshipsMap.get(
-              getReleaseToReleaseGroupRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)
-            ) as ReleaseToReleaseGroupRelationship
-        )
-      );
-    }
-  };
+    },
+    [releaseToReleaseGroupRelationships, setReleaseToReleaseGroupRelationships]
+  );
+
+  const title = <Title level={5}>Reorder Release-to-Release-Group Relationships</Title>;
 
   return (
-    <>
-      <Typography.Paragraph>You can adjust order in which the release-to-release-group relationships are displayed by dragging them.</Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>You can adjust order in which the release-to-release-group relationships are displayed by dragging them.</Paragraph>
       <EntityRelationshipTable
         reorderMode
         entityColumnName="Release"
         dependentEntityColumnName="Release Group"
         loading={releaseToReleaseGroupRelationshipsLoading}
         entityRelationships={tableEntityRelationships}
-        onEntityRelationshipsChange={onEntityRelationshipsChange}
+        onEntityRelationshipsChange={onEntityRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

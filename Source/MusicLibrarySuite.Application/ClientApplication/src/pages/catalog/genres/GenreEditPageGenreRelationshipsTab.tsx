@@ -1,12 +1,14 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Genre, GenreRelationship } from "../../../api/ApplicationClient";
 import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./GenreEditPageGenreRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface GenreEditPageGenreRelationshipsTabProps {
   genre: Genre;
@@ -21,18 +23,15 @@ const GenreEditPageGenreRelationshipsTab = ({
   genreRelationshipsLoading,
   setGenreRelationships,
 }: GenreEditPageGenreRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalNameFilter, setModalNameFilter] = useState<string>();
   const [modalDependentGenres, setModalDependentGenres] = useState<Genre[]>([]);
   const [modalEntityRelationship, setModalEntityRelationship] = useState<ModalEntityRelationship>();
-  const [tableEntityRelationships, setTableEntityRelationships] = useState<TableEntityRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableEntityRelationships(
+  const tableEntityRelationships = useMemo(
+    () =>
       genreRelationships.map((genreRelationship) => ({
         name: genreRelationship.name,
         description: genreRelationship.description,
@@ -42,9 +41,9 @@ const GenreEditPageGenreRelationshipsTab = ({
         dependentEntityId: genreRelationship.dependentGenreId,
         dependentEntityName: genreRelationship.dependentGenre?.name ?? "",
         dependentEntityHref: `/catalog/genres/view?id=${genreRelationship.dependentGenreId}`,
-      }))
-    );
-  }, [genreRelationships, navigate]);
+      })),
+    [genreRelationships]
+  );
 
   useEffect(() => {
     if (modalEntityRelationship) {
@@ -55,16 +54,14 @@ const GenreEditPageGenreRelationshipsTab = ({
     }
   }, [modalEntityRelationship, applicationClient]);
 
-  const fetchModalDependentGenres = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedGenres(20, 0, modalNameFilter, undefined)
+      .getPagedGenres(DefaultPageSize, 0, modalNameFilter, undefined)
       .then((pageResult) => setModalDependentGenres(pageResult.items))
       .catch((error) => alert(error));
   }, [modalNameFilter, applicationClient]);
 
-  useEffect(() => fetchModalDependentGenres(), [fetchModalDependentGenres]);
-
-  const onCreateGenreRelationshipButtonClick = () => {
+  const onGenreRelationshipCreate = () => {
     setModalEntityRelationship(undefined);
     setModalOpen(true);
   };
@@ -78,89 +75,92 @@ const GenreEditPageGenreRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onGenreRelationshipDelete = (entityRelationship: TableEntityRelationship) => {
-    setGenreRelationships(genreRelationships.filter((genreRelationship) => genreRelationship.dependentGenreId !== entityRelationship.dependentEntityId));
-  };
+  const onGenreRelationshipDelete = useCallback(
+    (entityRelationship: TableEntityRelationship) => {
+      setGenreRelationships(genreRelationships.filter((genreRelationship) => genreRelationship.dependentGenreId !== entityRelationship.dependentEntityId));
+    },
+    [genreRelationships, setGenreRelationships]
+  );
 
-  const onEntityRelationshipsChange = (entityRelationships: TableEntityRelationship[]) => {
-    const getGenreRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (genreRelationships) {
-      const genreRelationshipsMap = new Map<string, GenreRelationship>();
-      for (const genreRelationship of genreRelationships) {
-        genreRelationshipsMap.set(getGenreRelationshipKey(genreRelationship.genreId, genreRelationship.dependentGenreId), genreRelationship);
-      }
-      setGenreRelationships(
-        entityRelationships.map(
-          (entityRelationship) =>
-            genreRelationshipsMap.get(getGenreRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as GenreRelationship
-        )
-      );
-    }
-  };
-
-  const onModalOk = (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
-    const existingEntityRelationship = genreRelationships.find(
-      (genreRelationship) => genreRelationship.dependentGenreId === entityRelationship.dependentEntityId
-    );
-    if (existingEntityRelationship && !modalEntityRelationship) {
-      alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentGenre?.name}' genre.`);
-      return;
-    }
-    applicationClient.getGenre(entityRelationship.dependentEntityId).then((dependentGenre) => {
-      const resultGenreRelationship = new GenreRelationship({
-        name: entityRelationship.name,
-        description: entityRelationship.description,
-        genreId: genre.id,
-        dependentGenreId: dependentGenre.id,
-        genre: genre,
-        dependentGenre: dependentGenre,
-      });
-      if (modalEntityRelationship) {
+  const onEntityRelationshipsOrderChange = useCallback(
+    (entityRelationships: TableEntityRelationship[]) => {
+      const getGenreRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (genreRelationships) {
+        const genreRelationshipsMap = new Map<string, GenreRelationship>();
+        for (const genreRelationship of genreRelationships) {
+          genreRelationshipsMap.set(getGenreRelationshipKey(genreRelationship.genreId, genreRelationship.dependentGenreId), genreRelationship);
+        }
         setGenreRelationships(
-          genreRelationships.map((genreRelationship) => {
-            if (genreRelationship.dependentGenreId === modalEntityRelationship.dependentEntityId) {
-              return resultGenreRelationship;
-            } else {
-              return genreRelationship;
-            }
-          })
+          entityRelationships.map(
+            (entityRelationship) =>
+              genreRelationshipsMap.get(getGenreRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as GenreRelationship
+          )
         );
-      } else {
-        setGenreRelationships([...genreRelationships, resultGenreRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [genreRelationships, setGenreRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
+      const existingEntityRelationship = genreRelationships.find(
+        (genreRelationship) => genreRelationship.dependentGenreId === entityRelationship.dependentEntityId
+      );
+      if (existingEntityRelationship && !modalEntityRelationship) {
+        alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentGenre?.name}' genre.`);
+        return;
+      }
+      applicationClient.getGenre(entityRelationship.dependentEntityId).then((dependentGenre) => {
+        const resultGenreRelationship = new GenreRelationship({
+          name: entityRelationship.name,
+          description: entityRelationship.description,
+          genreId: genre.id,
+          dependentGenreId: dependentGenre.id,
+          genre: genre,
+          dependentGenre: dependentGenre,
+        });
+        if (modalEntityRelationship) {
+          setGenreRelationships(
+            genreRelationships.map((genreRelationship) => {
+              if (genreRelationship.dependentGenreId === modalEntityRelationship.dependentEntityId) {
+                return resultGenreRelationship;
+              } else {
+                return genreRelationship;
+              }
+            })
+          );
+        } else {
+          setGenreRelationships([...genreRelationships, resultGenreRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [genre, genreRelationships, setGenreRelationships, modalEntityRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (name?: string) => {
-    setModalNameFilter(name);
+  const onSearchDependentEntities = (nameFilter?: string) => {
+    setModalNameFilter(nameFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Genre Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the genre relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateGenreRelationshipButtonClick}>
-          Create a Genre Relationship
-        </Button>
-      </Space>
-      <EntityRelationshipTable
-        editMode
-        entityColumnName="Genre"
-        dependentEntityColumnName="Dependent Genre"
-        loading={genreRelationshipsLoading}
-        entityRelationships={tableEntityRelationships}
-        onEntityRelationshipEdit={onGenreRelationshipEdit}
-        onEntityRelationshipDelete={onGenreRelationshipDelete}
-        onEntityRelationshipsChange={onEntityRelationshipsChange}
-      />
+      <Button type="primary" onClick={onGenreRelationshipCreate}>
+        Create Genre Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditEntityRelationshipModal
         title="Create Genre Relationship"
         dependentEntityName="Dependent Genre"
@@ -170,8 +170,25 @@ const GenreEditPageGenreRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalDependentGenres, modalEntityRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the genre relationships are displayed by dragging them.</Paragraph>
+      <EntityRelationshipTable
+        editMode
+        entityColumnName="Genre"
+        dependentEntityColumnName="Dependent Genre"
+        loading={genreRelationshipsLoading}
+        entityRelationships={tableEntityRelationships}
+        onEntityRelationshipEdit={onGenreRelationshipEdit}
+        onEntityRelationshipDelete={onGenreRelationshipDelete}
+        onEntityRelationshipsChange={onEntityRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

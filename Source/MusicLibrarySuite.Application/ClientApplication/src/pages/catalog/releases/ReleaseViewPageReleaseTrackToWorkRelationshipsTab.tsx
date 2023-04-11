@@ -1,8 +1,13 @@
+import { Typography } from "antd";
 import { useEffect, useState } from "react";
 import { ReleaseTrackToWorkRelationship } from "../../../api/ApplicationClient";
 import ReleaseTrackRelationshipTable from "../../../components/tables/ReleaseTrackRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import { getReleaseTrackKey } from "../../../helpers/releaseTrackHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import "antd/dist/antd.min.css";
+
+const { Title } = Typography;
 
 export interface ReleaseViewPageReleaseTrackToWorkRelationshipsTabProps {
   id: string;
@@ -27,23 +32,27 @@ const ReleaseViewPageReleaseTrackToWorkRelationshipsTab = ({ id }: ReleaseViewPa
       });
   }, [id, applicationClient]);
 
+  const title = <Title level={5}>View Release-Track-to-Work Relationships</Title>;
+
   return (
-    <ReleaseTrackRelationshipTable
-      dependentEntityColumnName="Work"
-      loading={releaseTrackToWorkRelationshipsLoading}
-      releaseTrackRelationships={releaseTrackToWorkRelationships.map((releaseTrackToWorkRelationship) => ({
-        name: releaseTrackToWorkRelationship.name,
-        description: releaseTrackToWorkRelationship.description,
-        releaseTrackId: getReleaseTrackKey(releaseTrackToWorkRelationship.releaseTrack!),
-        releaseTrackTitle: releaseTrackToWorkRelationship.releaseTrack!.title,
-        releaseTrackHref: `/catalog/releases/view?id=${releaseTrackToWorkRelationship.releaseId}`,
-        releaseTrackNumber: releaseTrackToWorkRelationship.releaseTrack!.trackNumber,
-        releaseMediaNumber: releaseTrackToWorkRelationship.releaseTrack!.mediaNumber,
-        dependentEntityId: releaseTrackToWorkRelationship.workId,
-        dependentEntityName: releaseTrackToWorkRelationship.work?.title ?? "",
-        dependentEntityHref: `/catalog/works/view?id=${releaseTrackToWorkRelationship.workId}`,
-      }))}
-    />
+    <ActionTab title={title}>
+      <ReleaseTrackRelationshipTable
+        dependentEntityColumnName="Work"
+        loading={releaseTrackToWorkRelationshipsLoading}
+        releaseTrackRelationships={releaseTrackToWorkRelationships.map((releaseTrackToWorkRelationship) => ({
+          name: releaseTrackToWorkRelationship.name,
+          description: releaseTrackToWorkRelationship.description,
+          releaseTrackId: getReleaseTrackKey(releaseTrackToWorkRelationship.releaseTrack!),
+          releaseTrackTitle: releaseTrackToWorkRelationship.releaseTrack!.title,
+          releaseTrackHref: `/catalog/releases/view?id=${releaseTrackToWorkRelationship.releaseId}`,
+          releaseTrackNumber: releaseTrackToWorkRelationship.releaseTrack!.trackNumber,
+          releaseMediaNumber: releaseTrackToWorkRelationship.releaseTrack!.mediaNumber,
+          dependentEntityId: releaseTrackToWorkRelationship.workId,
+          dependentEntityName: releaseTrackToWorkRelationship.work?.title ?? "",
+          dependentEntityHref: `/catalog/works/view?id=${releaseTrackToWorkRelationship.workId}`,
+        }))}
+      />
+    </ActionTab>
   );
 };
 

@@ -2,8 +2,11 @@ import { Checkbox, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { GenreRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import useApplicationClient from "../../../hooks/useApplicationClient";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface GenreViewPageGenreRelationshipsTabProps {
   id: string;
@@ -29,11 +32,13 @@ const GenreViewPageGenreRelationshipsTab = ({ id }: GenreViewPageGenreRelationsh
       });
   }, [id, includeReverseRelationships, applicationClient]);
 
+  const title = <Title level={5}>View Genre Relationships</Title>;
+
   return (
-    <>
-      <Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>
         <Checkbox onChange={(e) => setIncludeReverseRelationships(e.target.checked)}>Include reverse genre relationships</Checkbox>
-      </Typography.Paragraph>
+      </Paragraph>
       <EntityRelationshipTable
         entityColumnName="Genre"
         dependentEntityColumnName="Dependent Genre"
@@ -49,7 +54,7 @@ const GenreViewPageGenreRelationshipsTab = ({ id }: GenreViewPageGenreRelationsh
           dependentEntityHref: `/catalog/genres/view?id=${genreRelationship.dependentGenreId}`,
         }))}
       />
-    </>
+    </ActionTab>
   );
 };
 
