@@ -1,12 +1,14 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Product, ProductRelationship } from "../../../api/ApplicationClient";
 import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ProductEditPageProductRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ProductEditPageProductRelationshipsTabProps {
   product: Product;
@@ -21,18 +23,15 @@ const ProductEditPageProductRelationshipsTab = ({
   productRelationshipsLoading,
   setProductRelationships,
 }: ProductEditPageProductRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalTitleFilter, setModalTitleFilter] = useState<string>();
   const [modalDependentProducts, setModalDependentProducts] = useState<Product[]>([]);
   const [modalEntityRelationship, setModalEntityRelationship] = useState<ModalEntityRelationship>();
-  const [tableEntityRelationships, setTableEntityRelationships] = useState<TableEntityRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableEntityRelationships(
+  const tableEntityRelationships = useMemo(
+    () =>
       productRelationships.map((productRelationship) => ({
         name: productRelationship.name,
         description: productRelationship.description,
@@ -42,9 +41,9 @@ const ProductEditPageProductRelationshipsTab = ({
         dependentEntityId: productRelationship.dependentProductId,
         dependentEntityName: productRelationship.dependentProduct?.title ?? "",
         dependentEntityHref: `/catalog/products/view?id=${productRelationship.dependentProductId}`,
-      }))
-    );
-  }, [productRelationships, navigate]);
+      })),
+    [productRelationships]
+  );
 
   useEffect(() => {
     if (modalEntityRelationship) {
@@ -55,16 +54,14 @@ const ProductEditPageProductRelationshipsTab = ({
     }
   }, [modalEntityRelationship, applicationClient]);
 
-  const fetchModalDependentProducts = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedProducts(20, 0, modalTitleFilter, undefined)
+      .getPagedProducts(DefaultPageSize, 0, modalTitleFilter, undefined)
       .then((pageResult) => setModalDependentProducts(pageResult.items))
       .catch((error) => alert(error));
   }, [modalTitleFilter, applicationClient]);
 
-  useEffect(() => fetchModalDependentProducts(), [fetchModalDependentProducts]);
-
-  const onCreateProductRelationshipButtonClick = () => {
+  const onProductRelationshipCreate = () => {
     setModalEntityRelationship(undefined);
     setModalOpen(true);
   };
@@ -78,91 +75,94 @@ const ProductEditPageProductRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onProductRelationshipDelete = (entityRelationship: TableEntityRelationship) => {
-    setProductRelationships(
-      productRelationships.filter((productRelationship) => productRelationship.dependentProductId !== entityRelationship.dependentEntityId)
-    );
-  };
-
-  const onEntityRelationshipsChange = (entityRelationships: TableEntityRelationship[]) => {
-    const getProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (productRelationships) {
-      const productRelationshipsMap = new Map<string, ProductRelationship>();
-      for (const productRelationship of productRelationships) {
-        productRelationshipsMap.set(getProductRelationshipKey(productRelationship.productId, productRelationship.dependentProductId), productRelationship);
-      }
+  const onProductRelationshipDelete = useCallback(
+    (entityRelationship: TableEntityRelationship) => {
       setProductRelationships(
-        entityRelationships.map(
-          (entityRelationship) =>
-            productRelationshipsMap.get(getProductRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as ProductRelationship
-        )
+        productRelationships.filter((productRelationship) => productRelationship.dependentProductId !== entityRelationship.dependentEntityId)
       );
-    }
-  };
+    },
+    [productRelationships, setProductRelationships]
+  );
 
-  const onModalOk = (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
-    const existingEntityRelationship = productRelationships.find(
-      (productRelationship) => productRelationship.dependentProductId === entityRelationship.dependentEntityId
-    );
-    if (existingEntityRelationship && !modalEntityRelationship) {
-      alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentProduct?.title}' product.`);
-      return;
-    }
-    applicationClient.getProduct(entityRelationship.dependentEntityId).then((dependentProduct) => {
-      const resultProductRelationship = new ProductRelationship({
-        name: entityRelationship.name,
-        description: entityRelationship.description,
-        productId: product.id,
-        dependentProductId: dependentProduct.id,
-        product: product,
-        dependentProduct: dependentProduct,
-      });
-      if (modalEntityRelationship) {
+  const onEntityRelationshipsOrderChange = useCallback(
+    (entityRelationships: TableEntityRelationship[]) => {
+      const getProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (productRelationships) {
+        const productRelationshipsMap = new Map<string, ProductRelationship>();
+        for (const productRelationship of productRelationships) {
+          productRelationshipsMap.set(getProductRelationshipKey(productRelationship.productId, productRelationship.dependentProductId), productRelationship);
+        }
         setProductRelationships(
-          productRelationships.map((productRelationship) => {
-            if (productRelationship.dependentProductId === modalEntityRelationship.dependentEntityId) {
-              return resultProductRelationship;
-            } else {
-              return productRelationship;
-            }
-          })
+          entityRelationships.map(
+            (entityRelationship) =>
+              productRelationshipsMap.get(getProductRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)) as ProductRelationship
+          )
         );
-      } else {
-        setProductRelationships([...productRelationships, resultProductRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [productRelationships, setProductRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
+      const existingEntityRelationship = productRelationships.find(
+        (productRelationship) => productRelationship.dependentProductId === entityRelationship.dependentEntityId
+      );
+      if (existingEntityRelationship && !modalEntityRelationship) {
+        alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentProduct?.title}' product.`);
+        return;
+      }
+      applicationClient.getProduct(entityRelationship.dependentEntityId).then((dependentProduct) => {
+        const resultProductRelationship = new ProductRelationship({
+          name: entityRelationship.name,
+          description: entityRelationship.description,
+          productId: product.id,
+          dependentProductId: dependentProduct.id,
+          product: product,
+          dependentProduct: dependentProduct,
+        });
+        if (modalEntityRelationship) {
+          setProductRelationships(
+            productRelationships.map((productRelationship) => {
+              if (productRelationship.dependentProductId === modalEntityRelationship.dependentEntityId) {
+                return resultProductRelationship;
+              } else {
+                return productRelationship;
+              }
+            })
+          );
+        } else {
+          setProductRelationships([...productRelationships, resultProductRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [product, productRelationships, setProductRelationships, modalEntityRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (title?: string) => {
-    setModalTitleFilter(title);
+  const onSearchDependentEntities = (titleFilter?: string) => {
+    setModalTitleFilter(titleFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Product Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the product relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateProductRelationshipButtonClick}>
-          Create a Product Relationship
-        </Button>
-      </Space>
-      <EntityRelationshipTable
-        editMode
-        entityColumnName="Product"
-        dependentEntityColumnName="Dependent Product"
-        loading={productRelationshipsLoading}
-        entityRelationships={tableEntityRelationships}
-        onEntityRelationshipEdit={onProductRelationshipEdit}
-        onEntityRelationshipDelete={onProductRelationshipDelete}
-        onEntityRelationshipsChange={onEntityRelationshipsChange}
-      />
+      <Button type="primary" onClick={onProductRelationshipCreate}>
+        Create Product Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditEntityRelationshipModal
         title="Create Product Relationship"
         dependentEntityName="Dependent Product"
@@ -172,8 +172,25 @@ const ProductEditPageProductRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalDependentProducts, modalEntityRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the product relationships are displayed by dragging them.</Paragraph>
+      <EntityRelationshipTable
+        editMode
+        entityColumnName="Product"
+        dependentEntityColumnName="Dependent Product"
+        loading={productRelationshipsLoading}
+        entityRelationships={tableEntityRelationships}
+        onEntityRelationshipEdit={onProductRelationshipEdit}
+        onEntityRelationshipDelete={onProductRelationshipDelete}
+        onEntityRelationshipsChange={onEntityRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

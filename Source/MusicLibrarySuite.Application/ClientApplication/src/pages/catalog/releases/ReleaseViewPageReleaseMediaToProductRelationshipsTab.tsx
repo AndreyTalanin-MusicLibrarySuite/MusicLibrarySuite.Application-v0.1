@@ -1,8 +1,13 @@
+import { Typography } from "antd";
 import { useEffect, useState } from "react";
 import { ReleaseMediaToProductRelationship } from "../../../api/ApplicationClient";
 import ReleaseMediaRelationshipTable from "../../../components/tables/ReleaseMediaRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import { getReleaseMediaKey } from "../../../helpers/releaseMediaHelpers";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import "antd/dist/antd.min.css";
+
+const { Title } = Typography;
 
 export interface ReleaseViewPageReleaseMediaToProductRelationshipsTabProps {
   id: string;
@@ -27,22 +32,26 @@ const ReleaseViewPageReleaseMediaToProductRelationshipsTab = ({ id }: ReleaseVie
       });
   }, [id, applicationClient]);
 
+  const title = <Title level={5}>View Release-Media-to-Product Relationships</Title>;
+
   return (
-    <ReleaseMediaRelationshipTable
-      dependentEntityColumnName="Product"
-      loading={releaseMediaToProductRelationshipsLoading}
-      releaseMediaRelationships={releaseMediaToProductRelationships.map((releaseMediaToProductRelationship) => ({
-        name: releaseMediaToProductRelationship.name,
-        description: releaseMediaToProductRelationship.description,
-        releaseMediaId: getReleaseMediaKey(releaseMediaToProductRelationship.releaseMedia!),
-        releaseMediaTitle: releaseMediaToProductRelationship.releaseMedia!.title,
-        releaseMediaHref: `/catalog/releases/view?id=${releaseMediaToProductRelationship.releaseId}`,
-        releaseMediaNumber: releaseMediaToProductRelationship.releaseMedia!.mediaNumber,
-        dependentEntityId: releaseMediaToProductRelationship.productId,
-        dependentEntityName: releaseMediaToProductRelationship.product?.title ?? "",
-        dependentEntityHref: `/catalog/products/view?id=${releaseMediaToProductRelationship.productId}`,
-      }))}
-    />
+    <ActionTab title={title}>
+      <ReleaseMediaRelationshipTable
+        dependentEntityColumnName="Product"
+        loading={releaseMediaToProductRelationshipsLoading}
+        releaseMediaRelationships={releaseMediaToProductRelationships.map((releaseMediaToProductRelationship) => ({
+          name: releaseMediaToProductRelationship.name,
+          description: releaseMediaToProductRelationship.description,
+          releaseMediaId: getReleaseMediaKey(releaseMediaToProductRelationship.releaseMedia!),
+          releaseMediaTitle: releaseMediaToProductRelationship.releaseMedia!.title,
+          releaseMediaHref: `/catalog/releases/view?id=${releaseMediaToProductRelationship.releaseId}`,
+          releaseMediaNumber: releaseMediaToProductRelationship.releaseMedia!.mediaNumber,
+          dependentEntityId: releaseMediaToProductRelationship.productId,
+          dependentEntityName: releaseMediaToProductRelationship.product?.title ?? "",
+          dependentEntityHref: `/catalog/products/view?id=${releaseMediaToProductRelationship.productId}`,
+        }))}
+      />
+    </ActionTab>
   );
 };
 

@@ -1,12 +1,14 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Button, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReleaseGroup, ReleaseGroupRelationship } from "../../../api/ApplicationClient";
 import EditEntityRelationshipModal, { EntityRelationship as ModalEntityRelationship } from "../../../components/modals/EditEntityRelationshipModal";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
+import { DefaultPageSize } from "../../../constants/applicationConstants";
 import useApplicationClient from "../../../hooks/useApplicationClient";
-import styles from "./ReleaseGroupEditPageReleaseGroupRelationshipsTab.module.css";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ReleaseGroupEditPageReleaseGroupRelationshipsTabProps {
   releaseGroup: ReleaseGroup;
@@ -21,18 +23,15 @@ const ReleaseGroupEditPageReleaseGroupRelationshipsTab = ({
   releaseGroupRelationshipsLoading,
   setReleaseGroupRelationships,
 }: ReleaseGroupEditPageReleaseGroupRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalTitleFilter, setModalTitleFilter] = useState<string>();
   const [modalDependentReleaseGroups, setModalDependentReleaseGroups] = useState<ReleaseGroup[]>([]);
   const [modalEntityRelationship, setModalEntityRelationship] = useState<ModalEntityRelationship>();
-  const [tableEntityRelationships, setTableEntityRelationships] = useState<TableEntityRelationship[]>([]);
 
   const applicationClient = useApplicationClient();
 
-  useEffect(() => {
-    setTableEntityRelationships(
+  const tableEntityRelationships = useMemo(
+    () =>
       releaseGroupRelationships.map((releaseGroupRelationship) => ({
         name: releaseGroupRelationship.name,
         description: releaseGroupRelationship.description,
@@ -42,9 +41,9 @@ const ReleaseGroupEditPageReleaseGroupRelationshipsTab = ({
         dependentEntityId: releaseGroupRelationship.dependentReleaseGroupId,
         dependentEntityName: releaseGroupRelationship.dependentReleaseGroup?.title ?? "",
         dependentEntityHref: `/catalog/releaseGroups/view?id=${releaseGroupRelationship.dependentReleaseGroupId}`,
-      }))
-    );
-  }, [releaseGroupRelationships, navigate]);
+      })),
+    [releaseGroupRelationships]
+  );
 
   useEffect(() => {
     if (modalEntityRelationship) {
@@ -55,16 +54,14 @@ const ReleaseGroupEditPageReleaseGroupRelationshipsTab = ({
     }
   }, [modalEntityRelationship, applicationClient]);
 
-  const fetchModalDependentReleaseGroups = useCallback(() => {
+  useEffect(() => {
     applicationClient
-      .getPagedReleaseGroups(20, 0, modalTitleFilter, undefined)
+      .getPagedReleaseGroups(DefaultPageSize, 0, modalTitleFilter, undefined)
       .then((pageResult) => setModalDependentReleaseGroups(pageResult.items))
       .catch((error) => alert(error));
   }, [modalTitleFilter, applicationClient]);
 
-  useEffect(() => fetchModalDependentReleaseGroups(), [fetchModalDependentReleaseGroups]);
-
-  const onCreateReleaseGroupRelationshipButtonClick = () => {
+  const onReleaseGroupRelationshipCreate = () => {
     setModalEntityRelationship(undefined);
     setModalOpen(true);
   };
@@ -78,96 +75,101 @@ const ReleaseGroupEditPageReleaseGroupRelationshipsTab = ({
     setModalOpen(true);
   };
 
-  const onReleaseGroupRelationshipDelete = (entityRelationship: TableEntityRelationship) => {
-    setReleaseGroupRelationships(
-      releaseGroupRelationships.filter((releaseGroupRelationship) => releaseGroupRelationship.dependentReleaseGroupId !== entityRelationship.dependentEntityId)
-    );
-  };
-
-  const onEntityRelationshipsChange = (entityRelationships: TableEntityRelationship[]) => {
-    const getReleaseGroupRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (releaseGroupRelationships) {
-      const releaseGroupRelationshipsMap = new Map<string, ReleaseGroupRelationship>();
-      for (const releaseGroupRelationship of releaseGroupRelationships) {
-        releaseGroupRelationshipsMap.set(
-          getReleaseGroupRelationshipKey(releaseGroupRelationship.releaseGroupId, releaseGroupRelationship.dependentReleaseGroupId),
-          releaseGroupRelationship
-        );
-      }
+  const onReleaseGroupRelationshipDelete = useCallback(
+    (entityRelationship: TableEntityRelationship) => {
       setReleaseGroupRelationships(
-        entityRelationships.map(
-          (entityRelationship) =>
-            releaseGroupRelationshipsMap.get(
-              getReleaseGroupRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)
-            ) as ReleaseGroupRelationship
+        releaseGroupRelationships.filter(
+          (releaseGroupRelationship) => releaseGroupRelationship.dependentReleaseGroupId !== entityRelationship.dependentEntityId
         )
       );
-    }
-  };
+    },
+    [releaseGroupRelationships, setReleaseGroupRelationships]
+  );
 
-  const onModalOk = (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
-    const existingEntityRelationship = releaseGroupRelationships.find(
-      (releaseGroupRelationship) => releaseGroupRelationship.dependentReleaseGroupId === entityRelationship.dependentEntityId
-    );
-    if (existingEntityRelationship && !modalEntityRelationship) {
-      alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentReleaseGroup?.title}' release group.`);
-      return;
-    }
-    applicationClient.getReleaseGroup(entityRelationship.dependentEntityId).then((dependentReleaseGroup) => {
-      const resultReleaseGroupRelationship = new ReleaseGroupRelationship({
-        name: entityRelationship.name,
-        description: entityRelationship.description,
-        releaseGroupId: releaseGroup.id,
-        dependentReleaseGroupId: dependentReleaseGroup.id,
-        releaseGroup: releaseGroup,
-        dependentReleaseGroup: dependentReleaseGroup,
-      });
-      if (modalEntityRelationship) {
+  const onEntityRelationshipsOrderChange = useCallback(
+    (entityRelationships: TableEntityRelationship[]) => {
+      const getReleaseGroupRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (releaseGroupRelationships) {
+        const releaseGroupRelationshipsMap = new Map<string, ReleaseGroupRelationship>();
+        for (const releaseGroupRelationship of releaseGroupRelationships) {
+          releaseGroupRelationshipsMap.set(
+            getReleaseGroupRelationshipKey(releaseGroupRelationship.releaseGroupId, releaseGroupRelationship.dependentReleaseGroupId),
+            releaseGroupRelationship
+          );
+        }
         setReleaseGroupRelationships(
-          releaseGroupRelationships.map((releaseGroupRelationship) => {
-            if (releaseGroupRelationship.dependentReleaseGroupId === modalEntityRelationship.dependentEntityId) {
-              return resultReleaseGroupRelationship;
-            } else {
-              return releaseGroupRelationship;
-            }
-          })
+          entityRelationships.map(
+            (entityRelationship) =>
+              releaseGroupRelationshipsMap.get(
+                getReleaseGroupRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)
+              ) as ReleaseGroupRelationship
+          )
         );
-      } else {
-        setReleaseGroupRelationships([...releaseGroupRelationships, resultReleaseGroupRelationship]);
       }
-      setModalOpen(false);
-      resetFormFields();
-    });
-  };
+    },
+    [releaseGroupRelationships, setReleaseGroupRelationships]
+  );
+
+  const onModalOk = useCallback(
+    (entityRelationship: ModalEntityRelationship, resetFormFields: () => void) => {
+      const existingEntityRelationship = releaseGroupRelationships.find(
+        (releaseGroupRelationship) => releaseGroupRelationship.dependentReleaseGroupId === entityRelationship.dependentEntityId
+      );
+      if (existingEntityRelationship && !modalEntityRelationship) {
+        alert(`Unable to create a non-unique relationship with the '${existingEntityRelationship.dependentReleaseGroup?.title}' release group.`);
+        return;
+      }
+      applicationClient.getReleaseGroup(entityRelationship.dependentEntityId).then((dependentReleaseGroup) => {
+        const resultReleaseGroupRelationship = new ReleaseGroupRelationship({
+          name: entityRelationship.name,
+          description: entityRelationship.description,
+          releaseGroupId: releaseGroup.id,
+          dependentReleaseGroupId: dependentReleaseGroup.id,
+          releaseGroup: releaseGroup,
+          dependentReleaseGroup: dependentReleaseGroup,
+        });
+        if (modalEntityRelationship) {
+          setReleaseGroupRelationships(
+            releaseGroupRelationships.map((releaseGroupRelationship) => {
+              if (releaseGroupRelationship.dependentReleaseGroupId === modalEntityRelationship.dependentEntityId) {
+                return resultReleaseGroupRelationship;
+              } else {
+                return releaseGroupRelationship;
+              }
+            })
+          );
+        } else {
+          setReleaseGroupRelationships([...releaseGroupRelationships, resultReleaseGroupRelationship]);
+        }
+        setModalOpen(false);
+        resetFormFields();
+      });
+    },
+    [releaseGroup, releaseGroupRelationships, setReleaseGroupRelationships, modalEntityRelationship, applicationClient]
+  );
 
   const onModalCancel = () => {
     setModalOpen(false);
   };
 
-  const onSearchDependentEntities = (title?: string) => {
-    setModalTitleFilter(title);
+  const onSearchDependentEntities = (titleFilter?: string) => {
+    setModalTitleFilter(titleFilter);
   };
 
-  return (
+  const title = <Title level={5}>Edit Release Group Relationships</Title>;
+
+  const actionButtons = (
     <>
-      <Space className={styles.tabParagraph} direction="horizontal" align="baseline">
-        <Typography.Paragraph>You can adjust order in which the release group relationships are displayed by dragging them.</Typography.Paragraph>
-        <Button type="primary" onClick={onCreateReleaseGroupRelationshipButtonClick}>
-          Create a Release Group Relationship
-        </Button>
-      </Space>
-      <EntityRelationshipTable
-        editMode
-        entityColumnName="Release Group"
-        dependentEntityColumnName="Dependent Release Group"
-        loading={releaseGroupRelationshipsLoading}
-        entityRelationships={tableEntityRelationships}
-        onEntityRelationshipEdit={onReleaseGroupRelationshipEdit}
-        onEntityRelationshipDelete={onReleaseGroupRelationshipDelete}
-        onEntityRelationshipsChange={onEntityRelationshipsChange}
-      />
+      <Button type="primary" onClick={onReleaseGroupRelationshipCreate}>
+        Create Release Group Relationship
+      </Button>
+    </>
+  );
+
+  const modals = useMemo(
+    () => [
       <EditEntityRelationshipModal
         title="Create Release Group Relationship"
         dependentEntityName="Dependent Release Group"
@@ -177,8 +179,25 @@ const ReleaseGroupEditPageReleaseGroupRelationshipsTab = ({
         onOk={onModalOk}
         onCancel={onModalCancel}
         onSearchDependentEntityOptions={onSearchDependentEntities}
+      />,
+    ],
+    [modalOpen, modalDependentReleaseGroups, modalEntityRelationship, onModalOk]
+  );
+
+  return (
+    <ActionTab title={title} actionButtons={actionButtons} modals={modals}>
+      <Paragraph>You can adjust order in which the release group relationships are displayed by dragging them.</Paragraph>
+      <EntityRelationshipTable
+        editMode
+        entityColumnName="Release Group"
+        dependentEntityColumnName="Dependent Release Group"
+        loading={releaseGroupRelationshipsLoading}
+        entityRelationships={tableEntityRelationships}
+        onEntityRelationshipEdit={onReleaseGroupRelationshipEdit}
+        onEntityRelationshipDelete={onReleaseGroupRelationshipDelete}
+        onEntityRelationshipsChange={onEntityRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 

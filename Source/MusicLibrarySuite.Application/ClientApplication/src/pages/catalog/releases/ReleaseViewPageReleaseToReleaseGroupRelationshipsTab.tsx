@@ -1,7 +1,12 @@
+import { Typography } from "antd";
 import { useEffect, useState } from "react";
 import { ReleaseToReleaseGroupRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import useApplicationClient from "../../../hooks/useApplicationClient";
+import "antd/dist/antd.min.css";
+
+const { Title } = Typography;
 
 export interface ReleaseViewPageReleaseToReleaseGroupRelationshipsTabProps {
   id: string;
@@ -26,22 +31,26 @@ const ReleaseViewPageReleaseToReleaseGroupRelationshipsTab = ({ id }: ReleaseVie
       });
   }, [id, applicationClient]);
 
+  const title = <Title level={5}>View Release-to-Release-Group Relationships</Title>;
+
   return (
-    <EntityRelationshipTable
-      entityColumnName="Release"
-      dependentEntityColumnName="Release Group"
-      loading={releaseToReleaseGroupRelationshipsLoading}
-      entityRelationships={releaseToReleaseGroupRelationships.map((releaseToReleaseGroupRelationship) => ({
-        name: releaseToReleaseGroupRelationship.name,
-        description: releaseToReleaseGroupRelationship.description,
-        entityId: releaseToReleaseGroupRelationship.releaseId,
-        entityName: releaseToReleaseGroupRelationship.release?.title ?? "",
-        entityHref: `/catalog/releases/view?id=${releaseToReleaseGroupRelationship.releaseId}`,
-        dependentEntityId: releaseToReleaseGroupRelationship.releaseGroupId,
-        dependentEntityName: releaseToReleaseGroupRelationship.releaseGroup?.title ?? "",
-        dependentEntityHref: `/catalog/releaseGroups/view?id=${releaseToReleaseGroupRelationship.releaseGroupId}`,
-      }))}
-    />
+    <ActionTab title={title}>
+      <EntityRelationshipTable
+        entityColumnName="Release"
+        dependentEntityColumnName="Release Group"
+        loading={releaseToReleaseGroupRelationshipsLoading}
+        entityRelationships={releaseToReleaseGroupRelationships.map((releaseToReleaseGroupRelationship) => ({
+          name: releaseToReleaseGroupRelationship.name,
+          description: releaseToReleaseGroupRelationship.description,
+          entityId: releaseToReleaseGroupRelationship.releaseId,
+          entityName: releaseToReleaseGroupRelationship.release?.title ?? "",
+          entityHref: `/catalog/releases/view?id=${releaseToReleaseGroupRelationship.releaseId}`,
+          dependentEntityId: releaseToReleaseGroupRelationship.releaseGroupId,
+          dependentEntityName: releaseToReleaseGroupRelationship.releaseGroup?.title ?? "",
+          dependentEntityHref: `/catalog/releaseGroups/view?id=${releaseToReleaseGroupRelationship.releaseGroupId}`,
+        }))}
+      />
+    </ActionTab>
   );
 };
 

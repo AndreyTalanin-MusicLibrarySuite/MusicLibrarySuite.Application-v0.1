@@ -1,9 +1,11 @@
 import { Typography } from "antd";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useCallback, useMemo } from "react";
 import { WorkToProductRelationship } from "../../../api/ApplicationClient";
 import EntityRelationshipTable, { EntityRelationship as TableEntityRelationship } from "../../../components/tables/EntityRelationshipTable";
+import ActionTab from "../../../components/tabs/ActionTab";
 import "antd/dist/antd.min.css";
+
+const { Paragraph, Title } = Typography;
 
 export interface ProductEditPageWorkToProductRelationshipsTabProps {
   workToProductRelationships: WorkToProductRelationship[];
@@ -16,12 +18,8 @@ const ProductEditPageWorkToProductRelationshipsTab = ({
   workToProductRelationshipsLoading,
   setWorkToProductRelationships,
 }: ProductEditPageWorkToProductRelationshipsTabProps) => {
-  const navigate = useNavigate();
-
-  const [tableEntityRelationships, setTableEntityRelationships] = useState<TableEntityRelationship[]>([]);
-
-  useEffect(() => {
-    setTableEntityRelationships(
+  const tableEntityRelationships = useMemo(
+    () =>
       workToProductRelationships.map((workToProductRelationship) => ({
         name: workToProductRelationship.name,
         description: workToProductRelationship.description,
@@ -31,45 +29,50 @@ const ProductEditPageWorkToProductRelationshipsTab = ({
         dependentEntityId: workToProductRelationship.productId,
         dependentEntityName: workToProductRelationship.product?.title ?? "",
         dependentEntityHref: `/catalog/products/view?id=${workToProductRelationship.productId}`,
-      }))
-    );
-  }, [workToProductRelationships, navigate]);
+      })),
+    [workToProductRelationships]
+  );
 
-  const onEntityRelationshipsChange = (entityRelationships: TableEntityRelationship[]) => {
-    const getWorkToProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
-      return `(${entityId}, ${dependentEntityId})`;
-    };
-    if (workToProductRelationships) {
-      const workToProductRelationshipsMap = new Map<string, WorkToProductRelationship>();
-      for (const workToProductRelationship of workToProductRelationships) {
-        workToProductRelationshipsMap.set(
-          getWorkToProductRelationshipKey(workToProductRelationship.workId, workToProductRelationship.productId),
-          workToProductRelationship
+  const onEntityRelationshipsOrderChange = useCallback(
+    (entityRelationships: TableEntityRelationship[]) => {
+      const getWorkToProductRelationshipKey = (entityId: string, dependentEntityId: string) => {
+        return `(${entityId}, ${dependentEntityId})`;
+      };
+      if (workToProductRelationships) {
+        const workToProductRelationshipsMap = new Map<string, WorkToProductRelationship>();
+        for (const workToProductRelationship of workToProductRelationships) {
+          workToProductRelationshipsMap.set(
+            getWorkToProductRelationshipKey(workToProductRelationship.workId, workToProductRelationship.productId),
+            workToProductRelationship
+          );
+        }
+        setWorkToProductRelationships(
+          entityRelationships.map(
+            (entityRelationship) =>
+              workToProductRelationshipsMap.get(
+                getWorkToProductRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)
+              ) as WorkToProductRelationship
+          )
         );
       }
-      setWorkToProductRelationships(
-        entityRelationships.map(
-          (entityRelationship) =>
-            workToProductRelationshipsMap.get(
-              getWorkToProductRelationshipKey(entityRelationship.entityId, entityRelationship.dependentEntityId)
-            ) as WorkToProductRelationship
-        )
-      );
-    }
-  };
+    },
+    [workToProductRelationships, setWorkToProductRelationships]
+  );
+
+  const title = <Title level={5}>Reorder Work-to-Product Relationships</Title>;
 
   return (
-    <>
-      <Typography.Paragraph>You can adjust order in which the work-to-product relationships are displayed by dragging them.</Typography.Paragraph>
+    <ActionTab title={title}>
+      <Paragraph>You can adjust order in which the work-to-product relationships are displayed by dragging them.</Paragraph>
       <EntityRelationshipTable
         reorderMode
         entityColumnName="Work"
         dependentEntityColumnName="Product"
         loading={workToProductRelationshipsLoading}
         entityRelationships={tableEntityRelationships}
-        onEntityRelationshipsChange={onEntityRelationshipsChange}
+        onEntityRelationshipsChange={onEntityRelationshipsOrderChange}
       />
-    </>
+    </ActionTab>
   );
 };
 
